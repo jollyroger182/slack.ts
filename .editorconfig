@@ -1,5 +1,5 @@
 root = true
 
-[*.{ts,js,json,jsonc,yml}]
+[*.{ts,js,json,jsonc,yml,md}]
 indent_size = 2
 indent_style = tab

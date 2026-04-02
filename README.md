@@ -1,15 +1,15 @@
-# slack.js
+# slack.ts
 
-To install dependencies:
+An opinionated Slack API library with full TypeScript support.
 
-```bash
-bun install
+## Usage
+
+```typescript
+import { App } from 'slack.ts'
+
+const app = new App({
+	token: process.env.SLACK_BOT_TOKEN
+})
+
+await app.channel('C0123456ABC').send('Hello, slack.ts!')
 ```
-
-To run:
-
-```bash
-bun run src/index.ts
-```
-
-This project was created using `bun init` in bun v1.3.6. [Bun](https://bun.com) is a fast all-in-one JavaScript runtime.
