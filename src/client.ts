@@ -1,4 +1,4 @@
-import { sleep } from 'bun'
+import { sleep } from './utils'
 import { ChannelRef } from './resources/channel'
 import { SlackWebAPIError, SlackWebAPIPlatformError } from './error'
 import type { SlackAPIMethod, SlackAPIParams, SlackAPIResponse } from './api'
@@ -15,7 +15,9 @@ export class App {
 	}
 
 	/**
-	 * Gets a channel reference object. You can use this object to call API methods, or `await` it to fetch channel details.
+	 * Gets a channel reference object. You can use this object to call API methods, or `await` it to
+	 * fetch channel details.
+	 *
 	 * @param id Channel ID
 	 * @returns A channel reference object
 	 */
