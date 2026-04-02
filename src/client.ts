@@ -1,6 +1,7 @@
 import { sleep } from 'bun'
 import { ChannelRef } from './resources/channel'
-import { SlackWebAPIError } from './error'
+import { SlackWebAPIError, SlackWebAPIPlatformError } from './error'
+import type { SlackAPIMethod, SlackAPIParams, SlackAPIResponse } from './api'
 
 interface AppOptions {
 	token?: string
@@ -13,23 +14,32 @@ export class App {
 		this.#token = token
 	}
 
+	/**
+	 * Gets a channel reference object. You can use this object to call API methods, or `await` it to fetch channel details.
+	 * @param id Channel ID
+	 * @returns A channel reference object
+	 */
 	channel(id: string) {
 		return new ChannelRef(this, id)
 	}
 
 	/** @internal */
-	request<T>(endpoint: string, params?: object, method = 'GET'): Promise<T> {
+	async request<Method extends SlackAPIMethod>(
+		endpoint: Method,
+		params: SlackAPIParams<Method>,
+		method = 'GET',
+	): Promise<SlackAPIResponse<Method> & { ok: true }> {
 		const body = method !== 'GET' ? JSON.stringify(params) : undefined
 
 		const url = new URL(`https://slack.com/api/${endpoint}`)
 		if (method === 'GET' && params) {
 			for (const [key, value] of Object.entries(params)) {
-				if (typeof value === 'string') {
-					url.searchParams.set(key, value)
-				} else if (value instanceof Array) {
+				if (value instanceof Array) {
 					for (const item of value) {
 						url.searchParams.append(key, item)
 					}
+				} else {
+					url.searchParams.set(key, String(value))
 				}
 			}
 		}
@@ -42,7 +52,13 @@ export class App {
 			headers.append('Authorization', `Bearer ${this.#token}`)
 		}
 
-		return request<T>(url.toString(), { method, body, headers })
+		const res = await request<SlackAPIResponse<Method>>(url.toString(), { method, body, headers })
+
+		if (!res.ok) {
+			throw new SlackWebAPIPlatformError(url.toString(), res, res.error)
+		}
+
+		return res
 	}
 }
 

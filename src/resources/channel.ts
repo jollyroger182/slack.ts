@@ -1,3 +1,4 @@
+import type { Conversation } from '../api/types/conversation'
 import type { App } from '../client'
 
 class ChannelMixin {
@@ -25,19 +26,19 @@ export class ChannelRef extends ChannelMixin implements PromiseLike<Channel> {
 
 	async #fetch(): Promise<Channel> {
 		const data = await this.client.request('conversations.info', { channel: this.id })
-		return new Channel(this.client, this.id, data)
+		return new Channel(this.client, this.id, data.channel)
 	}
 }
 
 export class Channel extends ChannelMixin {
-	#data: unknown
+	#data: Conversation
 
-	constructor(client: App, id: string, data: unknown) {
+	constructor(client: App, id: string, data: Conversation) {
 		super(client, id)
 		this.#data = data
 	}
 
 	get name() {
-		return this.#data.channel.name
+		return this.#data.name
 	}
 }
