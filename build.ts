@@ -18,5 +18,8 @@ await Bun.build({
 	naming: '[name].cjs',
 })
 
-const proc = Bun.spawnSync(['bunx', 'tsc', '-p', 'tsconfig.build.json'])
+const proc = Bun.spawnSync(['bunx', 'tsc', '-p', 'tsconfig.build.json'], {
+	stdout: 'inherit',
+	stderr: 'inherit',
+})
 if (!proc.success) process.exit(1)
