@@ -42,5 +42,8 @@
 	},
 	"engines": {
 		"node": ">=18"
+	},
+	"dependencies": {
+		"@slack/types": "^2.20.1"
 	}
 }

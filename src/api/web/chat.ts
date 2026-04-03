@@ -1,5 +1,7 @@
 // chat.postMessage
 
+import type { NormalMessage } from '../types/message'
+
 interface MarkdownMessage {
 	markdown_text: string
 	blocks?: never
@@ -31,5 +33,5 @@ export type ChatPostMessageParams = {
 export interface ChatPostMessageResponse {
 	channel: string
 	ts: string
-	message: unknown
+	message: NormalMessage
 }

@@ -1,9 +1,24 @@
 import type { ChatPostMessageParams, ChatPostMessageResponse } from './web/chat'
-import type { ConversationsInfoParams, ConversationsInfoResponse } from './web/conversations'
+import type {
+	ConversationsInfoParams,
+	ConversationsInfoResponse,
+	ConversationsRepliesParams,
+	ConversationsRepliesResponse,
+} from './web/conversations'
 
 export interface SlackWebAPIMap {
-	'chat.postMessage': { params: ChatPostMessageParams; response: ChatPostMessageResponse }
-	'conversations.info': { params: ConversationsInfoParams; response: ConversationsInfoResponse }
+	'chat.postMessage': {
+		params: ChatPostMessageParams
+		response: ChatPostMessageResponse
+	}
+	'conversations.info': {
+		params: ConversationsInfoParams
+		response: ConversationsInfoResponse
+	}
+	'conversations.replies': {
+		params: ConversationsRepliesParams
+		response: ConversationsRepliesResponse
+	}
 }
 
 export type SlackAPIMethod = keyof SlackWebAPIMap
