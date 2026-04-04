@@ -7,9 +7,8 @@ import {
 	type SendMessageWithFiles,
 	type SendMessageWithoutFiles,
 } from '../utils/messaging'
+import type { DistributiveOmit } from '../utils/typing'
 import { Message, MessageRef, type MessageInstance } from './message'
-
-type OmitChannel<T> = T extends any ? Omit<T, 'channel'> : never
 
 class ChannelMixin {
 	#id: string
@@ -32,7 +31,7 @@ class ChannelMixin {
 	 * @param message The message payload to send, including the files to upload. `text` will be
 	 *   ignored if `blocks` are provided.
 	 */
-	async send(message: OmitChannel<SendMessageWithFiles>): Promise<undefined>
+	async send(message: DistributiveOmit<SendMessageWithFiles, 'channel'>): Promise<undefined>
 
 	/**
 	 * Sends a message in the channel.
@@ -41,10 +40,10 @@ class ChannelMixin {
 	 * @returns The sent message
 	 */
 	async send(
-		message: OmitChannel<SendMessageWithoutFiles> | string,
+		message: DistributiveOmit<SendMessageWithoutFiles, 'channel'> | string,
 	): Promise<MessageInstance<NormalMessage>>
 
-	async send(message: OmitChannel<SendMessageParams> | string) {
+	async send(message: DistributiveOmit<SendMessageParams, 'channel'> | string) {
 		if (typeof message === 'string') {
 			message = { text: message }
 		}
