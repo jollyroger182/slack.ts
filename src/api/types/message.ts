@@ -2,8 +2,30 @@ import type { KnownBlock } from '@slack/types'
 
 // objects
 
-export interface Attachment {
+export type Attachment = {
 	blocks?: KnownBlock[]
+	color?: 'good' | 'warning' | 'danger' | string
+	author_icon?: string
+	author_link?: string
+	author_name?: string
+	fallback?: string
+	fields?: AttachmentField[]
+	footer?: string
+	footer_icon?: string
+	image_url?: string
+	mrkdwn_in?: string[]
+	pretext?: string
+	text?: string
+	thumb_url?: string
+	title?: string
+	title_link?: string
+	ts?: string
+} & ({ blocks: KnownBlock[] } | { fallback: string } | { text: string })
+
+export interface AttachmentField {
+	title?: string
+	value?: string
+	short?: boolean
 }
 
 export interface BotProfile {
@@ -28,22 +50,29 @@ interface MaybeAttachments {
 	attachments: Attachment[]
 }
 
+interface MaybeBlocks {
+	blocks?: KnownBlock[]
+}
+
 interface MessageCommon {
 	type: 'message'
 	ts: string
 	subtype?: string
+	thread_ts?: string
 	text?: string
 	user?: string
 }
 
 // message subtypes
 
-export interface NormalMessage extends MessageCommon, MaybeBot, MaybeAttachments {
+export interface NormalMessage extends MessageCommon, MaybeBot, MaybeAttachments, MaybeBlocks {
 	subtype?: never
 
 	user: string
 	team: string
-	blocks?: KnownBlock[]
+	edited?: { user: string; ts: string }
+	client_msg_id?: string
+	parent_user_id?: string
 }
 
 export interface ChannelJoinMessage extends MessageCommon {

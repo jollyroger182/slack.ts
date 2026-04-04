@@ -1,5 +1,3 @@
-// chat.postMessage
-
 import type { NormalMessage } from '../types/message'
 
 interface MarkdownMessage {

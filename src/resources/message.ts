@@ -16,6 +16,7 @@ class MessageMixin {
 		this.#ts = ts
 	}
 
+	/** The channel where this message was sent */
 	get channel() {
 		return new ChannelRef(this.client, this.#channel)
 	}
@@ -24,6 +25,7 @@ class MessageMixin {
 		return this.#channel
 	}
 
+	/** Timestamp of the message */
 	get ts() {
 		return this.#ts
 	}
@@ -77,10 +79,12 @@ export class Message<Subtype extends AnyMessage = AnyMessage> extends MessageMix
 		})
 	}
 
+	/** @returns Whether this message is a normal message (subtype is undefined) */
 	isNormal(): this is Message<NormalMessage> {
 		return !this.#data.subtype
 	}
 
+	/** The raw data of this message */
 	get raw() {
 		return this.#data
 	}

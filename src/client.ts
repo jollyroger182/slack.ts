@@ -25,7 +25,14 @@ export class App {
 		return new ChannelRef(this, id)
 	}
 
-	/** @internal */
+	/**
+	 * Makes a Slack Web API request.
+	 *
+	 * @param endpoint The Slack Web API method to call
+	 * @param params The parameters for the method
+	 * @param [method='GET'] The HTTP method for the request. Default is `'GET'`
+	 * @returns The response from the API call
+	 */
 	async request<Method extends SlackAPIMethod>(
 		endpoint: Method,
 		params: SlackAPIParams<Method>,
@@ -50,8 +57,8 @@ export class App {
 		if (body) {
 			headers.append('Content-Type', 'application/json; charset=utf-8')
 		}
-		if (this.#token) {
-			headers.append('Authorization', `Bearer ${this.#token}`)
+		if (params.token || this.#token) {
+			headers.set('Authorization', `Bearer ${params.token || this.#token}`)
 		}
 
 		const res = await request<SlackAPIResponse<Method>>(url.toString(), { method, body, headers })

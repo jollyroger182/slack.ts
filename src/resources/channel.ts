@@ -1,7 +1,7 @@
 import type { Conversation } from '../api/types/conversation'
 import type { NormalMessage } from '../api/types/message'
 import type { App } from '../client'
-import { Message, type MessageInstance } from './message'
+import { Message, MessageRef, type MessageInstance } from './message'
 
 class ChannelMixin {
 	#id: string
@@ -13,10 +13,18 @@ class ChannelMixin {
 		this.#id = id
 	}
 
+	/** ID of the channel */
 	get id() {
 		return this.#id
 	}
 
+	/**
+	 * Sends a message in the channel
+	 *
+	 * @param message The message payload to send, either a mrkdwn-formatted string or an object.
+	 *   Including the `files` key in the object will upload the files and share them in the channel.
+	 * @returns The sent message
+	 */
 	async send(message: any) {
 		const data = await this.client.request('chat.postMessage', { ...message, channel: this.id })
 		return new Message(
@@ -26,19 +34,30 @@ class ChannelMixin {
 			data.message,
 		) as MessageInstance<NormalMessage>
 	}
+
+	/**
+	 * Gets a message reference object. You can use this object to call API methods, or `await` it to
+	 * fetch message details.
+	 *
+	 * @param ts The timestamp of the message
+	 * @returns A message reference object
+	 */
+	message(ts: string) {
+		return new MessageRef(this.client, this.#id, ts)
+	}
 }
 
-export class ChannelRef extends ChannelMixin implements PromiseLike<Channel> {
-	then<TResult1 = Channel, TResult2 = never>(
-		onfulfilled?: ((value: Channel) => TResult1 | PromiseLike<TResult1>) | null | undefined,
+export class ChannelRef extends ChannelMixin implements PromiseLike<ChannelInstance> {
+	then<TResult1 = ChannelInstance, TResult2 = never>(
+		onfulfilled?: ((value: ChannelInstance) => TResult1 | PromiseLike<TResult1>) | null | undefined,
 		onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | null | undefined,
 	): PromiseLike<TResult1 | TResult2> {
 		return this.#fetch().then(onfulfilled, onrejected)
 	}
 
-	async #fetch(): Promise<Channel> {
+	async #fetch(): Promise<ChannelInstance> {
 		const data = await this.client.request('conversations.info', { channel: this.id })
-		return new Channel(this.client, this.id, data.channel)
+		return new Channel(this.client, this.id, data.channel) as ChannelInstance
 	}
 }
 
@@ -55,8 +74,6 @@ export class Channel extends ChannelMixin {
 			},
 		})
 	}
-
-	get name() {
-		return this.#data.name
-	}
 }
+
+export type ChannelInstance = Channel & Conversation

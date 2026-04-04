@@ -11,5 +11,6 @@ const app = new App({
 	token: process.env.SLACK_BOT_TOKEN
 })
 
-await app.channel('C0123456ABC').send('Hello, slack.ts!')
+const message = await app.channel('C0123456ABC').send('Hello, slack.ts!')
+console.log("Message timestamp:", message.ts)
 ```

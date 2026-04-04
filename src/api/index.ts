@@ -1,3 +1,4 @@
+import type { AuthTestParams, AuthTestResponse } from './web/auth'
 import type { ChatPostMessageParams, ChatPostMessageResponse } from './web/chat'
 import type {
 	ConversationsInfoParams,
@@ -7,6 +8,10 @@ import type {
 } from './web/conversations'
 
 export interface SlackWebAPIMap {
+	'auth.test': {
+		params: AuthTestParams
+		response: AuthTestResponse
+	}
 	'chat.postMessage': {
 		params: ChatPostMessageParams
 		response: ChatPostMessageResponse
@@ -22,7 +27,9 @@ export interface SlackWebAPIMap {
 }
 
 export type SlackAPIMethod = keyof SlackWebAPIMap
-export type SlackAPIParams<Method extends SlackAPIMethod> = SlackWebAPIMap[Method]['params']
+export type SlackAPIParams<Method extends SlackAPIMethod> = SlackWebAPIMap[Method]['params'] & {
+	token?: string
+}
 export type SlackAPIResponse<Method extends SlackAPIMethod> =
 	| { ok: false; error: string }
 	| ({ ok: true } & SlackWebAPIMap[Method]['response'])
