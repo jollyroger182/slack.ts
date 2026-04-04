@@ -1,4 +1,5 @@
-import type { NormalMessage } from '../types/message'
+import type { KnownBlock } from '@slack/types'
+import type { Attachment, NormalMessage } from '../types/message'
 
 interface MarkdownMessage {
 	markdown_text: string
@@ -8,13 +9,13 @@ interface MarkdownMessage {
 
 type TextMessage = {
 	markdown_text?: never
-	blocks?: unknown[]
+	blocks?: KnownBlock[]
 	text?: string
-} & ({ blocks: unknown[] } | { text: string })
+} & ({ blocks: KnownBlock[] } | { text: string })
 
 export type ChatPostMessageParams = {
 	channel: string
-	attachments?: unknown[]
+	attachments?: Attachment[]
 	icon_emoji?: string
 	icon_url?: string
 	link_names?: boolean

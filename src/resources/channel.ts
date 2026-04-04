@@ -1,7 +1,15 @@
 import type { Conversation } from '../api/types/conversation'
 import type { NormalMessage } from '../api/types/message'
 import type { App } from '../client'
+import {
+	sendMessage,
+	type SendMessageParams,
+	type SendMessageWithFiles,
+	type SendMessageWithoutFiles,
+} from '../utils/messaging'
 import { Message, MessageRef, type MessageInstance } from './message'
+
+type OmitChannel<T> = T extends any ? Omit<T, 'channel'> : never
 
 class ChannelMixin {
 	#id: string
@@ -18,21 +26,31 @@ class ChannelMixin {
 		return this.#id
 	}
 
+	async send(message: OmitChannel<SendMessageWithFiles>): Promise<undefined>
+	async send(
+		message: OmitChannel<SendMessageWithoutFiles> | string,
+	): Promise<MessageInstance<NormalMessage>>
+
 	/**
-	 * Sends a message in the channel
+	 * Sends a message in the channel.
 	 *
 	 * @param message The message payload to send, either a mrkdwn-formatted string or an object.
 	 *   Including the `files` key in the object will upload the files and share them in the channel.
-	 * @returns The sent message
+	 * @returns The sent message if no files are specified, `undefined` otherwise
 	 */
-	async send(message: any) {
-		const data = await this.client.request('chat.postMessage', { ...message, channel: this.id })
-		return new Message(
-			this.client,
-			this.#id,
-			data.ts,
-			data.message,
-		) as MessageInstance<NormalMessage>
+	async send(message: OmitChannel<SendMessageParams> | string) {
+		if (typeof message === 'string') {
+			message = { text: message }
+		}
+		const data = await sendMessage(this.client, { ...message, channel: this.id })
+		if (data) {
+			return new Message(
+				this.client,
+				this.#id,
+				data.ts,
+				data.message,
+			) as MessageInstance<NormalMessage>
+		}
 	}
 
 	/**

@@ -6,6 +6,12 @@ import type {
 	ConversationsRepliesParams,
 	ConversationsRepliesResponse,
 } from './web/conversations'
+import type {
+	FilesCompleteUploadExternalParams,
+	FilesCompleteUploadExternalResponse,
+	FilesGetUploadURLExternalParams,
+	FilesGetUploadURLExternalResponse,
+} from './web/files'
 
 export interface SlackWebAPIMap {
 	'auth.test': {
@@ -24,6 +30,14 @@ export interface SlackWebAPIMap {
 		params: ConversationsRepliesParams
 		response: ConversationsRepliesResponse
 	}
+	'files.completeUploadExternal': {
+		params: FilesCompleteUploadExternalParams
+		response: FilesCompleteUploadExternalResponse
+	}
+	'files.getUploadURLExternal': {
+		params: FilesGetUploadURLExternalParams
+		response: FilesGetUploadURLExternalResponse
+	}
 }
 
 export type SlackAPIMethod = keyof SlackWebAPIMap
@@ -33,3 +47,5 @@ export type SlackAPIParams<Method extends SlackAPIMethod> = SlackWebAPIMap[Metho
 export type SlackAPIResponse<Method extends SlackAPIMethod> =
 	| { ok: false; error: string }
 	| ({ ok: true } & SlackWebAPIMap[Method]['response'])
+
+export const POST_METHODS: SlackAPIMethod[] = ['chat.postMessage', 'files.completeUploadExternal']

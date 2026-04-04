@@ -1,0 +1,63 @@
+import type { KnownBlock } from '@slack/types'
+import type { ChatPostMessageParams } from '../api/web/chat'
+import type { App } from '../client'
+import { SlackError } from '../error'
+
+export type SendMessageFile = {
+	file: Buffer | ArrayBuffer
+	filename: string
+	title?: string
+	snippet_type?: string
+	alt_txt?: string
+}
+
+export interface SendMessageWithFiles {
+	channel: string
+	files: SendMessageFile[]
+	thread_ts?: string
+	text?: string
+	blocks?: KnownBlock[]
+	token?: string
+}
+
+export type SendMessageWithoutFiles = { files?: never } & ChatPostMessageParams
+
+export type SendMessageParams = SendMessageWithFiles | SendMessageWithoutFiles
+
+export async function sendMessage(client: App, params: SendMessageParams) {
+	if (params.files) {
+		const files = await Promise.all(
+			params.files.map(async (file) => ({
+				id: await uploadHelper(client, file),
+				title: file.title,
+			})),
+		)
+		await client.request('files.completeUploadExternal', {
+			files,
+			channel_id: params.channel,
+			thread_ts: params.thread_ts,
+			initial_comment: params.text,
+			blocks: params.blocks,
+		})
+	} else {
+		const message = await client.request('chat.postMessage', params)
+		return { channel: message.channel, ts: message.ts, message: message.message }
+	}
+}
+
+async function uploadHelper(client: App, file: SendMessageFile) {
+	const { upload_url, file_id } = await client.request('files.getUploadURLExternal', {
+		length: file.file.byteLength,
+		filename: file.filename,
+		snippet_type: file.snippet_type,
+		alt_txt: file.alt_txt,
+	})
+	const uploadResp = await fetch(upload_url, {
+		method: 'POST',
+		body: file.file,
+	})
+	if (!uploadResp.ok) {
+		throw new SlackError('Failed to upload file')
+	}
+	return file_id
+}

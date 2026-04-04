@@ -1,7 +1,12 @@
 import { sleep } from './utils'
 import { ChannelRef } from './resources/channel'
 import { SlackWebAPIError, SlackWebAPIPlatformError } from './error'
-import type { SlackAPIMethod, SlackAPIParams, SlackAPIResponse } from './api'
+import {
+	POST_METHODS,
+	type SlackAPIMethod,
+	type SlackAPIParams,
+	type SlackAPIResponse,
+} from './api'
 
 interface AppOptions {
 	token?: string
@@ -36,7 +41,7 @@ export class App {
 	async request<Method extends SlackAPIMethod>(
 		endpoint: Method,
 		params: SlackAPIParams<Method>,
-		method = 'GET',
+		method: 'GET' | 'POST' = POST_METHODS.includes(endpoint) ? 'POST' : 'GET',
 	): Promise<SlackAPIResponse<Method> & { ok: true }> {
 		const body = method !== 'GET' ? JSON.stringify(params) : undefined
 
@@ -47,7 +52,7 @@ export class App {
 					for (const item of value) {
 						url.searchParams.append(key, item)
 					}
-				} else {
+				} else if (value !== undefined && value !== null) {
 					url.searchParams.set(key, String(value))
 				}
 			}
