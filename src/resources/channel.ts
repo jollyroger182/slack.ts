@@ -26,18 +26,24 @@ class ChannelMixin {
 		return this.#id
 	}
 
+	/**
+	 * Sends a message in the channel with files.
+	 *
+	 * @param message The message payload to send, including the files to upload. `text` will be
+	 *   ignored if `blocks` are provided.
+	 */
 	async send(message: OmitChannel<SendMessageWithFiles>): Promise<undefined>
-	async send(
-		message: OmitChannel<SendMessageWithoutFiles> | string,
-	): Promise<MessageInstance<NormalMessage>>
 
 	/**
 	 * Sends a message in the channel.
 	 *
 	 * @param message The message payload to send, either a mrkdwn-formatted string or an object.
-	 *   Including the `files` key in the object will upload the files and share them in the channel.
-	 * @returns The sent message if no files are specified, `undefined` otherwise
+	 * @returns The sent message
 	 */
+	async send(
+		message: OmitChannel<SendMessageWithoutFiles> | string,
+	): Promise<MessageInstance<NormalMessage>>
+
 	async send(message: OmitChannel<SendMessageParams> | string) {
 		if (typeof message === 'string') {
 			message = { text: message }
