@@ -1,3 +1,4 @@
+import type { TimestampPaginationParams } from '../api/types/api'
 import type { Conversation } from '../api/types/conversation'
 import type { NormalMessage } from '../api/types/message'
 import type { App } from '../client'
@@ -11,6 +12,17 @@ import {
 import type { DistributiveOmit } from '../utils/typing'
 import { Message, MessageRef, type MessageInstance } from './message'
 import { UserRef } from './user'
+
+interface FetchMessagesParams extends Omit<TimestampPaginationParams, 'limit'> {
+	/**
+	 * How many messages to fetch in each API call. This will not affect the number of returned
+	 * messages. Defaults to 100
+	 */
+	batch?: number
+
+	/** How many messages to return in total. Defaults to unlimited */
+	limit?: number
+}
 
 class ChannelMixin {
 	#id: string
@@ -69,6 +81,35 @@ class ChannelMixin {
 	 */
 	message(ts: string) {
 		return new MessageRef(this.client, this.#id, ts)
+	}
+
+	/**
+	 * Fetches messages in the channel. Note that this method only fetches root messages (i.e.,
+	 * messages not in a thread); to fetch thread replies, use the `replies` method on messages
+	 * instead.
+	 *
+	 * @param params Options for fetching messages
+	 * @returns An async iterator of messages, from newest to oldest
+	 */
+	async *messages(params: FetchMessagesParams = {}) {
+		let remaining = params.limit ?? Infinity
+		let cursor: string | undefined
+		while (true) {
+			const batch = await this.client.request('conversations.history', {
+				channel: this.#id,
+				latest: params.latest,
+				oldest: params.oldest,
+				inclusive: params.inclusive,
+				limit: params.batch ?? 100,
+				cursor,
+			})
+			for (const message of batch.messages) {
+				yield new Message(this.client, this.#id, message.ts, message) as MessageInstance
+				if (--remaining <= 0) return
+			}
+			cursor = batch.response_metadata?.next_cursor
+			if (!batch.has_more || !cursor) return
+		}
 	}
 }
 

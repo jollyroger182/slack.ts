@@ -2,6 +2,8 @@ import type { AppsConnectionsOpenParams, AppsConnectionsOpenResponse } from './w
 import type { AuthTestParams, AuthTestResponse } from './web/auth'
 import type { ChatPostMessageParams, ChatPostMessageResponse } from './web/chat'
 import type {
+	ConversationsHistoryParams,
+	ConversationsHistoryResponse,
 	ConversationsInfoParams,
 	ConversationsInfoResponse,
 	ConversationsRepliesParams,
@@ -31,6 +33,10 @@ export interface SlackWebAPIMap {
 	'conversations.info': {
 		params: ConversationsInfoParams
 		response: ConversationsInfoResponse
+	}
+	'conversations.history': {
+		params: ConversationsHistoryParams
+		response: ConversationsHistoryResponse
 	}
 	'conversations.replies': {
 		params: ConversationsRepliesParams

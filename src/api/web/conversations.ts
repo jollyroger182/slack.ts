@@ -29,6 +29,22 @@ export interface ConversationsInfoResponse {
 	channel: Conversation
 }
 
+export interface ConversationsHistoryParams
+	extends CursorPaginationParams, TimestampPaginationParams {
+	/** Conversation ID to fetch history for. */
+	channel: string
+
+	/** Return all metadata associated with this message. */
+	include_all_metadata?: boolean
+}
+
+export interface ConversationsHistoryResponse extends CursorPaginationResponse {
+	messages: AnyMessage[]
+	pin_count: number
+	channel_actions_ts?: number | null
+	channel_actions_count?: number
+}
+
 export interface ConversationsRepliesParams
 	extends CursorPaginationParams, TimestampPaginationParams {
 	/** Conversation ID to fetch thread from. */
