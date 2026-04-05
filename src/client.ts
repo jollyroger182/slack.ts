@@ -9,12 +9,24 @@ import {
 } from './api'
 import { SocketEventsReceiver, type SocketEventsReceiverOptions } from './events/receivers/socket'
 import type { DistributiveOmit } from './utils/typing'
-import type { AllEvents, AllEventTypes, EventsReceiver, EventWrapper } from './events/types'
+import type {
+	AllEvents,
+	AllEventTypes,
+	EventsReceiver,
+	EventWrapper,
+	SlackEventMap,
+} from './events/types'
 import { DummyReceiver } from './events/receivers/dummy'
 import { Message, type MessageInstance } from './resources/message'
 import type { MessageEvent } from './events/types/events'
 import type { AnyMessage } from './api/types/message'
-import type { BlockAction, BlockActions, BlockActionTypes } from './api/interactive/block_actions'
+import type {
+	BlockAction,
+	BlockActionMap,
+	BlockActions,
+	BlockActionTypes,
+} from './api/interactive/block_actions'
+import EventEmitter from 'events'
 
 type ReceiverOptions =
 	| ({
@@ -30,39 +42,34 @@ interface AppOptions {
 	receiver?: ReceiverOptions
 }
 
-type MessageCallbackData = {
+export type MessageCallbackData = {
 	message: MessageInstance
 	client: App
 	event: EventWrapper<MessageEvent>
 }
-type MessageCallback = (data: MessageCallbackData) => unknown
+export type MessageCallback = (data: MessageCallbackData) => unknown
 
-type EventCallbackData<Event extends AllEvents> = {
+export type EventCallbackData<Event extends AllEvents> = {
 	client: App
 	event: EventWrapper<Event>
 }
-type EventCallback<Event extends AllEvents> = (data: EventCallbackData<Event>) => unknown
+export type EventCallback<Event extends AllEvents> = (data: EventCallbackData<Event>) => unknown
 
-type BlockActionCallbackData<Action extends BlockAction> = {
+export type BlockActionCallbackData<Action extends BlockAction> = {
 	action: Action
 	client: App
-	payload: BlockActions
+	event: BlockActions
 }
-type BlockActionCallback<Action extends BlockAction> = (
+export type BlockActionCallback<Action extends BlockAction> = (
 	data: BlockActionCallbackData<Action>,
 ) => unknown
 
-export class App {
+export class App extends EventEmitter<AppEventMap> {
 	#token?: string
 	#receiver: EventsReceiver
 
-	private messageCallbacks: MessageCallback[] = []
-	private eventCallbacks: { [K in AllEventTypes]?: EventCallback<AllEvents & { type: K }>[] } = {}
-	private blockActionCallbacks: {
-		[K in BlockActionTypes]?: BlockActionCallback<BlockAction & { type: K }>[]
-	} = {}
-
 	constructor({ token, receiver = { type: 'dummy' } }: AppOptions = {}) {
+		super()
 		this.#token = token
 		switch (receiver.type) {
 			case 'socket':
@@ -75,42 +82,17 @@ export class App {
 		this.#receiver.on('block_actions', this.#onBlockActions.bind(this))
 	}
 
-	async #onEvent<Event extends AllEvents = AllEvents>(event: EventWrapper<Event>) {
-		const data: EventCallbackData<Event> = {
-			client: this,
-			event,
-		}
-		for (const callback of this.eventCallbacks[event.event.type] ?? []) {
-			callback(data as any)
-		}
-
-		if (event.event.type === 'message') {
-			const data: MessageCallbackData = {
-				message: new Message<AnyMessage>(
-					this,
-					event.event.channel,
-					event.event.ts,
-					event.event,
-				) as MessageInstance,
-				client: this,
-				event: event as EventWrapper<MessageEvent>,
-			}
-			for (const callback of this.messageCallbacks) {
-				callback(data)
-			}
-		}
+	async #onEvent(event: EventWrapper) {
+		this.emit('event', event)
+		this.emit(`event:${event.event.type}`, { payload: event.event as any, event: event as any })
 	}
 
-	async #onBlockActions(payload: BlockActions) {
-		for (const action of payload.actions) {
-			const data: BlockActionCallbackData<any> = {
-				action,
-				client: this,
-				payload,
-			}
-			for (const callback of this.blockActionCallbacks[action.type] ?? []) {
-				callback(data)
-			}
+	async #onBlockActions(event: BlockActions) {
+		this.emit('blockActions', event)
+		for (const action of event.actions) {
+			this.emit(`action:${action.type}`, { payload: action, event: event })
+			this.emit(`action.${action.action_id}`, { payload: action, event: event })
+			this.emit(`action:${action.type}.${action.action_id}`, { payload: action, event: event })
 		}
 	}
 
@@ -120,7 +102,18 @@ export class App {
 	 * @param callback Function to execute when a new message is received
 	 */
 	message(callback: MessageCallback) {
-		this.messageCallbacks.push(callback)
+		this.on('event:message', ({ event, payload }) => {
+			callback({
+				event,
+				message: new Message<AnyMessage>(
+					this,
+					payload.channel,
+					payload.ts,
+					payload,
+				) as MessageInstance,
+				client: this,
+			})
+		})
 	}
 
 	/**
@@ -130,13 +123,15 @@ export class App {
 	 * @param callback Function to execute when the event is received
 	 */
 	event<Event extends AllEvents>(type: Event['type'], callback: EventCallback<Event>) {
-		if (!this.eventCallbacks[type]) this.eventCallbacks[type] = []
-		this.eventCallbacks[type]!.push(callback as any)
+		this.on(`event:${type}`, ({ event }) => {
+			callback({ event: event as EventWrapper<Event>, client: this })
+		})
 	}
 
 	action<Action extends BlockAction>(type: Action['type'], callback: BlockActionCallback<Action>) {
-		if (!this.blockActionCallbacks[type]) this.blockActionCallbacks[type] = []
-		this.blockActionCallbacks[type]!.push(callback as any)
+		this.on(`action:${type}`, ({ event, payload }) => {
+			callback({ action: payload as Action, event, client: this })
+		})
 	}
 
 	/**
@@ -202,6 +197,24 @@ export class App {
 
 		return res
 	}
+}
+
+type AppEventMap = {
+	event: [EventWrapper]
+	blockActions: [BlockActions]
+	action: [{ payload: BlockAction; event: BlockActions }]
+} & {
+	[K in AllEventTypes as `event:${K}`]: [
+		{ payload: SlackEventMap[K]; event: EventWrapper<SlackEventMap[K]> },
+	]
+} & {
+	[K in BlockActionTypes as `action:${K}`]: [{ payload: BlockActionMap[K]; event: BlockActions }]
+} & {
+	[K in `action.${string}`]: [{ payload: BlockAction; event: BlockActions }]
+} & {
+	[K in BlockActionTypes as `action:${K}.${string}`]: [
+		{ payload: BlockActionMap[K]; event: BlockActions },
+	]
 }
 
 async function request<T>(url: string, options: RequestInit): Promise<T> {

@@ -1,7 +1,8 @@
+import type { BlockAction, BlockActions, BlockActionTypes } from '../api/interactive/block_actions'
 import type { TimestampPaginationParams } from '../api/types/api'
 import type { AnyMessage, NormalMessage } from '../api/types/message'
-import type { App } from '../client'
-import { SlackError } from '../error'
+import type { App, BlockActionCallbackData } from '../client'
+import { SlackError, SlackTimeoutError } from '../error'
 import { makeProxy } from '../utils'
 import {
 	sendMessage,
@@ -9,7 +10,7 @@ import {
 	type SendMessageWithFiles,
 	type SendMessageWithoutFiles,
 } from '../utils/messaging'
-import type { DistributiveOmit } from '../utils/typing'
+import type { DistributiveOmit, ExtractPrefix } from '../utils/typing'
 import { ChannelRef } from './channel'
 import { UserRef } from './user'
 
@@ -66,6 +67,10 @@ class MessageMixin {
 
 	protected get _threadTs(): string | undefined {
 		return undefined
+	}
+
+	get wait() {
+		return new MessageWait(this, this.client)
 	}
 
 	/**
@@ -206,3 +211,84 @@ export class Message<Subtype extends AnyMessage = AnyMessage> extends MessageMix
 }
 
 export type MessageInstance<Subtype extends AnyMessage = AnyMessage> = Message<Subtype> & Subtype
+
+class MessageWait {
+	constructor(
+		private message: MessageMixin,
+		private client: App,
+		private _timeout = 0,
+	) {}
+
+	timeout(timeout: number) {
+		this._timeout = timeout
+		return this
+	}
+
+	async action<ActionIDs extends (string | ActionPredicate)[]>(
+		...specifiers: ActionIDs
+	): Promise<ExtractActionWaitReturnValue<ActionIDs[number] & string>>
+
+	async action<ActionIDs extends (string | ActionPredicate)[]>(
+		...specifiers: ActionIDs
+	): Promise<ExtractActionWaitReturnValue<ActionIDs[number] & string>>
+
+	async action<ActionIDs extends (string | ActionPredicate)[]>(
+		...specifiers: ActionIDs
+	): Promise<ExtractActionWaitReturnValue<ActionIDs[number] & string>> {
+		return new Promise<{ action: any; event: BlockActions }>((resolve, reject) => {
+			const predicates: ActionPredicate[] = []
+
+			const cleanup = () => {
+				if (timer) {
+					clearTimeout(timer)
+				}
+				for (const name of subscriptions) {
+					this.client.off(name, callback)
+				}
+			}
+
+			const callback = ({ payload, event }: { payload: BlockAction; event: BlockActions }) => {
+				if (
+					(event.container.type === 'message' || event.container.type === 'message_attachment') &&
+					event.container.message_ts === this.message.ts &&
+					!predicates.find((predicate) => !predicate({ action: payload, event }))
+				) {
+					cleanup()
+					resolve({ action: payload, event })
+				}
+			}
+
+			const subscriptions: string[] = []
+			for (const specifier of specifiers) {
+				if (typeof specifier === 'string') {
+					this.client.on(`action.${specifier}`, callback)
+					subscriptions.push(`action.${specifier}`)
+
+					const index = specifier.indexOf(':')
+					if (index >= 0) {
+						const type = specifier.substring(0, index)
+						const actionId = specifier.substring(index + 1)
+						this.client.on(`action:${type}.${actionId}`, callback)
+						subscriptions.push(`action:${type}.${actionId}`)
+					}
+				} else {
+					predicates.push(specifier)
+				}
+			}
+
+			const timer: ReturnType<typeof setTimeout> | null = this._timeout
+				? setTimeout(() => {
+						cleanup()
+						reject(new SlackTimeoutError(`Timed out waiting for action (${this._timeout} ms)`))
+					}, this._timeout)
+				: null
+		})
+	}
+}
+
+type ActionPredicate = (data: { action: BlockAction; event: BlockActions }) => boolean
+
+type ExtractActionWaitReturnValue<ActionID extends string> = {
+	event: BlockActions
+	action: BlockAction & { type: ExtractPrefix<ActionID, ':', string> }
+}

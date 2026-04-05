@@ -1,5 +1,7 @@
 export class SlackError extends Error {}
 
+export class SlackTimeoutError extends Error {}
+
 export class SlackWebAPIError extends SlackError {
 	constructor(
 		public url: string,
