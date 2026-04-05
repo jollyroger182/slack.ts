@@ -13,6 +13,7 @@ import type {
 	FilesGetUploadURLExternalParams,
 	FilesGetUploadURLExternalResponse,
 } from './web/files'
+import type { UsersInfoParams, UsersInfoResponse } from './web/users'
 
 export interface SlackWebAPIMap {
 	'apps.connections.open': {
@@ -42,6 +43,10 @@ export interface SlackWebAPIMap {
 	'files.getUploadURLExternal': {
 		params: FilesGetUploadURLExternalParams
 		response: FilesGetUploadURLExternalResponse
+	}
+	'users.info': {
+		params: UsersInfoParams
+		response: UsersInfoResponse
 	}
 }
 

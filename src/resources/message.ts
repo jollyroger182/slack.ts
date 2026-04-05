@@ -10,6 +10,7 @@ import {
 } from '../utils/messaging'
 import type { DistributiveOmit } from '../utils/typing'
 import { ChannelRef } from './channel'
+import { UserRef } from './user'
 
 class MessageMixin {
 	#channel: string
@@ -133,6 +134,15 @@ export class Message<Subtype extends AnyMessage = AnyMessage> extends MessageMix
 	/** The raw data of this message */
 	get raw() {
 		return this.#data
+	}
+
+	/**
+	 * A reference to the user that created the message. Note that for system messages (such as
+	 * channel join messages), this may not be the user you expect. Read the Slack documentation to
+	 * find out.
+	 */
+	get author() {
+		return new UserRef(this.client, this.#data.user)
 	}
 
 	protected override get _threadTs(): string | undefined {
