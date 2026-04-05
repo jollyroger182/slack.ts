@@ -1,3 +1,4 @@
+import type { TimestampPaginationParams } from '../api/types/api'
 import type { AnyMessage, NormalMessage } from '../api/types/message'
 import type { App } from '../client'
 import { SlackError } from '../error'
@@ -11,6 +12,30 @@ import {
 import type { DistributiveOmit } from '../utils/typing'
 import { ChannelRef } from './channel'
 import { UserRef } from './user'
+
+interface FetchRepliesParams extends Omit<TimestampPaginationParams, 'limit'> {
+	/**
+	 * How many replies to fetch in each API call. This will not affect the number of returned
+	 * messages.
+	 *
+	 * @default 100
+	 */
+	batch?: number
+
+	/**
+	 * How many replies to return in total.
+	 *
+	 * @default Infinity
+	 */
+	limit?: number
+
+	/**
+	 * Whether to include the root message in the results.
+	 *
+	 * @default true
+	 */
+	root?: boolean
+}
 
 class MessageMixin {
 	#channel: string
@@ -79,6 +104,36 @@ class MessageMixin {
 				data.ts,
 				data.message,
 			) as MessageInstance<NormalMessage>
+		}
+	}
+
+	/**
+	 * Fetches replies in the thread of this message. Note that this method may return the root
+	 * message by default; set `params.root` to `false` to skip it.
+	 *
+	 * @param params Options for fetching replies
+	 * @returns An async iterator of messages, from oldest to newest
+	 */
+	async *replies(params: FetchRepliesParams = {}): AsyncGenerator<MessageInstance, void, unknown> {
+		let remaining = params.limit ?? Infinity
+		let cursor: string | undefined
+		while (true) {
+			const batch = await this.client.request('conversations.replies', {
+				channel: this.#channel,
+				ts: this.#ts,
+				latest: params.latest,
+				oldest: params.oldest,
+				inclusive: params.inclusive,
+				limit: params.batch ?? 100,
+				cursor,
+			})
+			for (const message of batch.messages) {
+				if (!(params.root ?? true) && message.ts === this.#ts) continue
+				yield new Message(this.client, this.#channel, message.ts, message) as MessageInstance
+				if (--remaining <= 0) return
+			}
+			cursor = batch.response_metadata?.next_cursor
+			if (!batch.has_more || !cursor) return
 		}
 	}
 }
