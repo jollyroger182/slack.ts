@@ -2,6 +2,7 @@ export type DistributiveOmit<T, Key extends keyof any> = T extends any ? Omit<T,
 
 export type ExtractPrefix<
 	T extends string,
+	PrefixType extends string = string,
 	Sep extends string = ':',
 	IfNotFound = never,
-> = T extends `${infer Prefix}${Sep}${string}` ? Prefix : IfNotFound
+> = T extends `${infer Prefix extends PrefixType}${Sep}${string}` ? Prefix : IfNotFound

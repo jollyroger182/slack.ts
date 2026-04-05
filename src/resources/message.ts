@@ -69,6 +69,7 @@ class MessageMixin {
 		return undefined
 	}
 
+	/** Waits for an event about this message to occur before continuing. */
 	get wait() {
 		return new MessageWait(this, this.client)
 	}
@@ -213,28 +214,54 @@ export class Message<Subtype extends AnyMessage = AnyMessage> extends MessageMix
 export type MessageInstance<Subtype extends AnyMessage = AnyMessage> = Message<Subtype> & Subtype
 
 class MessageWait {
+	private _timeout = 60_0_000
+
 	constructor(
 		private message: MessageMixin,
 		private client: App,
-		private _timeout = 0,
 	) {}
 
+	/**
+	 * Sets the timeout of the wait. A `SlackTimeoutError` will be thrown if no matching event occurs
+	 * after the timeout. Set this to `0` to disable timeouts; i.e., methods will wait forever. (This
+	 * is dangerous because it creates potential memory leaks!)
+	 *
+	 * By default, timeout is set to 10 minutes.
+	 *
+	 * @param timeout Timeout in milliseconds
+	 * @returns `this` for chaining
+	 */
 	timeout(timeout: number) {
 		this._timeout = timeout
 		return this
 	}
 
+	/**
+	 * Waits for a block action on this message happened (e.g., a button is pressed).
+	 *
+	 * The parameters can be any of any of the following:
+	 *
+	 * - An action ID; for example, `'place_order'`.
+	 * - An event type and an action ID joined with a dot (`.`); for example, `'button.place_order'`.
+	 *   The benefit of using this instead of a plain action ID is, if all string parameters have an
+	 *   event type prefix, the return type of this function will be automatically narrowed to only
+	 *   the possible action types.
+	 * - A function (`async` or not) that takes in an action and returns `false` if this action should
+	 *   be ignored (useful for permission checks).
+	 *
+	 * An action is matched if its container is this message, its `action_id` is one of the parameters
+	 * passed in, and it passes all the function checks.
+	 *
+	 * NOTE: You must specify at least one non-function parameter, since the `action_id` of the action
+	 * must match one of the arguments.
+	 *
+	 * @param specifiers An array of specifiers (see above for their format)
+	 * @returns The action that occurred that matches the specifiers.
+	 * @throws `SlackTimeoutError` if timed out before a matched event occurred
+	 */
 	async action<ActionIDs extends (string | ActionPredicate)[]>(
 		...specifiers: ActionIDs
-	): Promise<ExtractActionWaitReturnValue<ActionIDs[number] & string>>
-
-	async action<ActionIDs extends (string | ActionPredicate)[]>(
-		...specifiers: ActionIDs
-	): Promise<ExtractActionWaitReturnValue<ActionIDs[number] & string>>
-
-	async action<ActionIDs extends (string | ActionPredicate)[]>(
-		...specifiers: ActionIDs
-	): Promise<ExtractActionWaitReturnValue<ActionIDs[number] & string>> {
+	): Promise<ExtractActionWaitReturnValue<ExtractString<ActionIDs[number]>>> {
 		return new Promise<{ action: any; event: BlockActions }>((resolve, reject) => {
 			const predicates: ActionPredicate[] = []
 
@@ -247,11 +274,19 @@ class MessageWait {
 				}
 			}
 
-			const callback = ({ payload, event }: { payload: BlockAction; event: BlockActions }) => {
+			const callback = async ({
+				payload,
+				event,
+			}: {
+				payload: BlockAction
+				event: BlockActions
+			}) => {
 				if (
 					(event.container.type === 'message' || event.container.type === 'message_attachment') &&
 					event.container.message_ts === this.message.ts &&
-					!predicates.find((predicate) => !predicate({ action: payload, event }))
+					!(
+						await Promise.all(predicates.map((predicate) => predicate({ action: payload, event })))
+					).filter((v) => !v).length
 				) {
 					cleanup()
 					resolve({ action: payload, event })
@@ -264,7 +299,7 @@ class MessageWait {
 					this.client.on(`action.${specifier}`, callback)
 					subscriptions.push(`action.${specifier}`)
 
-					const index = specifier.indexOf(':')
+					const index = specifier.indexOf('.')
 					if (index >= 0) {
 						const type = specifier.substring(0, index)
 						const actionId = specifier.substring(index + 1)
@@ -274,6 +309,10 @@ class MessageWait {
 				} else {
 					predicates.push(specifier)
 				}
+			}
+			if (!subscriptions.length) {
+				reject(new SlackError('No action ID specifiers given'))
+				return
 			}
 
 			const timer: ReturnType<typeof setTimeout> | null = this._timeout
@@ -286,9 +325,14 @@ class MessageWait {
 	}
 }
 
-type ActionPredicate = (data: { action: BlockAction; event: BlockActions }) => boolean
+type ActionPredicate = (data: {
+	action: BlockAction
+	event: BlockActions
+}) => boolean | Promise<boolean>
 
 type ExtractActionWaitReturnValue<ActionID extends string> = {
 	event: BlockActions
-	action: BlockAction & { type: ExtractPrefix<ActionID, ':', string> }
+	action: BlockAction & { type: ExtractPrefix<ActionID, BlockActionTypes, '.', string> }
 }
+
+type ExtractString<T> = T extends string ? T : never

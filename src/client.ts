@@ -128,6 +128,15 @@ export class App extends EventEmitter<AppEventMap> {
 		})
 	}
 
+	/**
+	 * Registers a callback for a given type of block actions.
+	 *
+	 * For more powerful callbacks, use `app.on('action:button', ...)`, `app.on('action.action_id',
+	 * ...)`, or `app.on('action:button.action_id', ...)` instead.
+	 *
+	 * @param type Type of event to register
+	 * @param callback Function to execute when the event is received
+	 */
 	action<Action extends BlockAction>(type: Action['type'], callback: BlockActionCallback<Action>) {
 		this.on(`action:${type}`, ({ event, payload }) => {
 			callback({ action: payload as Action, event, client: this })
