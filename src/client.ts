@@ -27,6 +27,7 @@ import type {
 	BlockActionTypes,
 } from './api/interactive/block_actions'
 import EventEmitter from 'events'
+import { Action, type ActionInstance } from './resources/action'
 
 type ReceiverOptions =
 	| ({
@@ -55,14 +56,7 @@ export type EventCallbackData<Event extends AllEvents> = {
 }
 export type EventCallback<Event extends AllEvents> = (data: EventCallbackData<Event>) => unknown
 
-export type BlockActionCallbackData<Action extends BlockAction> = {
-	action: Action
-	client: App
-	event: BlockActions
-}
-export type BlockActionCallback<Action extends BlockAction> = (
-	data: BlockActionCallbackData<Action>,
-) => unknown
+export type BlockActionCallback<Type extends BlockAction> = (data: Action<Type>) => unknown
 
 export class App extends EventEmitter<AppEventMap> {
 	#token?: string
@@ -90,12 +84,10 @@ export class App extends EventEmitter<AppEventMap> {
 	async #onBlockActions(event: BlockActions) {
 		this.emit('actions', event)
 		for (const action of event.actions) {
-			this.emit(`action:${action.type}`, { payload: action as any, event: event })
-			this.emit(`action.${action.action_id}`, { payload: action, event: event })
-			this.emit(`action:${action.type}.${action.action_id}`, {
-				payload: action as any,
-				event: event,
-			})
+			const obj = new Action(this, action, event) as ActionInstance
+			this.emit(`action:${action.type}`, obj as any)
+			this.emit(`action.${action.action_id}`, obj)
+			this.emit(`action:${action.type}.${action.action_id}`, obj as any)
 		}
 	}
 
@@ -140,9 +132,9 @@ export class App extends EventEmitter<AppEventMap> {
 	 * @param type Type of event to register
 	 * @param callback Function to execute when the event is received
 	 */
-	action<Action extends BlockAction>(type: Action['type'], callback: BlockActionCallback<Action>) {
-		this.on(`action:${type}`, ({ event, payload }) => {
-			callback({ action: payload as Action, event, client: this })
+	action<Type extends BlockAction>(type: Type['type'], callback: BlockActionCallback<Type>) {
+		this.on(`action:${type}`, (action) => {
+			callback(action as ActionInstance<Type>)
 		})
 	}
 
@@ -214,19 +206,17 @@ export class App extends EventEmitter<AppEventMap> {
 type AppEventMap = {
 	event: [EventWrapper]
 	actions: [BlockActions]
-	action: [{ payload: BlockAction; event: BlockActions }]
+	action: [ActionInstance]
 } & {
 	[K in AllEventTypes as `event:${K}`]: [
 		{ payload: SlackEventMap[K]; event: EventWrapper<SlackEventMap[K]> },
 	]
 } & {
-	[K in BlockActionTypes as `action:${K}`]: [{ payload: BlockActionMap[K]; event: BlockActions }]
+	[K in BlockActionTypes as `action:${K}`]: [ActionInstance<BlockActionMap[K]>]
 } & {
-	[K in `action.${string}`]: [{ payload: BlockAction; event: BlockActions }]
+	[K in `action.${string}`]: [ActionInstance]
 } & {
-	[K in BlockActionTypes as `action:${K}.${string}`]: [
-		{ payload: BlockActionMap[K]; event: BlockActions },
-	]
+	[K in BlockActionTypes as `action:${K}.${string}`]: [ActionInstance<BlockActionMap[K]>]
 }
 
 async function request<T>(url: string, options: RequestInit): Promise<T> {

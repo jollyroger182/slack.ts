@@ -1,7 +1,7 @@
 import type { BlockAction, BlockActions, BlockActionTypes } from '../api/interactive/block_actions'
 import type { TimestampPaginationParams } from '../api/types/api'
 import type { AnyMessage, NormalMessage } from '../api/types/message'
-import type { App, BlockActionCallbackData } from '../client'
+import type { App } from '../client'
 import { SlackError, SlackTimeoutError } from '../error'
 import { makeProxy } from '../utils'
 import {
@@ -11,6 +11,7 @@ import {
 	type SendMessageWithoutFiles,
 } from '../utils/messaging'
 import type { DistributiveOmit, ExtractPrefix } from '../utils/typing'
+import type { Action, ActionInstance } from './action'
 import { ChannelRef } from './channel'
 import { UserRef } from './user'
 
@@ -265,7 +266,7 @@ class MessageWait {
 	async action<ActionIDs extends (string | ActionPredicate)[]>(
 		...specifiers: ActionIDs
 	): Promise<ExtractActionWaitReturnValue<ExtractString<ActionIDs[number]>>> {
-		return new Promise<{ action: any; event: BlockActions }>((resolve, reject) => {
+		return new Promise<ActionInstance>((resolve, reject) => {
 			const predicates: ActionPredicate[] = []
 
 			const cleanup = () => {
@@ -277,22 +278,16 @@ class MessageWait {
 				}
 			}
 
-			const callback = async ({
-				payload,
-				event,
-			}: {
-				payload: BlockAction
-				event: BlockActions
-			}) => {
+			const callback = async (action: ActionInstance) => {
+				const { event } = action
 				if (
 					(event.container.type === 'message' || event.container.type === 'message_attachment') &&
 					event.container.message_ts === this.message.ts &&
-					!(
-						await Promise.all(predicates.map((predicate) => predicate({ action: payload, event })))
-					).filter((v) => !v).length
+					!(await Promise.all(predicates.map((predicate) => predicate(action)))).filter((v) => !v)
+						.length
 				) {
 					cleanup()
-					resolve({ action: payload, event })
+					resolve(action)
 				}
 			}
 
@@ -328,15 +323,11 @@ class MessageWait {
 	}
 }
 
-type ActionPredicate = (data: {
-	action: BlockAction
-	event: BlockActions
-}) => boolean | Promise<boolean>
+type ActionPredicate = (action: ActionInstance) => boolean | Promise<boolean>
 
-type ExtractActionWaitReturnValue<ActionID extends string> = {
-	event: BlockActions
-	action: ExtractWaitActionType<ActionID>
-}
+type ExtractActionWaitReturnValue<ActionID extends string> = ActionInstance<
+	ExtractWaitActionType<ActionID>
+>
 
 type ExtractWaitActionType<Specifier extends string> = {
 	[K in Specifier]: BlockAction & ExtractTypeAndActionID<Specifier>
