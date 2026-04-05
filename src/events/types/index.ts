@@ -1,5 +1,6 @@
 import type EventEmitter from 'events'
 import type { AppMentionEvent, MessageEvent } from './events'
+import type { BlockActions } from '../../api/interactive/block_actions'
 
 export interface EventsReceiver extends EventEmitter<ReceiverEventMap> {
 	start(): unknown
@@ -28,6 +29,7 @@ export type SlackEventMap = {
 
 export type ReceiverEventMap = {
 	event: [EventWrapper<AllEvents>]
+	block_actions: [BlockActions]
 }
 
 export type AllEvents = AppMentionEvent | MessageEvent

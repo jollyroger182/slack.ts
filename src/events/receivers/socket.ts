@@ -2,6 +2,7 @@ import EventEmitter from 'events'
 import WebSocket from 'ws'
 import type { App } from '../../client'
 import type { EventsReceiver, EventWrapper, ReceiverEventMap } from '../types'
+import type { BlockActions } from '../../api/interactive/block_actions'
 
 export interface SocketEventsReceiverOptions {
 	appToken: string
@@ -44,6 +45,9 @@ export class SocketEventsReceiver extends EventEmitter<ReceiverEventMap> impleme
 			if (data.type === 'events_api') {
 				this.#ws?.send(JSON.stringify({ envelope_id: data.envelope_id }))
 				this.emit('event', data.payload)
+			} else if (data.type === 'interactive') {
+				this.#ws?.send(JSON.stringify({ envelope_id: data.envelope_id }))
+				this.emit(data.payload.type, data.payload)
 			} else if (data.type === 'hello') {
 				console.debug('[socket-mode] received server hello, app id', data.connection_info.app_id)
 			} else {
@@ -76,6 +80,13 @@ interface SocketPayloadWrapper {
 interface SocketEventPayload extends SocketPayloadWrapper {
 	type: 'events_api'
 	payload: EventWrapper
+	accepts_response_payload: false
+}
+
+interface SocketInteractivePayload extends SocketPayloadWrapper {
+	type: 'interactive'
+	payload: BlockActions // TODO other interactions
+	accepts_response_payload: false
 }
 
 interface SocketHelloPayload {
@@ -85,4 +96,4 @@ interface SocketHelloPayload {
 	connection_info: { app_id: string }
 }
 
-type AnySocketPayload = SocketEventPayload | SocketHelloPayload
+type AnySocketPayload = SocketEventPayload | SocketInteractivePayload | SocketHelloPayload

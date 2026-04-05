@@ -14,6 +14,7 @@ import { DummyReceiver } from './events/receivers/dummy'
 import { Message, type MessageInstance } from './resources/message'
 import type { MessageEvent } from './events/types/events'
 import type { AnyMessage } from './api/types/message'
+import type { BlockAction, BlockActions, BlockActionTypes } from './api/interactive/block_actions'
 
 type ReceiverOptions =
 	| ({
@@ -42,12 +43,24 @@ type EventCallbackData<Event extends AllEvents> = {
 }
 type EventCallback<Event extends AllEvents> = (data: EventCallbackData<Event>) => unknown
 
+type BlockActionCallbackData<Action extends BlockAction> = {
+	action: Action
+	client: App
+	payload: BlockActions
+}
+type BlockActionCallback<Action extends BlockAction> = (
+	data: BlockActionCallbackData<Action>,
+) => unknown
+
 export class App {
 	#token?: string
 	#receiver: EventsReceiver
 
 	private messageCallbacks: MessageCallback[] = []
 	private eventCallbacks: { [K in AllEventTypes]?: EventCallback<AllEvents & { type: K }>[] } = {}
+	private blockActionCallbacks: {
+		[K in BlockActionTypes]?: BlockActionCallback<BlockAction & { type: K }>[]
+	} = {}
 
 	constructor({ token, receiver = { type: 'dummy' } }: AppOptions = {}) {
 		this.#token = token
@@ -59,6 +72,7 @@ export class App {
 				this.#receiver = new DummyReceiver()
 		}
 		this.#receiver.on('event', this.#onEvent.bind(this))
+		this.#receiver.on('block_actions', this.#onBlockActions.bind(this))
 	}
 
 	async #onEvent<Event extends AllEvents = AllEvents>(event: EventWrapper<Event>) {
@@ -87,6 +101,19 @@ export class App {
 		}
 	}
 
+	async #onBlockActions(payload: BlockActions) {
+		for (const action of payload.actions) {
+			const data: BlockActionCallbackData<any> = {
+				action,
+				client: this,
+				payload,
+			}
+			for (const callback of this.blockActionCallbacks[action.type] ?? []) {
+				callback(data)
+			}
+		}
+	}
+
 	/**
 	 * Registers a callback for `message` events.
 	 *
@@ -105,6 +132,11 @@ export class App {
 	event<Event extends AllEvents>(type: Event['type'], callback: EventCallback<Event>) {
 		if (!this.eventCallbacks[type]) this.eventCallbacks[type] = []
 		this.eventCallbacks[type]!.push(callback as any)
+	}
+
+	action<Action extends BlockAction>(type: Action['type'], callback: BlockActionCallback<Action>) {
+		if (!this.blockActionCallbacks[type]) this.blockActionCallbacks[type] = []
+		this.blockActionCallbacks[type]!.push(callback as any)
 	}
 
 	/**
