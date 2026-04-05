@@ -90,9 +90,12 @@ export class App extends EventEmitter<AppEventMap> {
 	async #onBlockActions(event: BlockActions) {
 		this.emit('blockActions', event)
 		for (const action of event.actions) {
-			this.emit(`action:${action.type}`, { payload: action, event: event })
+			this.emit(`action:${action.type}`, { payload: action as any, event: event })
 			this.emit(`action.${action.action_id}`, { payload: action, event: event })
-			this.emit(`action:${action.type}.${action.action_id}`, { payload: action, event: event })
+			this.emit(`action:${action.type}.${action.action_id}`, {
+				payload: action as any,
+				event: event,
+			})
 		}
 	}
 

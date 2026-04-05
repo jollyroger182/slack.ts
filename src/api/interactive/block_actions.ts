@@ -51,9 +51,15 @@ export interface ButtonAction extends ActionCommon {
 	type: 'button'
 	text: PlainTextElement
 	value?: string
+	style?: 'primary' | 'danger'
 }
 
-export type BlockAction = ButtonAction
+export interface PlainTextInputAction extends ActionCommon {
+	type: 'plain_text_input'
+	value: string | null
+}
+
+export type BlockAction = ButtonAction | PlainTextInputAction
 
 export type BlockActionTypes = BlockAction['type']
 
