@@ -8,9 +8,14 @@ An opinionated Slack API library with full TypeScript support.
 import { App } from 'slack.ts'
 
 const app = new App({
-	token: process.env.SLACK_BOT_TOKEN
+	token: process.env.SLACK_BOT_TOKEN,
+	receiver: { type: 'socket', appToken: process.env.SLACK_APP_TOKEN! },
 })
 
-const message = await app.channel('C0123456ABC').send('Hello, slack.ts!')
-console.log("Message timestamp:", message.ts)
+app.message(async ({ message }) => {
+	if (message.user === process.env.SLACK_USER_ID) return
+	await message.reply("I'm always listening :eyes:")
+})
+
+await app.start()
 ```

@@ -9,8 +9,11 @@ import {
 } from './api'
 import { SocketEventsReceiver, type SocketEventsReceiverOptions } from './events/receivers/socket'
 import type { DistributiveOmit } from './utils/typing'
-import type { EventsReceiver, EventWrapper } from './events/types'
+import type { AllEvents, AllEventTypes, EventsReceiver, EventWrapper } from './events/types'
 import { DummyReceiver } from './events/receivers/dummy'
+import { Message, type MessageInstance } from './resources/message'
+import type { MessageEvent } from './events/types/events'
+import type { AnyMessage } from './api/types/message'
 
 type ReceiverOptions =
 	| ({
@@ -26,9 +29,25 @@ interface AppOptions {
 	receiver?: ReceiverOptions
 }
 
+type MessageCallbackData = {
+	message: MessageInstance
+	client: App
+	event: EventWrapper<MessageEvent>
+}
+type MessageCallback = (data: MessageCallbackData) => unknown
+
+type EventCallbackData<Event extends AllEvents> = {
+	client: App
+	event: EventWrapper<Event>
+}
+type EventCallback<Event extends AllEvents> = (data: EventCallbackData<Event>) => unknown
+
 export class App {
 	#token?: string
 	#receiver: EventsReceiver
+
+	private messageCallbacks: MessageCallback[] = []
+	private eventCallbacks: { [K in AllEventTypes]?: EventCallback<AllEvents & { type: K }>[] } = {}
 
 	constructor({ token, receiver = { type: 'dummy' } }: AppOptions = {}) {
 		this.#token = token
@@ -42,8 +61,50 @@ export class App {
 		this.#receiver.on('event', this.#onEvent.bind(this))
 	}
 
-	async #onEvent(event: EventWrapper) {
-		console.log('event received:', event)
+	async #onEvent<Event extends AllEvents = AllEvents>(event: EventWrapper<Event>) {
+		const data: EventCallbackData<Event> = {
+			client: this,
+			event,
+		}
+		for (const callback of this.eventCallbacks[event.event.type] ?? []) {
+			callback(data as any)
+		}
+
+		if (event.event.type === 'message') {
+			const data: MessageCallbackData = {
+				message: new Message<AnyMessage>(
+					this,
+					event.event.channel,
+					event.event.ts,
+					event.event,
+				) as MessageInstance,
+				client: this,
+				event: event as EventWrapper<MessageEvent>,
+			}
+			for (const callback of this.messageCallbacks) {
+				callback(data)
+			}
+		}
+	}
+
+	/**
+	 * Registers a callback for `message` events.
+	 *
+	 * @param callback Function to execute when a new message is received
+	 */
+	message(callback: MessageCallback) {
+		this.messageCallbacks.push(callback)
+	}
+
+	/**
+	 * Registers a callback for a given type of event.
+	 *
+	 * @param type Type of event to register
+	 * @param callback Function to execute when the event is received
+	 */
+	event<Event extends AllEvents>(type: Event['type'], callback: EventCallback<Event>) {
+		if (!this.eventCallbacks[type]) this.eventCallbacks[type] = []
+		this.eventCallbacks[type]!.push(callback as any)
 	}
 
 	/**

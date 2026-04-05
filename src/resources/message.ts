@@ -1,6 +1,7 @@
 import type { AnyMessage, NormalMessage } from '../api/types/message'
 import type { App } from '../client'
 import { SlackError } from '../error'
+import { makeProxy } from '../utils'
 import {
 	sendMessage,
 	type SendMessageParams,
@@ -121,16 +122,11 @@ export class Message<Subtype extends AnyMessage = AnyMessage> extends MessageMix
 	constructor(client: App, channel: string, ts: string, data: Subtype) {
 		super(client, channel, ts)
 		this.#data = data
-		return new Proxy(this, {
-			get(target, prop) {
-				if (prop in target) return (target as any)[prop]
-				return (target.#data as any)[prop]
-			},
-		})
+		return makeProxy(this, () => this.#data)
 	}
 
 	/** @returns Whether this message is a normal message (subtype is undefined) */
-	isNormal(): this is Message<NormalMessage> {
+	isNormal(): this is MessageInstance<NormalMessage> {
 		return !this.#data.subtype
 	}
 

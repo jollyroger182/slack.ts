@@ -1,6 +1,5 @@
 import type EventEmitter from 'events'
-import type { DistributiveOmit } from '../utils/typing'
-import type { AnyMessage } from '../api/types/message'
+import type { AppMentionEvent, MessageEvent } from './events'
 
 export interface EventsReceiver extends EventEmitter<ReceiverEventMap> {
 	start(): unknown
@@ -21,14 +20,6 @@ export interface EventWrapper<T extends AllEvents = AllEvents> {
 	context_enterprise_id: string | null
 }
 
-export type AppMentionEvent = {
-	type: 'app_mention'
-	channel: string
-	event_ts: string
-} & DistributiveOmit<AnyMessage, 'type'>
-
-export type AllEvents = AppMentionEvent
-
 export type AllEventTypes = AllEvents['type']
 
 export type SlackEventMap = {
@@ -38,3 +29,5 @@ export type SlackEventMap = {
 export type ReceiverEventMap = {
 	event: [EventWrapper<AllEvents>]
 }
+
+export type AllEvents = AppMentionEvent | MessageEvent

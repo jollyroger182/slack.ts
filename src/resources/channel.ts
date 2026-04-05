@@ -1,6 +1,7 @@
 import type { Conversation } from '../api/types/conversation'
 import type { NormalMessage } from '../api/types/message'
 import type { App } from '../client'
+import { makeProxy } from '../utils'
 import {
 	sendMessage,
 	type SendMessageParams,
@@ -90,12 +91,7 @@ export class Channel extends ChannelMixin {
 	constructor(client: App, id: string, data: Conversation) {
 		super(client, id)
 		this.#data = data
-		return new Proxy(this, {
-			get(target, prop) {
-				if (prop in target) return (target as any)[prop]
-				return (target.#data as any)[prop]
-			},
-		})
+		return makeProxy(this, () => this.#data)
 	}
 }
 
