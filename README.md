@@ -4,6 +4,16 @@ An opinionated Slack API library with full TypeScript support.
 
 ## Usage
 
+You can install this package from npm with
+
+```shell
+npm i slack.ts
+# or
+bun add slack.ts
+```
+
+Sample usage:
+
 ```typescript
 import { App } from 'slack.ts'
 
@@ -19,3 +29,5 @@ app.message(async ({ message }) => {
 
 await app.start()
 ```
+
+For more examples, see [the examples directory](./examples).
