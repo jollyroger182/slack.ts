@@ -7,16 +7,51 @@ import {
 	type SlackAPIParams,
 	type SlackAPIResponse,
 } from './api'
+import { SocketEventsReceiver, type SocketEventsReceiverOptions } from './events/receivers/socket'
+import type { DistributiveOmit } from './utils/typing'
+import type { EventsReceiver, EventWrapper } from './events/types'
+import { DummyReceiver } from './events/receivers/dummy'
+
+type ReceiverOptions =
+	| ({
+			type: 'socket'
+	  } & DistributiveOmit<SocketEventsReceiverOptions, 'client'>)
+	| {
+			type: 'dummy'
+			options?: never
+	  }
 
 interface AppOptions {
 	token?: string
+	receiver?: ReceiverOptions
 }
 
 export class App {
 	#token?: string
+	#receiver: EventsReceiver
 
-	constructor({ token }: AppOptions) {
+	constructor({ token, receiver = { type: 'dummy' } }: AppOptions = {}) {
 		this.#token = token
+		switch (receiver.type) {
+			case 'socket':
+				this.#receiver = new SocketEventsReceiver({ ...receiver, client: this })
+				break
+			default:
+				this.#receiver = new DummyReceiver()
+		}
+		this.#receiver.on('event', this.#onEvent.bind(this))
+	}
+
+	async #onEvent(event: EventWrapper) {
+		console.log('event received:', event)
+	}
+
+	/**
+	 * Starts the event receiver. If you don't use the events, interactions, and slash command APIs,
+	 * you don't need to call this function.
+	 */
+	async start() {
+		await this.#receiver.start()
 	}
 
 	/**

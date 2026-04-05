@@ -1,3 +1,4 @@
+import type { AppsConnectionsOpenParams, AppsConnectionsOpenResponse } from './web/apps'
 import type { AuthTestParams, AuthTestResponse } from './web/auth'
 import type { ChatPostMessageParams, ChatPostMessageResponse } from './web/chat'
 import type {
@@ -14,6 +15,10 @@ import type {
 } from './web/files'
 
 export interface SlackWebAPIMap {
+	'apps.connections.open': {
+		params: AppsConnectionsOpenParams
+		response: AppsConnectionsOpenResponse
+	}
 	'auth.test': {
 		params: AuthTestParams
 		response: AuthTestResponse
@@ -48,4 +53,8 @@ export type SlackAPIResponse<Method extends SlackAPIMethod> =
 	| { ok: false; error: string }
 	| ({ ok: true } & SlackWebAPIMap[Method]['response'])
 
-export const POST_METHODS: SlackAPIMethod[] = ['chat.postMessage', 'files.completeUploadExternal']
+export const POST_METHODS: SlackAPIMethod[] = [
+	'apps.connections.open',
+	'chat.postMessage',
+	'files.completeUploadExternal',
+]
