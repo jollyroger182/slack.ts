@@ -15,9 +15,15 @@ export class SocketEventsReceiver extends EventEmitter<ReceiverEventMap> impleme
 	#ws?: WebSocket
 
 	constructor({ appToken, client }: SocketEventsReceiverOptions) {
-		super()
+		super({ captureRejections: true })
+		this.on('error', this.#onEventError.bind(this))
 		this.#appToken = appToken
 		this.client = client
+	}
+
+	#onEventError(error: any) {
+		console.error('[socket-mode] error occurred handling event')
+		console.error(error)
 	}
 
 	async start() {

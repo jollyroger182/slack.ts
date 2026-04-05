@@ -63,7 +63,8 @@ export class App extends EventEmitter<AppEventMap> {
 	#receiver: EventsReceiver
 
 	constructor({ token, receiver = { type: 'dummy' } }: AppOptions = {}) {
-		super()
+		super({ captureRejections: true })
+		this.on('error', this.#onCallbackError.bind(this))
 		this.#token = token
 		switch (receiver.type) {
 			case 'socket':
@@ -91,14 +92,19 @@ export class App extends EventEmitter<AppEventMap> {
 		}
 	}
 
+	async #onCallbackError(error: any) {
+		console.error('Error occurred executing callback')
+		console.error(error)
+	}
+
 	/**
 	 * Registers a callback for `message` events.
 	 *
 	 * @param callback Function to execute when a new message is received
 	 */
 	message(callback: MessageCallback) {
-		this.on('event:message', ({ event, payload }) => {
-			callback({
+		this.on('event:message', async ({ event, payload }) => {
+			await callback({
 				event,
 				message: new Message<AnyMessage>(
 					this,
@@ -118,8 +124,8 @@ export class App extends EventEmitter<AppEventMap> {
 	 * @param callback Function to execute when the event is received
 	 */
 	event<Event extends AllEvents>(type: Event['type'], callback: EventCallback<Event>) {
-		this.on(`event:${type}`, ({ event }) => {
-			callback({ event: event as EventWrapper<Event>, client: this })
+		this.on(`event:${type}`, async ({ event }) => {
+			await callback({ event: event as EventWrapper<Event>, client: this })
 		})
 	}
 
@@ -133,8 +139,8 @@ export class App extends EventEmitter<AppEventMap> {
 	 * @param callback Function to execute when the event is received
 	 */
 	action<Type extends BlockAction>(type: Type['type'], callback: BlockActionCallback<Type>) {
-		this.on(`action:${type}`, (action) => {
-			callback(action as ActionInstance<Type>)
+		this.on(`action:${type}`, async (action) => {
+			await callback(action as ActionInstance<Type>)
 		})
 	}
 
