@@ -94,13 +94,14 @@ class ChannelMixin {
 	async *messages(params: FetchMessagesParams = {}) {
 		let remaining = params.limit ?? Infinity
 		let cursor: string | undefined
+		if (remaining <= 0) return
 		while (true) {
 			const batch = await this.client.request('conversations.history', {
 				channel: this.#id,
 				latest: params.latest,
 				oldest: params.oldest,
 				inclusive: params.inclusive,
-				limit: params.batch ?? 100,
+				limit: Math.min(remaining, params.batch ?? 100),
 				cursor,
 			})
 			for (const message of batch.messages) {

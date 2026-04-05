@@ -69,7 +69,10 @@ class MessageMixin {
 		return undefined
 	}
 
-	/** Waits for an event about this message to occur before continuing. */
+	/**
+	 * Waits for an event about this message to occur before continuing. To configure the wait object,
+	 * see its methods (for example, `message.wait.timeout(60000)`).
+	 */
 	get wait() {
 		return new MessageWait(this, this.client)
 	}
@@ -332,7 +335,16 @@ type ActionPredicate = (data: {
 
 type ExtractActionWaitReturnValue<ActionID extends string> = {
 	event: BlockActions
-	action: BlockAction & { type: ExtractPrefix<ActionID, BlockActionTypes, '.', string> }
+	action: ExtractWaitActionType<ActionID>
 }
+
+type ExtractWaitActionType<Specifier extends string> = {
+	[K in Specifier]: BlockAction & ExtractTypeAndActionID<Specifier>
+}[Specifier]
+
+type ExtractTypeAndActionID<T extends string> =
+	T extends `${infer Type extends BlockActionTypes}.${infer ActionID}`
+		? { type: Type; action_id: ActionID }
+		: never
 
 type ExtractString<T> = T extends string ? T : never
