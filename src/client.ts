@@ -28,6 +28,7 @@ import { ChannelRef } from './resources/channel'
 import { Message, type MessageInstance } from './resources/message'
 import { sleep } from './utils'
 import type { DistributiveOmit } from './utils/typing'
+import type { ViewSubmission } from './api/interactive/view_submission'
 
 type ReceiverOptions =
 	| ({
@@ -65,6 +66,7 @@ export class App extends EventEmitter<AppEventMap> {
 	constructor({ token, receiver = { type: 'dummy' } }: AppOptions = {}) {
 		super({ captureRejections: true })
 		this.on('error', this.#onCallbackError.bind(this))
+
 		this.#token = token
 		switch (receiver.type) {
 			case 'socket':
@@ -75,14 +77,17 @@ export class App extends EventEmitter<AppEventMap> {
 		}
 		this.#receiver.on('event', this.#onEvent.bind(this))
 		this.#receiver.on('block_actions', this.#onBlockActions.bind(this))
+		this.#receiver.on('view_submission', this.#onViewSubmission.bind(this))
+
+		this.on('event:message', this.#onMessage.bind(this))
 	}
 
-	async #onEvent(event: EventWrapper) {
+	#onEvent(event: EventWrapper) {
 		this.emit('event', event)
 		this.emit(`event:${event.event.type}`, { payload: event.event as any, event: event as any })
 	}
 
-	async #onBlockActions(event: BlockActions) {
+	#onBlockActions(event: BlockActions) {
 		this.emit('actions', event)
 		for (const action of event.actions) {
 			const obj = new Action(this, action, event) as ActionInstance
@@ -92,14 +97,31 @@ export class App extends EventEmitter<AppEventMap> {
 		}
 	}
 
+	#onViewSubmission(event: ViewSubmission) {
+		this.emit('submit', event)
+		this.emit(`submit.${event.view.callback_id}`, event)
+	}
+
 	async #onCallbackError(error: any) {
 		console.error('Error occurred executing callback')
 		console.error(error)
 	}
 
+	#onMessage({ payload }: { payload: MessageEvent }) {
+		const message = new Message<AnyMessage>(
+			this,
+			payload.channel,
+			payload.ts,
+			payload,
+		) as MessageInstance
+		this.emit('message', message)
+		this.emit(`message#${payload.channel}`, message)
+	}
+
 	/**
 	 * Registers a callback for `message` events.
 	 *
+	 * @deprecated Use `app.on('message', callback)` or `app.on('event:message', callback)`
 	 * @param callback Function to execute when a new message is received
 	 */
 	message(callback: MessageCallback) {
@@ -120,6 +142,7 @@ export class App extends EventEmitter<AppEventMap> {
 	/**
 	 * Registers a callback for a given type of event.
 	 *
+	 * @deprecated Use `app.on('event:type', callback)` instead
 	 * @param type Type of event to register
 	 * @param callback Function to execute when the event is received
 	 */
@@ -132,9 +155,8 @@ export class App extends EventEmitter<AppEventMap> {
 	/**
 	 * Registers a callback for a given type of block actions.
 	 *
-	 * For more powerful callbacks, use `app.on('action:button', ...)`, `app.on('action.action_id',
-	 * ...)`, or `app.on('action:button.action_id', ...)` instead.
-	 *
+	 * @deprecated Use `app.on('action:type', ...)`, `app.on('action.action_id', ...)`, or
+	 *   `app.on('action:type.action_id', ...)` instead
 	 * @param type Type of event to register
 	 * @param callback Function to execute when the event is received
 	 */
@@ -216,6 +238,8 @@ type AppEventMap = {
 	event: [EventWrapper]
 	actions: [BlockActions]
 	action: [ActionInstance]
+	submit: [ViewSubmission]
+	message: [MessageInstance]
 } & {
 	[K in AllEventTypes as `event:${K}`]: [
 		{ payload: SlackEventMap[K]; event: EventWrapper<SlackEventMap[K]> },
@@ -226,6 +250,10 @@ type AppEventMap = {
 	[K in `action.${string}`]: [ActionInstance]
 } & {
 	[K in BlockActionTypes as `action:${K}.${string}`]: [ActionInstance<BlockActionMap[K]>]
+} & {
+	[K in `submit.${string}`]: [ViewSubmission]
+} & {
+	[K in `message#${string}`]: [MessageInstance]
 }
 
 async function request<T>(url: string, options: RequestInit): Promise<T> {

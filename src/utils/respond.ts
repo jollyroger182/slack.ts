@@ -1,6 +1,9 @@
 import type { KnownBlock } from '@slack/types'
 import { SlackError } from '../error'
 import type { App } from '../client'
+import type { ViewsOpenParams } from '../api/web/views'
+import { Modal, type ModalInstance } from '../resources/modal'
+import { randomUUID } from 'crypto'
 
 export class ResponderImpl implements Responder {
 	constructor(
@@ -68,9 +71,17 @@ export class ResponderImpl implements Responder {
 			throw new SlackError(`Responding to response_url failed with status code ${resp.status}`)
 		}
 	}
+
+	async modal(view: ViewsOpenParams['view']) {
+		if (!view.callback_id) view.callback_id = randomUUID()
+		const resp = await this.client.request('views.open', { view, trigger_id: this.trigger_id })
+		return new Modal(this.client, resp.view) as ModalInstance
+	}
 }
 
-export type Responder<HasResponseURL extends boolean = true> = {} & (HasResponseURL extends true
+export type Responder<HasResponseURL extends boolean = true> = {
+	modal(view: ViewsOpenParams['view']): Promise<ModalInstance>
+} & (HasResponseURL extends true
 	? {
 			message(message: string | MessageResponseParams): Promise<void>
 			edit(message: string | MessageResponseParams): Promise<void>

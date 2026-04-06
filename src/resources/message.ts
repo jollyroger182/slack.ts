@@ -325,6 +325,6 @@ type ExtractWaitActionType<Specifier extends string> = {
 type ExtractTypeAndActionID<T extends string> =
 	T extends `${infer Type extends BlockActionTypes}.${infer ActionID}`
 		? { type: Type; action_id: ActionID }
-		: never
+		: { action_id: T }
 
 type ExtractString<T> = T extends string ? T : never

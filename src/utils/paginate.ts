@@ -1,10 +1,14 @@
 import type { SlackAPIParams, SlackAPIResponse, SlackPaginatingAPIMethod } from '../api'
 import type { App } from '../client'
+import type { DistributiveOmit } from './typing'
 
 export async function* paginate<Method extends SlackPaginatingAPIMethod, T>(
 	client: App,
 	method: Method,
-	params: SlackAPIParams<Method> & { limit?: number; batch?: number },
+	params: DistributiveOmit<SlackAPIParams<Method>, 'limit' | 'cursor'> & {
+		limit?: number
+		batch?: number
+	},
 	converter: (response: SlackAPIResponse<Method> & { ok: true }) => Iterable<T> | AsyncIterable<T>,
 ) {
 	let remaining = params.limit ?? Infinity
@@ -13,6 +17,7 @@ export async function* paginate<Method extends SlackPaginatingAPIMethod, T>(
 	while (true) {
 		const batch = await client.request(method, {
 			...params,
+			cursor,
 			limit: params.batch ?? undefined,
 			batch: undefined,
 		})

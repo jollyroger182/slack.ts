@@ -1,4 +1,4 @@
-import type { CursorPaginationParams, CursorPaginationResponse } from './types/api'
+import type { CursorPaginationResponse } from './types/api'
 import type { AppsConnectionsOpenParams, AppsConnectionsOpenResponse } from './web/apps'
 import type { AuthTestParams, AuthTestResponse } from './web/auth'
 import type { ChatPostMessageParams, ChatPostMessageResponse } from './web/chat'
@@ -17,6 +17,7 @@ import type {
 	FilesGetUploadURLExternalResponse,
 } from './web/files'
 import type { UsersInfoParams, UsersInfoResponse } from './web/users'
+import type { ViewsOpenParams, ViewsOpenResponse } from './web/views'
 
 export interface SlackWebAPIMap {
 	'apps.connections.open': {
@@ -55,6 +56,10 @@ export interface SlackWebAPIMap {
 		params: UsersInfoParams
 		response: UsersInfoResponse
 	}
+	'views.open': {
+		params: ViewsOpenParams
+		response: ViewsOpenResponse
+	}
 }
 
 export type SlackAPIMethod = keyof SlackWebAPIMap
@@ -72,4 +77,5 @@ export const POST_METHODS: SlackAPIMethod[] = [
 	'apps.connections.open',
 	'chat.postMessage',
 	'files.completeUploadExternal',
+	'views.open',
 ]

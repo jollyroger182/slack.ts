@@ -1,19 +1,14 @@
 import type { PlainTextElement } from '@slack/types'
 import type { AnyMessage } from '../types/message'
+import type { InteractionCommon } from './common'
+import type { StateValue } from '../types/value'
 
-export interface BlockActions {
+export interface BlockActions extends InteractionCommon {
 	type: 'block_actions'
-	user: { id: string; username: string; name: string; team_id: string }
-	api_app_id: string
-	token: string
 	container: BlockActionContainer
-	trigger_id: string
-	team: { id: string; domain: string; enterprise_id?: string; enterprise_name?: string }
-	enterprise?: { id: string; name: string }
-	is_enterprise_install?: boolean
 	channel?: { id: string; name: string }
 	message?: AnyMessage
-	state?: { values: Record<string, Record<string, unknown>> } // TODO type
+	state?: { values: Record<string, Record<string, StateValue>> } // TODO type
 	response_url?: string
 	actions: BlockAction[]
 }

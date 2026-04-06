@@ -2,6 +2,8 @@
 
 An opinionated Slack API library with full TypeScript support.
 
+**NOTE**: This library is still in active development! Any version update (even patch, sorry) may introduce breaking changes! Use at your own risk!
+
 ## Usage
 
 You can install this package from npm with
