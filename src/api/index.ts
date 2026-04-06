@@ -1,3 +1,4 @@
+import type { CursorPaginationParams, CursorPaginationResponse } from './types/api'
 import type { AppsConnectionsOpenParams, AppsConnectionsOpenResponse } from './web/apps'
 import type { AuthTestParams, AuthTestResponse } from './web/auth'
 import type { ChatPostMessageParams, ChatPostMessageResponse } from './web/chat'
@@ -57,6 +58,9 @@ export interface SlackWebAPIMap {
 }
 
 export type SlackAPIMethod = keyof SlackWebAPIMap
+export type SlackPaginatingAPIMethod = {
+	[K in SlackAPIMethod]: SlackWebAPIMap[K]['response'] extends CursorPaginationResponse ? K : never
+}[SlackAPIMethod]
 export type SlackAPIParams<Method extends SlackAPIMethod> = SlackWebAPIMap[Method]['params'] & {
 	token?: string
 }

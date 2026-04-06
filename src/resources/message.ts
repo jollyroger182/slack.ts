@@ -1,4 +1,4 @@
-import type { BlockAction, BlockActions, BlockActionTypes } from '../api/interactive/block_actions'
+import type { BlockAction, BlockActionTypes } from '../api/interactive/block_actions'
 import type { TimestampPaginationParams } from '../api/types/api'
 import type { AnyMessage, NormalMessage } from '../api/types/message'
 import type { App } from '../client'
@@ -10,8 +10,9 @@ import {
 	type SendMessageWithFiles,
 	type SendMessageWithoutFiles,
 } from '../utils/messaging'
-import type { DistributiveOmit, ExtractPrefix } from '../utils/typing'
-import type { Action, ActionInstance } from './action'
+import { paginate } from '../utils/paginate'
+import type { DistributiveOmit } from '../utils/typing'
+import type { ActionInstance } from './action'
 import { ChannelRef } from './channel'
 import { UserRef } from './user'
 
@@ -19,8 +20,6 @@ interface FetchRepliesParams extends Omit<TimestampPaginationParams, 'limit'> {
 	/**
 	 * How many replies to fetch in each API call. This will not affect the number of returned
 	 * messages.
-	 *
-	 * @default 100
 	 */
 	batch?: number
 
@@ -125,26 +124,16 @@ class MessageMixin {
 	 * @returns An async iterator of messages, from oldest to newest
 	 */
 	async *replies(params: FetchRepliesParams = {}): AsyncGenerator<MessageInstance, void, unknown> {
-		let remaining = params.limit ?? Infinity
-		let cursor: string | undefined
-		while (true) {
-			const batch = await this.client.request('conversations.replies', {
-				channel: this.#channel,
-				ts: this.#ts,
-				latest: params.latest,
-				oldest: params.oldest,
-				inclusive: params.inclusive,
-				limit: params.batch ?? 100,
-				cursor,
-			})
-			for (const message of batch.messages) {
-				if (!(params.root ?? true) && message.ts === this.#ts) continue
-				yield new Message(this.client, this.#channel, message.ts, message) as MessageInstance
-				if (--remaining <= 0) return
-			}
-			cursor = batch.response_metadata?.next_cursor
-			if (!batch.has_more || !cursor) return
-		}
+		yield* paginate(
+			this.client,
+			'conversations.replies',
+			{ channel: this.#channel, ts: this.#ts, ...params },
+			(r) =>
+				r.messages
+					.values()
+					.filter((m) => m.ts !== this.#ts || (params.root ?? true))
+					.map((m) => new Message(this.client, this.#channel, m.ts, m) as MessageInstance),
+		)
 	}
 }
 

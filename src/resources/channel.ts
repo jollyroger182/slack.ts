@@ -9,6 +9,7 @@ import {
 	type SendMessageWithFiles,
 	type SendMessageWithoutFiles,
 } from '../utils/messaging'
+import { paginate } from '../utils/paginate'
 import type { DistributiveOmit } from '../utils/typing'
 import { Message, MessageRef, type MessageInstance } from './message'
 import { UserRef } from './user'
@@ -16,11 +17,15 @@ import { UserRef } from './user'
 interface FetchMessagesParams extends Omit<TimestampPaginationParams, 'limit'> {
 	/**
 	 * How many messages to fetch in each API call. This will not affect the number of returned
-	 * messages. Defaults to 100
+	 * messages.
 	 */
 	batch?: number
 
-	/** How many messages to return in total. Defaults to unlimited */
+	/**
+	 * How many messages to return in total.
+	 *
+	 * @default Infinity
+	 */
 	limit?: number
 }
 
@@ -92,25 +97,11 @@ class ChannelMixin {
 	 * @returns An async iterator of messages, from newest to oldest
 	 */
 	async *messages(params: FetchMessagesParams = {}) {
-		let remaining = params.limit ?? Infinity
-		let cursor: string | undefined
-		if (remaining <= 0) return
-		while (true) {
-			const batch = await this.client.request('conversations.history', {
-				channel: this.#id,
-				latest: params.latest,
-				oldest: params.oldest,
-				inclusive: params.inclusive,
-				limit: Math.min(remaining, params.batch ?? 100),
-				cursor,
-			})
-			for (const message of batch.messages) {
-				yield new Message(this.client, this.#id, message.ts, message) as MessageInstance
-				if (--remaining <= 0) return
-			}
-			cursor = batch.response_metadata?.next_cursor
-			if (!batch.has_more || !cursor) return
-		}
+		yield* paginate(this.client, 'conversations.history', { channel: this.#id, ...params }, (r) =>
+			r.messages
+				.values()
+				.map((m) => new Message(this.client, this.#id, m.ts, m) as MessageInstance),
+		)
 	}
 }
 

@@ -1,14 +1,20 @@
-import { sleep } from './utils'
-import { ChannelRef } from './resources/channel'
-import { SlackWebAPIError, SlackWebAPIPlatformError } from './error'
+import EventEmitter from 'events'
 import {
 	POST_METHODS,
 	type SlackAPIMethod,
 	type SlackAPIParams,
 	type SlackAPIResponse,
 } from './api'
+import type {
+	BlockAction,
+	BlockActionMap,
+	BlockActions,
+	BlockActionTypes,
+} from './api/interactive/block_actions'
+import type { AnyMessage } from './api/types/message'
+import { SlackWebAPIError, SlackWebAPIPlatformError } from './error'
+import { DummyReceiver } from './events/receivers/dummy'
 import { SocketEventsReceiver, type SocketEventsReceiverOptions } from './events/receivers/socket'
-import type { DistributiveOmit } from './utils/typing'
 import type {
 	AllEvents,
 	AllEventTypes,
@@ -16,18 +22,12 @@ import type {
 	EventWrapper,
 	SlackEventMap,
 } from './events/types'
-import { DummyReceiver } from './events/receivers/dummy'
-import { Message, type MessageInstance } from './resources/message'
 import type { MessageEvent } from './events/types/events'
-import type { AnyMessage } from './api/types/message'
-import type {
-	BlockAction,
-	BlockActionMap,
-	BlockActions,
-	BlockActionTypes,
-} from './api/interactive/block_actions'
-import EventEmitter from 'events'
 import { Action, type ActionInstance } from './resources/action'
+import { ChannelRef } from './resources/channel'
+import { Message, type MessageInstance } from './resources/message'
+import { sleep } from './utils'
+import type { DistributiveOmit } from './utils/typing'
 
 type ReceiverOptions =
 	| ({
@@ -166,20 +166,19 @@ export class App extends EventEmitter<AppEventMap> {
 	/**
 	 * Makes a Slack Web API request.
 	 *
-	 * @param endpoint The Slack Web API method to call
+	 * @param method The Slack Web API method to call
 	 * @param params The parameters for the method
-	 * @param [method='GET'] The HTTP method for the request. Default is `'GET'`
 	 * @returns The response from the API call
 	 */
 	async request<Method extends SlackAPIMethod>(
-		endpoint: Method,
+		method: Method,
 		params: SlackAPIParams<Method>,
-		method: 'GET' | 'POST' = POST_METHODS.includes(endpoint) ? 'POST' : 'GET',
 	): Promise<SlackAPIResponse<Method> & { ok: true }> {
-		const body = method !== 'GET' ? JSON.stringify(params) : undefined
+		const httpMethod = POST_METHODS.includes(method) ? 'POST' : 'GET'
+		const body = httpMethod !== 'GET' ? JSON.stringify(params) : undefined
 
-		const url = new URL(`https://slack.com/api/${endpoint}`)
-		if (method === 'GET' && params) {
+		const url = new URL(`https://slack.com/api/${method}`)
+		if (httpMethod === 'GET' && params) {
 			for (const [key, value] of Object.entries(params)) {
 				if (value instanceof Array) {
 					for (const item of value) {
@@ -199,7 +198,11 @@ export class App extends EventEmitter<AppEventMap> {
 			headers.set('Authorization', `Bearer ${params.token || this.#token}`)
 		}
 
-		const res = await request<SlackAPIResponse<Method>>(url.toString(), { method, body, headers })
+		const res = await request<SlackAPIResponse<Method>>(url.toString(), {
+			method: httpMethod,
+			body,
+			headers,
+		})
 
 		if (!res.ok) {
 			throw new SlackWebAPIPlatformError(url.toString(), res, res.error)
