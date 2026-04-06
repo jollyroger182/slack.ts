@@ -33,7 +33,7 @@ export class SocketEventsReceiver extends EventEmitter<ReceiverEventMap> impleme
 	private async _connect() {
 		const { url } = await this.client.request('apps.connections.open', { token: this.#appToken })
 
-		this.#ws = new WebSocket(url + '&debug_reconnects=true')
+		this.#ws = new WebSocket(url)
 		this.#ws.addEventListener('open', this.#onOpen.bind(this))
 		this.#ws.addEventListener('message', this.#onMessage.bind(this))
 		this.#ws.addEventListener('close', this.#onClose.bind(this))
