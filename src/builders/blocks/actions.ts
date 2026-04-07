@@ -5,7 +5,11 @@ import type { InteractiveElementBuilder } from './elements/base'
 
 type ActionsElementBuilder = ButtonBuilder<string>
 
-type TypedActionsBlock<Actions extends ActionsElementBuilder[]> = ActionsBlock & {
+type TypedActionsBlock<
+	Actions extends ActionsElementBuilder[],
+	BlockID extends string,
+> = ActionsBlock & {
+	block_id: BlockID
 	elements: {
 		[K in keyof Actions]: Actions[K] extends InteractiveElementBuilder<infer Output>
 			? Output
@@ -13,11 +17,16 @@ type TypedActionsBlock<Actions extends ActionsElementBuilder[]> = ActionsBlock &
 	}
 }
 
-export class ActionsBlockBuilder<Actions extends ActionsElementBuilder[]> extends BlockBuilder<
-	TypedActionsBlock<Actions>
-> {
+export class ActionsBlockBuilder<
+	Actions extends ActionsElementBuilder[],
+	BlockID extends string = string,
+> extends BlockBuilder<TypedActionsBlock<Actions, BlockID>, BlockID> {
 	constructor(private _actions: Actions) {
 		super()
+	}
+
+	override id<BlockID extends string>(blockId: BlockID): ActionsBlockBuilder<Actions, BlockID> {
+		return this._id(blockId)
 	}
 
 	action<Action extends ActionsElementBuilder>(
@@ -27,7 +36,7 @@ export class ActionsBlockBuilder<Actions extends ActionsElementBuilder[]> extend
 		return this as any
 	}
 
-	override build(): TypedActionsBlock<Actions> {
+	override build(): TypedActionsBlock<Actions, BlockID> {
 		return {
 			...this._build(),
 			type: 'actions',

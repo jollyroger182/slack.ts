@@ -18,15 +18,20 @@ export abstract class Builder<Output> {
 	}
 }
 
-export abstract class BlockBuilder<Output> extends Builder<Output> {
+export abstract class BlockBuilder<
+	Output,
+	BlockID extends string = string,
+> extends Builder<Output> {
 	private _blockId: string = randomUUID()
 
-	id(blockId: string) {
-		this._blockId = blockId
-		return this
+	protected _id(id: string) {
+		this._blockId = id
+		return this as any
 	}
 
-	protected override _build(): { block_id?: string } {
-		return { block_id: this._blockId }
+	abstract id<BlockID extends string>(blockId: BlockID): BlockBuilder<unknown, BlockID>
+
+	protected override _build(): { block_id: BlockID } {
+		return { block_id: this._blockId as any }
 	}
 }
