@@ -3,7 +3,7 @@ import type { SectionBlock } from '@slack/types'
 import { ensureIsTextObjectBuilder, type TextObjectBuilder } from './objects/text'
 import type { OverflowBuilder } from './elements/overflow'
 import type { ButtonBuilder } from './elements/button'
-import type { InteractiveElementBuilder } from './elements/base'
+import type { BlockElementBuilder } from './elements/base'
 
 type SectionAccessoryBuilder = ButtonBuilder | OverflowBuilder<any>
 
@@ -18,7 +18,7 @@ type TypedSectionBlock<
 		: Mrkdwn extends false
 			? { text: { type: 'plain_text' } }
 			: { text?: never }) &
-	(Accessory extends InteractiveElementBuilder<infer Output>
+	(Accessory extends BlockElementBuilder<infer Output>
 		? { accessory: Output }
 		: { accessory?: never })
 

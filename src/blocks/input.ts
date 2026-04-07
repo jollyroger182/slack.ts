@@ -1,7 +1,7 @@
 import type { InputBlock } from '@slack/types'
 import { SlackError } from '../error'
 import { BlockBuilder } from './base'
-import type { InteractiveElementBuilder } from './elements/base'
+import type { BlockElementBuilder } from './elements/base'
 import type { PlainTextInputBuilder } from './elements/plain_text_input'
 import { ensureIsTextObjectBuilder, type TextObjectBuilder } from './objects/text'
 
@@ -9,7 +9,7 @@ type InputElementBuilder = PlainTextInputBuilder<string>
 
 type TypedInputBlock<Element extends InputElementBuilder, BlockID extends string> = InputBlock & {
 	block_id: BlockID
-	element: Element extends InteractiveElementBuilder<infer Output> ? Output : never
+	element: Element extends BlockElementBuilder<infer Output> ? Output : never
 }
 
 export class InputBlockBuilder<
@@ -17,8 +17,6 @@ export class InputBlockBuilder<
 	HasLabel extends boolean = false,
 	BlockID extends string = string,
 > extends BlockBuilder<TypedInputBlock<Element, BlockID>, BlockID, HasLabel> {
-	private _brand?: [HasLabel]
-
 	private _label?: TextObjectBuilder<false>
 
 	constructor(private _element: Element) {

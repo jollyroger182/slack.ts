@@ -1,7 +1,7 @@
 import { BlockBuilder } from './base'
 import type { ActionsBlock } from '@slack/types'
 import type { ButtonBuilder } from './elements/button'
-import type { InteractiveElementBuilder } from './elements/base'
+import type { BlockElementBuilder } from './elements/base'
 import type { OverflowBuilder } from './elements/overflow'
 
 type ActionsElementBuilder = ButtonBuilder<string> | OverflowBuilder<any, string>
@@ -12,9 +12,7 @@ type TypedActionsBlock<
 > = ActionsBlock & {
 	block_id: BlockID
 	elements: {
-		[K in keyof Actions]: Actions[K] extends InteractiveElementBuilder<infer Output>
-			? Output
-			: never
+		[K in keyof Actions]: Actions[K] extends BlockElementBuilder<infer Output> ? Output : never
 	}
 }
 

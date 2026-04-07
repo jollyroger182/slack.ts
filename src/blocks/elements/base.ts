@@ -1,7 +1,7 @@
 import { randomUUID } from 'crypto'
 import { Builder } from '../base'
 
-export abstract class InteractiveElementBuilder<
+export abstract class BlockElementBuilder<
 	Output,
 	ActionID extends string = string,
 > extends Builder<Output> {
@@ -12,9 +12,7 @@ export abstract class InteractiveElementBuilder<
 		return this as any
 	}
 
-	abstract id<ActionID extends string>(
-		actionId: ActionID,
-	): InteractiveElementBuilder<unknown, ActionID>
+	abstract id<ActionID extends string>(actionId: ActionID): BlockElementBuilder<unknown, ActionID>
 
 	override _build(): { action_id: ActionID } {
 		return { action_id: this._actionId as any }

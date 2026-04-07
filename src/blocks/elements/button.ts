@@ -1,10 +1,10 @@
 import type { Button, ColorScheme } from '@slack/types'
 import { ensureIsTextObjectBuilder, type TextObjectBuilder } from '../objects/text'
-import { InteractiveElementBuilder } from './base'
+import { BlockElementBuilder } from './base'
 
 type TypedButton<ActionID extends string> = Button & { action_id: ActionID }
 
-export class ButtonBuilder<ActionID extends string = string> extends InteractiveElementBuilder<
+export class ButtonBuilder<ActionID extends string = string> extends BlockElementBuilder<
 	TypedButton<ActionID>,
 	ActionID
 > {

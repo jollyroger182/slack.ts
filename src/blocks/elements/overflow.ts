@@ -1,5 +1,5 @@
 import type { ColorScheme, Overflow, PlainTextOption } from '@slack/types'
-import { InteractiveElementBuilder } from './base'
+import { BlockElementBuilder } from './base'
 import type { OptionObjectBuilder } from '../objects/option'
 import { ConfirmBuilder, confirm as buildConfirm } from '../objects/confirm'
 import type { TextObjectBuilder } from '../objects/text'
@@ -16,7 +16,7 @@ type TypedOverflow<Options extends OptionObjectBuilder[], ActionID extends strin
 export class OverflowBuilder<
 	Options extends OptionObjectBuilder[],
 	ActionID extends string = string,
-> extends InteractiveElementBuilder<TypedOverflow<Options, ActionID>, ActionID> {
+> extends BlockElementBuilder<TypedOverflow<Options, ActionID>, ActionID> {
 	private _confirm?: ConfirmBuilder<true, true, true, true>
 
 	constructor(private _options: Options) {

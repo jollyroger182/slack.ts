@@ -1,10 +1,10 @@
 import type { DispatchActionConfig, PlainTextInput } from '@slack/types'
 import { ensureIsTextObjectBuilder, type TextObjectBuilder } from '../objects/text'
-import { InteractiveElementBuilder } from './base'
+import { BlockElementBuilder } from './base'
 
 type TypedPlainTextInput<ActionID extends string> = PlainTextInput & { action_id: ActionID }
 
-export class PlainTextInputBuilder<ActionID extends string> extends InteractiveElementBuilder<
+export class PlainTextInputBuilder<ActionID extends string> extends BlockElementBuilder<
 	TypedPlainTextInput<ActionID>,
 	ActionID
 > {
