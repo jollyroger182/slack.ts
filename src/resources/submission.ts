@@ -1,14 +1,15 @@
+import type { KnownBlock } from '@slack/types'
 import type { ViewSubmission } from '../api/interactive/view_submission'
 import type { App } from '../client'
 import { makeProxy } from '../utils'
 import { ResponderImpl, type Responder } from '../utils/respond'
 
-export class Submission {
-	#data: ViewSubmission
+export class Submission<Blocks extends KnownBlock[] = KnownBlock[]> {
+	#data: ViewSubmission<Blocks>
 
 	constructor(
 		protected client: App,
-		data: ViewSubmission,
+		data: ViewSubmission<Blocks>,
 	) {
 		this.#data = data
 		return makeProxy(this, () => this.#data)
@@ -19,4 +20,5 @@ export class Submission {
 	}
 }
 
-export type SubmissionInstance = Submission & ViewSubmission
+export type SubmissionInstance<Blocks extends KnownBlock[] = KnownBlock[]> = Submission<Blocks> &
+	ViewSubmission<Blocks>

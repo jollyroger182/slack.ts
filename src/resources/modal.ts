@@ -1,3 +1,4 @@
+import type { KnownBlock } from '@slack/types'
 import type { ViewSubmission } from '../api/interactive/view_submission'
 import type { ModalView } from '../api/types/view'
 import type { App } from '../client'
@@ -5,12 +6,12 @@ import { SlackTimeoutError } from '../error'
 import { makeProxy } from '../utils'
 import { Submission, type SubmissionInstance } from './submission'
 
-export class Modal {
-	#data: ModalView
+export class Modal<Blocks extends KnownBlock[] = KnownBlock[]> {
+	#data: ModalView<Blocks>
 
 	constructor(
 		protected client: App,
-		data: ModalView,
+		data: ModalView<Blocks>,
 	) {
 		this.#data = data
 		return makeProxy(this, () => this.#data)
@@ -21,18 +22,19 @@ export class Modal {
 	}
 
 	get wait() {
-		return new ModalWait(this.client, makeProxy(this, () => this.#data) as ModalInstance)
+		return new ModalWait(this.client, makeProxy(this, () => this.#data) as ModalInstance<Blocks>)
 	}
 }
 
-export type ModalInstance = Modal & ModalView
+export type ModalInstance<Blocks extends KnownBlock[] = KnownBlock[]> = Modal<Blocks> &
+	ModalView<Blocks>
 
-class ModalWait {
+class ModalWait<Blocks extends KnownBlock[] = KnownBlock[]> {
 	private _timeout: number = 60000
 
 	constructor(
 		private client: App,
-		private modal: ModalInstance,
+		private modal: ModalInstance<Blocks>,
 	) {}
 
 	timeout(timeout: number) {
@@ -41,7 +43,7 @@ class ModalWait {
 	}
 
 	async submit() {
-		return new Promise<SubmissionInstance>((resolve, reject) => {
+		return new Promise<SubmissionInstance<Blocks>>((resolve, reject) => {
 			const cleanup = () => {
 				this.client.off(key, callback)
 				if (timeout) clearTimeout(timeout)
@@ -50,7 +52,7 @@ class ModalWait {
 			const callback = (event: ViewSubmission) => {
 				if (event.view.id === this.modal.id) {
 					cleanup()
-					resolve(new Submission(this.client, event) as SubmissionInstance)
+					resolve(new Submission(this.client, event) as SubmissionInstance<Blocks>)
 				}
 			}
 

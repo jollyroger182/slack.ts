@@ -1,9 +1,9 @@
 import type { InputBlock } from '@slack/types'
+import { SlackError } from '../error'
 import { BlockBuilder } from './base'
-import { ensureIsTextObjectBuilder, type TextObjectBuilder } from './objects/text'
-import type { PlainTextInputBuilder } from './elements/plain_text_input'
-import { SlackError } from '../../error'
 import type { InteractiveElementBuilder } from './elements/base'
+import type { PlainTextInputBuilder } from './elements/plain_text_input'
+import { ensureIsTextObjectBuilder, type TextObjectBuilder } from './objects/text'
 
 type InputElementBuilder = PlainTextInputBuilder<string>
 

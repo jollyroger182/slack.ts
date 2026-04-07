@@ -1,17 +1,17 @@
 import type { KnownBlock, PlainTextElement } from '@slack/types'
-import type { StateValue } from './value'
+import type { ExtractValues } from '../../blocks/utils/extract'
 
-export interface ModalView {
+export interface ModalView<Blocks extends KnownBlock[] = KnownBlock[]> {
 	type: 'modal'
 	id: string
 	team_id: string
 	title: PlainTextElement
-	blocks: KnownBlock[]
+	blocks: Blocks
 	close: PlainTextElement | null
 	submit: PlainTextElement | null
 	private_metadata: string
 	callback_id: string
-	state: { values: Record<string, Record<string, StateValue>> } // TODO type
+	state: { values: ExtractValues<Blocks> }
 	hash: string
 	clear_on_close: boolean
 	notify_on_close: boolean

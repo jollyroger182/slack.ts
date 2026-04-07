@@ -34,8 +34,8 @@ app.on('message', async (message) => {
 	const submission = await modal.wait.timeout(300_000).submit()
 
 	const values = submission.view.state.values
-	const name = values.name!.value!.value
-	const address = values.address!.value!.value
+	const name = values.name.value.value
+	const address = values.address.value.value
 
 	await action.respond.message(
 		`:white_check_mark: Sent your order to *${name}* at:\n\`\`\`\n${address}\n\`\`\``,

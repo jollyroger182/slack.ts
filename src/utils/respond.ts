@@ -72,15 +72,15 @@ export class ResponderImpl implements Responder {
 		}
 	}
 
-	async modal(view: ViewsOpenParams['view']) {
+	async modal<View extends ViewsOpenParams['view']>(view: View) {
 		if (!view.callback_id) view.callback_id = randomUUID()
 		const resp = await this.client.request('views.open', { view, trigger_id: this.trigger_id })
-		return new Modal(this.client, resp.view) as ModalInstance
+		return new Modal(this.client, resp.view) as ModalInstance<View['blocks']>
 	}
 }
 
 export type Responder<HasResponseURL extends boolean = true> = {
-	modal(view: ViewsOpenParams['view']): Promise<ModalInstance>
+	modal<View extends ViewsOpenParams['view']>(view: View): Promise<ModalInstance<View['blocks']>>
 } & (HasResponseURL extends true
 	? {
 			message(message: string | MessageResponseParams): Promise<void>
