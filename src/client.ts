@@ -11,7 +11,7 @@ import type {
 	BlockActions,
 	BlockActionTypes,
 } from './api/interactive/block_actions'
-import type { AnyMessage } from './api/types/message'
+import type { AnyMessage, NormalMessage } from './api/types/message'
 import { SlackWebAPIError, SlackWebAPIPlatformError } from './error'
 import { DummyReceiver } from './events/receivers/dummy'
 import { SocketEventsReceiver, type SocketEventsReceiverOptions } from './events/receivers/socket'
@@ -115,6 +115,8 @@ export class App extends EventEmitter<AppEventMap> {
 			payload,
 		) as MessageInstance
 		this.emit('message', message)
+		this.emit(`message:${payload.subtype ?? 'normal'}`, message as any)
+		this.emit(`message:${payload.subtype ?? 'normal'}#${payload.channel}`, message as any)
 		this.emit(`message#${payload.channel}`, message)
 	}
 
@@ -162,7 +164,7 @@ export class App extends EventEmitter<AppEventMap> {
 	 */
 	action<Type extends BlockAction>(type: Type['type'], callback: BlockActionCallback<Type>) {
 		this.on(`action:${type}`, async (action) => {
-			await callback(action as ActionInstance<Type>)
+			await callback(action as unknown as ActionInstance<Type>)
 		})
 	}
 
@@ -240,6 +242,7 @@ type AppEventMap = {
 	action: [ActionInstance]
 	submit: [ViewSubmission]
 	message: [MessageInstance]
+	'message:normal': [MessageInstance<NormalMessage>]
 } & {
 	[K in AllEventTypes as `event:${K}`]: [
 		{ payload: SlackEventMap[K]; event: EventWrapper<SlackEventMap[K]> },
@@ -254,6 +257,14 @@ type AppEventMap = {
 	[K in `submit.${string}`]: [ViewSubmission]
 } & {
 	[K in `message#${string}`]: [MessageInstance]
+} & {
+	[K in AnyMessage & { subtype: string } as `message:${K['subtype']}`]: [MessageInstance<K>]
+} & {
+	[K in AnyMessage & { subtype: string } as `message:${K['subtype']}#${string}`]: [
+		MessageInstance<K>,
+	]
+} & {
+	[K in `message:normal#${string}`]: [MessageInstance<NormalMessage>]
 }
 
 async function request<T>(url: string, options: RequestInit): Promise<T> {

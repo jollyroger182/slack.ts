@@ -2,10 +2,12 @@ import type {
 	ActionsBlock,
 	InputBlock,
 	KnownBlock,
+	PlainTextOption,
 	SectionBlock,
 	SectionBlockAccessory,
 } from '@slack/types'
 import type { StateValue } from '../../api/types/value'
+import type { DistributivePick } from '../../utils/typing'
 
 export type ExtractValues<Blocks extends { block_id?: string }[]> = {
 	[Block in Blocks[number] as Block['block_id'] extends string
@@ -29,16 +31,30 @@ export type ExtractActions<Blocks extends KnownBlock[]> = {
 	[K in keyof Blocks]: ExtractBlockActions<Blocks[K]>
 }[number][number]
 
-export type ExtractBlockActions<Block extends KnownBlock> = Block extends SectionBlock
-	? ExtractSectionActions<Block>
-	: Block extends InputBlock
-		? [Block['element']]
-		: Block extends ActionsBlock
-			? Block['elements']
-			: []
+export type ExtractBlockActions<Block extends KnownBlock> = PickActionFields<
+	(Block extends SectionBlock
+		? ExtractSectionActions<Block>
+		: Block extends InputBlock
+			? [Block['element'] & { action_id?: string }]
+			: Block extends ActionsBlock
+				? (Block['elements'][number] & { action_id?: string })[]
+				: [])[number]
+>[]
 
 type ExtractSectionActions<Block extends SectionBlock> =
-	Block['accessory'] extends SectionBlockAccessory ? [Block['accessory']] : []
+	Block['accessory'] extends SectionBlockAccessory & { action_id?: string }
+		? [Block['accessory']]
+		: []
+
+type PickActionFields<Action extends { type: string; action_id?: string }> = Action extends {
+	type: string
+	action_id?: string
+}
+	? DistributivePick<Action, 'type' | 'action_id'> &
+			(Action extends { type: 'overflow'; options: infer Options extends unknown[] }
+				? { selected_option: Options[number] }
+				: {})
+	: never
 
 export type ActionsToPrefixedID<Action extends { type: string; action_id?: string }> =
 	Action extends { type: string; action_id: string }

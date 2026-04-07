@@ -17,6 +17,8 @@ export class InputBlockBuilder<
 	HasLabel extends boolean = false,
 	BlockID extends string = string,
 > extends BlockBuilder<TypedInputBlock<Element, BlockID>, BlockID> {
+	private _brand?: [HasLabel]
+
 	private _label?: TextObjectBuilder<false>
 
 	constructor(private _element: Element) {
@@ -29,9 +31,9 @@ export class InputBlockBuilder<
 		return this._id(blockId)
 	}
 
-	label(text: string | TextObjectBuilder<false>) {
+	label(text: string | TextObjectBuilder<false>): InputBlockBuilder<Element, true, BlockID> {
 		this._label = ensureIsTextObjectBuilder(text).plain()
-		return this as InputBlockBuilder<Element, true>
+		return this as any
 	}
 
 	override build(

@@ -12,7 +12,7 @@ import {
 	type SendMessageWithoutFiles,
 } from '../utils/messaging'
 import { paginate } from '../utils/paginate'
-import type { DistributiveOmit } from '../utils/typing'
+import type { DistributiveOmit, DistributivePick } from '../utils/typing'
 import type { ActionInstance } from './action'
 import { ChannelRef } from './channel'
 import { UserRef } from './user'
@@ -95,9 +95,9 @@ class MessageMixin<Blocks extends KnownBlock[] = KnownBlock[]> {
 	 * @param message The message payload to send, either a mrkdwn-formatted string or an object.
 	 * @returns The sent message
 	 */
-	async reply(
-		message: DistributiveOmit<SendMessageWithoutFiles, 'channel' | 'thread_ts'> | string,
-	): Promise<MessageInstance<NormalMessage>>
+	async reply<Blocks extends KnownBlock[] = KnownBlock[]>(
+		message: DistributiveOmit<SendMessageWithoutFiles<Blocks>, 'channel' | 'thread_ts'> | string,
+	): Promise<MessageInstance<NormalMessage<Blocks>, Blocks>>
 
 	async reply(message: DistributiveOmit<SendMessageParams, 'channel' | 'thread_ts'> | string) {
 		if (typeof message === 'string') {
@@ -254,10 +254,8 @@ class MessageWait<Blocks extends KnownBlock[] = KnownBlock[]> {
 	 *   be ignored (useful for permission checks).
 	 *
 	 * An action is matched if its container is this message, its `action_id` is one of the parameters
-	 * passed in, and it passes all the function checks.
-	 *
-	 * NOTE: You must specify at least one non-function parameter, since the `action_id` of the action
-	 * must match one of the arguments.
+	 * passed in (or any `action_id` if no strings are passed in), and it passes all the function
+	 * checks.
 	 *
 	 * @param specifiers An array of specifiers (see above for their format)
 	 * @returns The action that occurred that matches the specifiers.
@@ -265,8 +263,10 @@ class MessageWait<Blocks extends KnownBlock[] = KnownBlock[]> {
 	 */
 	async action<ActionIDs extends (ActionsToPrefixedID<ExtractActions<Blocks>> | ActionPredicate)[]>(
 		...specifiers: ActionIDs
-	): Promise<ExtractActionWaitReturnValue<ExtractString<ActionIDs[number]>>> {
-		return new Promise<ActionInstance>((resolve, reject) => {
+	) {
+		return new Promise<
+			ExtractActionWaitReturnValue<ExtractString<ActionIDs[number]>, ExtractActions<Blocks>>
+		>((resolve, reject) => {
 			const predicates: ActionPredicate[] = []
 
 			const cleanup = () => {
@@ -287,7 +287,7 @@ class MessageWait<Blocks extends KnownBlock[] = KnownBlock[]> {
 						.length
 				) {
 					cleanup()
-					resolve(action)
+					resolve(action as any)
 				}
 			}
 
@@ -309,8 +309,11 @@ class MessageWait<Blocks extends KnownBlock[] = KnownBlock[]> {
 				}
 			}
 			if (!subscriptions.length) {
-				reject(new SlackError('No action ID specifiers given'))
-				return
+				console.warn(
+					"[MessageWait.action] warning: no action_id is passed. it is recommended to pass a list of action_id's to reduce the number of events that needs to be processed.",
+				)
+				this.client.on('action', callback)
+				subscriptions.push('action')
 			}
 
 			const timer: ReturnType<typeof setTimeout> | null = this._timeout
@@ -325,12 +328,18 @@ class MessageWait<Blocks extends KnownBlock[] = KnownBlock[]> {
 
 type ActionPredicate = (action: ActionInstance) => boolean | Promise<boolean>
 
-type ExtractActionWaitReturnValue<ActionID extends string> = ActionInstance<
-	ExtractWaitActionType<ActionID>
->
+type DistributeAction<T extends BlockAction> = T extends any ? ActionInstance<T> : never
 
-type ExtractWaitActionType<Specifier extends string> = {
-	[K in Specifier]: BlockAction & ExtractTypeAndActionID<Specifier>
+type ExtractActionWaitReturnValue<
+	ActionID extends string,
+	Action extends { type: string; action_id?: string },
+> = DistributeAction<ExtractWaitActionType<ActionID, Action>>
+
+type ExtractWaitActionType<
+	Specifier extends string,
+	Action extends { type: string; action_id?: string },
+> = {
+	[K in Specifier]: BlockAction & Action & ExtractTypeAndActionID<Specifier>
 }[Specifier]
 
 type ExtractTypeAndActionID<T extends string> =

@@ -18,6 +18,10 @@ export class Submission<Blocks extends KnownBlock[] = KnownBlock[]> {
 	get respond(): Responder {
 		return new Responder(this.client, this.#data.response_urls[0], this.#data.trigger_id)
 	}
+
+	get values() {
+		return this.#data.view.state.values
+	}
 }
 
 export type SubmissionInstance<Blocks extends KnownBlock[] = KnownBlock[]> = Submission<Blocks> &

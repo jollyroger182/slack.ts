@@ -67,6 +67,15 @@ export function ensureIsTextObjectBuilder<T extends TextObjectBuilder>(text: T):
 export function ensureIsTextObjectBuilder<T extends TextObjectBuilder>(
 	text: string | T,
 ): TextObjectBuilder<true> | T
-export function ensureIsTextObjectBuilder(text: string | TextObjectBuilder) {
-	return typeof text === 'string' ? new TextObjectBuilder(text, true) : text
+export function ensureIsTextObjectBuilder(text?: string): TextObjectBuilder<true> | undefined
+export function ensureIsTextObjectBuilder<T extends TextObjectBuilder>(text?: T): T | undefined
+export function ensureIsTextObjectBuilder<T extends TextObjectBuilder>(
+	text?: string | T,
+): TextObjectBuilder<true> | T | undefined
+export function ensureIsTextObjectBuilder(text?: string | TextObjectBuilder) {
+	return text === undefined
+		? undefined
+		: typeof text === 'string'
+			? new TextObjectBuilder(text, true)
+			: text
 }

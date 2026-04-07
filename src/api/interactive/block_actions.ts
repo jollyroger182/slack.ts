@@ -1,4 +1,4 @@
-import type { PlainTextElement } from '@slack/types'
+import type { ConfirmationDialog, PlainTextElement, PlainTextOption } from '@slack/types'
 import type { AnyMessage } from '../types/message'
 import type { InteractionCommon } from './common'
 import type { StateValue } from '../types/value'
@@ -54,7 +54,13 @@ export interface PlainTextInputAction extends ActionCommon {
 	value: string | null
 }
 
-export type BlockAction = ButtonAction | PlainTextInputAction
+export interface OverflowAction extends ActionCommon {
+	type: 'overflow'
+	confirm?: ConfirmationDialog
+	selected_option: PlainTextOption
+}
+
+export type BlockAction = ButtonAction | PlainTextInputAction | OverflowAction
 
 export type BlockActionTypes = BlockAction['type']
 
