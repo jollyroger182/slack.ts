@@ -4,14 +4,8 @@ type BuilderResults<T extends BlockBuilder<unknown>[]> = {
 	[K in keyof T]: T[K] extends BlockBuilder<infer Output> ? Output : never
 }
 
-type ValidateBuilders<Builders extends BlockBuilder<unknown>[], Results extends unknown[]> = {
-	[K in keyof Builders]: [Results[K & keyof Results]] extends [never]
-		? `Invalid block at index ${K}`
-		: Builders[K]
-}
-
 export function blocks<Builders extends BlockBuilder<unknown>[]>(
-	...blocks: Builders & ValidateBuilders<Builders, BuilderResults<Builders>>
+	...blocks: Builders
 ): BuilderResults<Builders> {
 	return blocks.map((b) => b.build()) as BuilderResults<Builders>
 }
@@ -27,7 +21,10 @@ export abstract class Builder<Output> {
 export abstract class BlockBuilder<
 	Output,
 	BlockID extends string = string,
+	Complete extends boolean = true,
 > extends Builder<Output> {
+	private _blockIsNotComplete?: Complete
+
 	private _blockId: string = randomUUID()
 
 	protected _id(id: string) {
@@ -35,7 +32,7 @@ export abstract class BlockBuilder<
 		return this as any
 	}
 
-	abstract id<BlockID extends string>(blockId: BlockID): BlockBuilder<unknown, BlockID>
+	abstract id<BlockID extends string>(blockId: BlockID): BlockBuilder<unknown, BlockID, Complete>
 
 	protected override _build(): { block_id: BlockID } {
 		return { block_id: this._blockId as any }

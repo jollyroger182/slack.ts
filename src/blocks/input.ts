@@ -16,7 +16,7 @@ export class InputBlockBuilder<
 	Element extends InputElementBuilder,
 	HasLabel extends boolean = false,
 	BlockID extends string = string,
-> extends BlockBuilder<TypedInputBlock<Element, BlockID>, BlockID> {
+> extends BlockBuilder<TypedInputBlock<Element, BlockID>, BlockID, HasLabel> {
 	private _brand?: [HasLabel]
 
 	private _label?: TextObjectBuilder<false>
