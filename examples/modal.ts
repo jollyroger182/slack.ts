@@ -8,7 +8,7 @@ import {
 	overflow,
 	plainTextInput,
 	section,
-} from 'slack.ts'
+} from '../src'
 
 const app = new App({
 	token: process.env.SLACK_BOT_TOKEN!,
@@ -37,7 +37,7 @@ app.on('message', async (message) => {
 
 	const action = await confirmMessage.wait
 		.timeout(60_000)
-		.action('button.info', 'overflow.menu', ({ event }) => event.user.id === message.author.id)
+		.action('info', 'menu', ({ event }) => event.user.id === message.author.id)
 
 	if (action.action_id === 'menu') {
 		return

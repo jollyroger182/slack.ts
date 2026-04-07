@@ -53,4 +53,4 @@ type PickActionFields<Action extends { type: string; action_id?: string }> = Act
 export type ActionsToPrefixedID<Action extends { type: string; action_id?: string }> =
 	Action extends { type: string; action_id: string }
 		? `${Action['type']}.${Action['action_id']}` | Action['action_id']
-		: never
+		: string
