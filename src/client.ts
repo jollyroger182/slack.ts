@@ -24,6 +24,8 @@ import { Message, type MessageInstance } from './resources/message'
 import { sleep } from './utils'
 import type { DistributiveOmit } from './utils/typing'
 import type { EventsReceiver } from './receivers/base'
+import type { SlashCommandPayload } from './api/slash'
+import { SlashCommand, type SlashCommandInstance } from './resources/slash'
 
 type ReceiverOptions =
 	| ({
@@ -73,6 +75,7 @@ export class App extends EventEmitter<AppEventMap> {
 		this.#receiver.on('event', this.#onEvent.bind(this))
 		this.#receiver.on('block_actions', this.#onBlockActions.bind(this))
 		this.#receiver.on('view_submission', this.#onViewSubmission.bind(this))
+		this.#receiver.on('slash_command', this.#onSlashCommand.bind(this))
 
 		this.on('event:message', this.#onMessage.bind(this))
 	}
@@ -95,6 +98,12 @@ export class App extends EventEmitter<AppEventMap> {
 	#onViewSubmission(event: ViewSubmission) {
 		this.emit('submit', event)
 		this.emit(`submit.${event.view.callback_id}`, event)
+	}
+
+	#onSlashCommand(event: SlashCommandPayload) {
+		const command = new SlashCommand(this, event) as SlashCommandInstance
+		this.emit('slash', command)
+		this.emit(`/${event.command.substring(1)}`, command)
 	}
 
 	async #onCallbackError(error: any) {
@@ -238,6 +247,7 @@ type AppEventMap = {
 	submit: [ViewSubmission]
 	message: [MessageInstance]
 	'message:normal': [MessageInstance<NormalMessage>]
+	slash: [SlashCommandInstance]
 } & {
 	[K in AllEventTypes as `event:${K}`]: [
 		{ payload: SlackEventMap[K]; event: EventWrapper<SlackEventMap[K]> },
@@ -260,6 +270,8 @@ type AppEventMap = {
 	]
 } & {
 	[K in `message:normal#${string}`]: [MessageInstance<NormalMessage>]
+} & {
+	[K in `/${string}`]: [SlashCommandInstance]
 }
 
 async function request<T>(url: string, options: RequestInit): Promise<T> {

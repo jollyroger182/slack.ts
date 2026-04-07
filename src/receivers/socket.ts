@@ -4,6 +4,7 @@ import type { EventWrapper } from '../api/events'
 import type { BlockActions } from '../api/interactive/block_actions'
 import type { App } from '../client'
 import type { EventsReceiver, ReceiverEventMap } from './base'
+import type { SlashCommandPayload } from '../api/slash'
 
 export interface SocketEventsReceiverOptions {
 	appToken: string
@@ -55,6 +56,9 @@ export class SocketEventsReceiver extends EventEmitter<ReceiverEventMap> impleme
 			} else if (data.type === 'interactive') {
 				this.#ws?.send(JSON.stringify({ envelope_id: data.envelope_id }))
 				this.emit(data.payload.type, data.payload)
+			} else if (data.type === 'slash_commands') {
+				this.#ws?.send(JSON.stringify({ envelope_id: data.envelope_id }))
+				this.emit('slash_command', data.payload)
 			} else if (data.type === 'hello') {
 				console.debug('[socket-mode] received server hello, app id', data.connection_info.app_id)
 			} else {
@@ -96,6 +100,12 @@ interface SocketInteractivePayload extends SocketPayloadWrapper {
 	accepts_response_payload: false
 }
 
+interface SocketSlashCommandPayload extends SocketPayloadWrapper {
+	type: 'slash_commands'
+	payload: SlashCommandPayload
+	accepts_response_payload: true
+}
+
 interface SocketHelloPayload {
 	type: 'hello'
 	num_connections: number
@@ -103,4 +113,8 @@ interface SocketHelloPayload {
 	connection_info: { app_id: string }
 }
 
-type AnySocketPayload = SocketEventPayload | SocketInteractivePayload | SocketHelloPayload
+type AnySocketPayload =
+	| SocketEventPayload
+	| SocketInteractivePayload
+	| SocketSlashCommandPayload
+	| SocketHelloPayload
