@@ -8,7 +8,7 @@ export class PlainTextInputBuilder<ActionID extends string> extends InteractiveE
 	ActionID
 > {
 	override id<ActionID extends string>(actionId: ActionID): PlainTextInputBuilder<ActionID> {
-		return super.id(actionId) as any
+		return this._id(actionId)
 	}
 
 	override build(): TypedPlainTextInput<ActionID> {

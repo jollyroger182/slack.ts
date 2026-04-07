@@ -4,7 +4,7 @@ import { InteractiveElementBuilder } from './base'
 
 type TypedButton<ActionID extends string> = Button & { action_id: ActionID }
 
-export class ButtonBuilder<ActionID extends string> extends InteractiveElementBuilder<
+export class ButtonBuilder<ActionID extends string = string> extends InteractiveElementBuilder<
 	TypedButton<ActionID>,
 	ActionID
 > {
@@ -18,7 +18,7 @@ export class ButtonBuilder<ActionID extends string> extends InteractiveElementBu
 	}
 
 	override id<ActionID extends string>(actionId: ActionID): ButtonBuilder<ActionID> {
-		return super.id(actionId) as any
+		return this._id(actionId)
 	}
 
 	value(value: string) {

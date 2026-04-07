@@ -1,4 +1,14 @@
-import { actions, App, blocks, button, input, plainTextInput, section } from 'slack.ts'
+import {
+	actions,
+	App,
+	blocks,
+	button,
+	input,
+	option,
+	overflow,
+	plainTextInput,
+	section,
+} from 'slack.ts'
 
 const app = new App({
 	token: process.env.SLACK_BOT_TOKEN!,
@@ -12,7 +22,7 @@ app.on('message', async (message) => {
 		text: 'Click here to enter your information',
 		blocks: blocks(
 			section('Click to enter your shipping info'),
-			actions(button('Click me').id('info')),
+			actions(button('Click me').id('info'), overflow(option('Cancal').value('cancel')).id('menu')),
 		),
 	})
 

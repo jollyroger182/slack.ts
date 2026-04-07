@@ -7,10 +7,14 @@ export abstract class InteractiveElementBuilder<
 > extends Builder<Output> {
 	protected _actionId: string = randomUUID()
 
-	id<ActionID extends string>(actionId: ActionID): InteractiveElementBuilder<unknown, ActionID> {
-		this._actionId = actionId as any
+	protected _id(actionId: string) {
+		this._actionId = actionId
 		return this as any
 	}
+
+	abstract id<ActionID extends string>(
+		actionId: ActionID,
+	): InteractiveElementBuilder<unknown, ActionID>
 
 	override _build(): { action_id: ActionID } {
 		return { action_id: this._actionId as any }
