@@ -2,6 +2,7 @@ import type { KnownBlock } from '@slack/types'
 import type { ChatPostMessageParams } from '../api/web/chat'
 import type { App } from '../client'
 import { SlackError } from '../error'
+import type { NormalMessage } from '../api/types/message'
 
 export type SendMessageFile = {
 	file: Buffer | ArrayBuffer
@@ -11,20 +12,28 @@ export type SendMessageFile = {
 	alt_txt?: string
 }
 
-export interface SendMessageWithFiles {
+export interface SendMessageWithFiles<Blocks extends KnownBlock[] = KnownBlock[]> {
 	channel: string
 	files: SendMessageFile[]
 	thread_ts?: string
 	text?: string
-	blocks?: KnownBlock[]
+	blocks?: Blocks
 	token?: string
 }
 
-export type SendMessageWithoutFiles = { files?: never } & ChatPostMessageParams
+export type SendMessageWithoutFiles<Blocks extends KnownBlock[] = KnownBlock[]> = {
+	files?: never
+	blocks?: Blocks
+} & ChatPostMessageParams
 
-export type SendMessageParams = SendMessageWithFiles | SendMessageWithoutFiles
+export type SendMessageParams<Blocks extends KnownBlock[] = KnownBlock[]> =
+	| SendMessageWithFiles<Blocks>
+	| SendMessageWithoutFiles<Blocks>
 
-export async function sendMessage(client: App, params: SendMessageParams) {
+export async function sendMessage<Blocks extends KnownBlock[] = KnownBlock[]>(
+	client: App,
+	params: SendMessageParams<Blocks>,
+) {
 	if (params.files) {
 		const files = await Promise.all(
 			params.files.map(async (file) => ({
@@ -41,7 +50,11 @@ export async function sendMessage(client: App, params: SendMessageParams) {
 		})
 	} else {
 		const message = await client.request('chat.postMessage', params)
-		return { channel: message.channel, ts: message.ts, message: message.message }
+		return {
+			channel: message.channel,
+			ts: message.ts,
+			message: message.message as NormalMessage<Blocks>,
+		}
 	}
 }
 

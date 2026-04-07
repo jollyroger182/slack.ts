@@ -50,8 +50,8 @@ interface MaybeAttachments {
 	attachments: Attachment[]
 }
 
-interface MaybeBlocks {
-	blocks?: KnownBlock[]
+interface MaybeBlocks<Blocks extends KnownBlock[] = KnownBlock[]> {
+	blocks?: Blocks
 }
 
 interface MessageCommon {
@@ -65,7 +65,8 @@ interface MessageCommon {
 
 // message subtypes
 
-export interface NormalMessage extends MessageCommon, MaybeBot, MaybeAttachments, MaybeBlocks {
+export interface NormalMessage<Blocks extends KnownBlock[] = KnownBlock[]>
+	extends MessageCommon, MaybeBot, MaybeAttachments, MaybeBlocks<Blocks> {
 	subtype?: never
 
 	user: string

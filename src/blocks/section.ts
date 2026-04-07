@@ -11,11 +11,12 @@ type TypedSectionBlock<
 	Mrkdwn extends boolean = boolean,
 	Accessory extends SectionAccessoryBuilder | undefined = undefined,
 	BlockID extends string = string,
-> = SectionBlock &
-	(Mrkdwn extends true ? { text: { type: 'mrkdwn' } } : { text: { type: 'plain_text' } }) &
-	(Accessory extends InteractiveElementBuilder<infer Output> ? { accessory: Output } : never) & {
-		block_id: BlockID
-	}
+> = SectionBlock & {
+	block_id: BlockID
+} & (Mrkdwn extends true ? { text: { type: 'mrkdwn' } } : { text: { type: 'plain_text' } }) &
+	(Accessory extends InteractiveElementBuilder<infer Output>
+		? { accessory: Output }
+		: { accessory?: never })
 
 export class SectionBlockBuilder<
 	Mrkdwn extends boolean = boolean,

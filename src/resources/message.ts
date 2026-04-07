@@ -1,3 +1,4 @@
+import type { KnownBlock } from '@slack/types'
 import type { BlockAction, BlockActionTypes } from '../api/interactive/block_actions'
 import type { TimestampPaginationParams } from '../api/types/api'
 import type { AnyMessage, NormalMessage } from '../api/types/message'
@@ -15,6 +16,7 @@ import type { DistributiveOmit } from '../utils/typing'
 import type { ActionInstance } from './action'
 import { ChannelRef } from './channel'
 import { UserRef } from './user'
+import type { ActionsToPrefixedID, ExtractActions } from '../blocks/utils/extract'
 
 interface FetchRepliesParams extends Omit<TimestampPaginationParams, 'limit'> {
 	/**
@@ -38,7 +40,7 @@ interface FetchRepliesParams extends Omit<TimestampPaginationParams, 'limit'> {
 	root?: boolean
 }
 
-class MessageMixin {
+class MessageMixin<Blocks extends KnownBlock[] = KnownBlock[]> {
 	#channel: string
 	#ts: string
 
@@ -74,7 +76,7 @@ class MessageMixin {
 	 * see its methods (for example, `message.wait.timeout(60000)`).
 	 */
 	get wait() {
-		return new MessageWait(this, this.client)
+		return new MessageWait<Blocks>(this, this.client)
 	}
 
 	/**
@@ -137,8 +139,11 @@ class MessageMixin {
 	}
 }
 
-export class MessageRef<Subtype extends AnyMessage = AnyMessage>
-	extends MessageMixin
+export class MessageRef<
+	Subtype extends AnyMessage = AnyMessage,
+	Blocks extends KnownBlock[] = KnownBlock[],
+>
+	extends MessageMixin<Blocks>
 	implements PromiseLike<Message<Subtype>>
 {
 	then<TResult1 = Message<Subtype>, TResult2 = never>(
@@ -171,7 +176,10 @@ export class MessageRef<Subtype extends AnyMessage = AnyMessage>
 	}
 }
 
-export class Message<Subtype extends AnyMessage = AnyMessage> extends MessageMixin {
+export class Message<
+	Subtype extends AnyMessage = AnyMessage,
+	Blocks extends KnownBlock[] = KnownBlock[],
+> extends MessageMixin<Blocks> {
 	#data: Subtype
 
 	constructor(client: App, channel: string, ts: string, data: Subtype) {
@@ -204,13 +212,16 @@ export class Message<Subtype extends AnyMessage = AnyMessage> extends MessageMix
 	}
 }
 
-export type MessageInstance<Subtype extends AnyMessage = AnyMessage> = Message<Subtype> & Subtype
+export type MessageInstance<
+	Subtype extends AnyMessage = AnyMessage,
+	Blocks extends KnownBlock[] = KnownBlock[],
+> = Message<Subtype, Blocks> & Subtype
 
-class MessageWait {
+class MessageWait<Blocks extends KnownBlock[] = KnownBlock[]> {
 	private _timeout = 60_0_000
 
 	constructor(
-		private message: MessageMixin,
+		private message: MessageMixin<Blocks>,
 		private client: App,
 	) {}
 
@@ -252,7 +263,7 @@ class MessageWait {
 	 * @returns The action that occurred that matches the specifiers.
 	 * @throws `SlackTimeoutError` if timed out before a matched event occurred
 	 */
-	async action<ActionIDs extends (string | ActionPredicate)[]>(
+	async action<ActionIDs extends (ActionsToPrefixedID<ExtractActions<Blocks>> | ActionPredicate)[]>(
 		...specifiers: ActionIDs
 	): Promise<ExtractActionWaitReturnValue<ExtractString<ActionIDs[number]>>> {
 		return new Promise<ActionInstance>((resolve, reject) => {
