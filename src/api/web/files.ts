@@ -1,4 +1,5 @@
 import type { KnownBlock } from '@slack/types'
+import type { File } from '../types/file'
 
 interface CompleteUploadFile {
 	id: string
@@ -33,7 +34,7 @@ export interface FilesCompleteUploadExternalParams {
 }
 
 export interface FilesCompleteUploadExternalResponse {
-	files: CompleteUploadFile[]
+	files: File[]
 }
 
 export interface FilesGetUploadURLExternalParams {

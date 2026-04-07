@@ -1,4 +1,5 @@
 import type { KnownBlock } from '@slack/types'
+import type { File } from './file'
 
 // objects
 
@@ -74,6 +75,7 @@ export interface NormalMessage<Blocks extends KnownBlock[] = KnownBlock[]>
 	edited?: { user: string; ts: string }
 	client_msg_id?: string
 	parent_user_id?: string
+	files?: File[]
 }
 
 export interface ChannelJoinMessage extends MessageCommon {
