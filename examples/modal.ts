@@ -1,4 +1,4 @@
-import { App } from '../src'
+import { actions, App, blocks, button, section } from 'slack.ts'
 
 const app = new App({
 	token: process.env.SLACK_BOT_TOKEN!,
@@ -10,15 +10,10 @@ app.on('message', async (message) => {
 
 	const confirmMessage = await message.channel.send({
 		text: 'Click here to enter your information',
-		blocks: [
-			{ type: 'section', text: { type: 'mrkdwn', text: 'Click to enter your shipping info' } },
-			{
-				type: 'actions',
-				elements: [
-					{ type: 'button', action_id: 'info', text: { type: 'plain_text', text: 'Click me' } },
-				],
-			},
-		],
+		blocks: blocks(
+			section('Click to enter your shipping info'),
+			actions(button('Click me').id('info')),
+		),
 	})
 
 	const action = await confirmMessage.wait
