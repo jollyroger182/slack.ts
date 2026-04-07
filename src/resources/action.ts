@@ -1,7 +1,7 @@
 import type { BlockAction, BlockActions } from '../api/interactive/block_actions'
 import type { App } from '../client'
 import { makeProxy } from '../utils'
-import { ResponderImpl, type Responder } from '../utils/respond'
+import { Responder } from '../utils/respond'
 
 export class Action<Type extends BlockAction = BlockAction> {
 	#data: Type
@@ -26,7 +26,7 @@ export class Action<Type extends BlockAction = BlockAction> {
 	}
 
 	get respond(): Responder<true> {
-		return new ResponderImpl(this.client, this.#event.response_url, this.#event.trigger_id)
+		return new Responder(this.client, this.#event.response_url, this.#event.trigger_id)
 	}
 }
 

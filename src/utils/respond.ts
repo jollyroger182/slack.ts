@@ -5,14 +5,14 @@ import type { ViewsOpenParams } from '../api/web/views'
 import { Modal, type ModalInstance } from '../resources/modal'
 import { randomUUID } from 'crypto'
 
-export class ResponderImpl implements Responder {
+export class Responder<HasResponseURL extends boolean = true> {
 	constructor(
 		private client: App,
 		private response_url: string | undefined,
 		private trigger_id: string,
 	) {}
 
-	async message(message: string | MessageResponseParams) {
+	async message(this: Responder<true>, message: string | MessageResponseParams) {
 		if (!this.response_url) throw new SlackError('Cannot respond to this event with a message')
 
 		if (typeof message === 'string') message = { text: message }
@@ -35,7 +35,7 @@ export class ResponderImpl implements Responder {
 		}
 	}
 
-	async edit(message: string | MessageResponseParams) {
+	async edit(this: Responder<true>, message: string | MessageResponseParams) {
 		if (!this.response_url) throw new SlackError('Cannot respond to this event with an edit')
 
 		if (typeof message === 'string') message = { text: message }
@@ -58,7 +58,7 @@ export class ResponderImpl implements Responder {
 		}
 	}
 
-	async delete() {
+	async delete(this: Responder<true>) {
 		if (!this.response_url) throw new SlackError('Cannot respond to this event with deletion')
 
 		const resp = await fetch(this.response_url, {
@@ -78,16 +78,6 @@ export class ResponderImpl implements Responder {
 		return new Modal(this.client, resp.view) as ModalInstance<View['blocks']>
 	}
 }
-
-export type Responder<HasResponseURL extends boolean = true> = {
-	modal<View extends ViewsOpenParams['view']>(view: View): Promise<ModalInstance<View['blocks']>>
-} & (HasResponseURL extends true
-	? {
-			message(message: string | MessageResponseParams): Promise<void>
-			edit(message: string | MessageResponseParams): Promise<void>
-			delete(): Promise<void>
-		}
-	: {})
 
 export type MessageResponseParams = {
 	ephemeral?: boolean
