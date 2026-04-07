@@ -1,4 +1,4 @@
-import { actions, App, blocks, button, section } from 'slack.ts'
+import { actions, App, blocks, button, input, plainTextInput, section } from 'slack.ts'
 
 const app = new App({
 	token: process.env.SLACK_BOT_TOKEN!,
@@ -24,21 +24,11 @@ app.on('message', async (message) => {
 		type: 'modal',
 		title: { type: 'plain_text', text: 'Place order' },
 		submit: { type: 'plain_text', text: 'Order' },
-		blocks: [
-			{ type: 'section', text: { type: 'mrkdwn', text: 'Please enter your shipping info below.' } },
-			{
-				type: 'input',
-				block_id: 'name',
-				label: { type: 'plain_text', text: 'Your name' },
-				element: { type: 'plain_text_input', action_id: 'value' },
-			},
-			{
-				type: 'input',
-				block_id: 'address',
-				label: { type: 'plain_text', text: 'Address' },
-				element: { type: 'plain_text_input', multiline: true, action_id: 'value' },
-			},
-		],
+		blocks: blocks(
+			section('Please enter your shipping info below.'),
+			input(plainTextInput().id('value')).id('name'),
+			input(plainTextInput().id('value')).id('address'),
+		),
 	})
 
 	const submission = await modal.wait.timeout(300_000).submit()

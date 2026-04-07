@@ -2,7 +2,12 @@ import type { Button, ColorScheme } from '@slack/types'
 import { ensureIsTextObjectBuilder, type TextObjectBuilder } from '../objects/text'
 import { InteractiveElementBuilder } from './base'
 
-export class ButtonBuilder extends InteractiveElementBuilder<Button> {
+type TypedButton<ActionID extends string> = Button & { action_id: ActionID }
+
+export class ButtonBuilder<ActionID extends string> extends InteractiveElementBuilder<
+	TypedButton<ActionID>,
+	ActionID
+> {
 	private _value?: string
 	private _url?: string
 	private _style?: ColorScheme
@@ -10,6 +15,10 @@ export class ButtonBuilder extends InteractiveElementBuilder<Button> {
 
 	constructor(private _text: TextObjectBuilder<false>) {
 		super()
+	}
+
+	override id<ActionID extends string>(actionId: ActionID): ButtonBuilder<ActionID> {
+		return super.id(actionId) as any
 	}
 
 	value(value: string) {
@@ -32,7 +41,7 @@ export class ButtonBuilder extends InteractiveElementBuilder<Button> {
 		return this
 	}
 
-	override build(): Button {
+	override build(): TypedButton<ActionID> {
 		return {
 			...this._build(),
 			type: 'button',

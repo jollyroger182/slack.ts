@@ -23,6 +23,7 @@ export abstract class BlockBuilder<Output> extends Builder<Output> {
 
 	id(blockId: string) {
 		this._blockId = blockId
+		return this
 	}
 
 	protected override _build(): { block_id?: string } {

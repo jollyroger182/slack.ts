@@ -3,7 +3,7 @@ import type { ActionsBlock } from '@slack/types'
 import type { ButtonBuilder } from './elements/button'
 import type { InteractiveElementBuilder } from './elements/base'
 
-type ActionsElementBuilder = ButtonBuilder
+type ActionsElementBuilder = ButtonBuilder<string>
 
 type TypedActionsBlock<Actions extends ActionsElementBuilder[]> = ActionsBlock & {
 	elements: {
