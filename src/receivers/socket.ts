@@ -1,8 +1,9 @@
 import EventEmitter from 'events'
 import WebSocket from 'ws'
-import type { App } from '../../client'
-import type { EventsReceiver, EventWrapper, ReceiverEventMap } from '../types'
-import type { BlockActions } from '../../api/interactive/block_actions'
+import type { EventWrapper } from '../api/events'
+import type { BlockActions } from '../api/interactive/block_actions'
+import type { App } from '../client'
+import type { EventsReceiver, ReceiverEventMap } from './base'
 
 export interface SocketEventsReceiverOptions {
 	appToken: string

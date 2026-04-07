@@ -5,30 +5,25 @@ import {
 	type SlackAPIParams,
 	type SlackAPIResponse,
 } from './api'
+import type { AllEvents, AllEventTypes, EventWrapper, SlackEventMap } from './api/events'
+import type { MessageEvent } from './api/events/events'
 import type {
 	BlockAction,
 	BlockActionMap,
 	BlockActions,
 	BlockActionTypes,
 } from './api/interactive/block_actions'
+import type { ViewSubmission } from './api/interactive/view_submission'
 import type { AnyMessage, NormalMessage } from './api/types/message'
 import { SlackWebAPIError, SlackWebAPIPlatformError } from './error'
-import { DummyReceiver } from './events/receivers/dummy'
-import { SocketEventsReceiver, type SocketEventsReceiverOptions } from './events/receivers/socket'
-import type {
-	AllEvents,
-	AllEventTypes,
-	EventsReceiver,
-	EventWrapper,
-	SlackEventMap,
-} from './events/types'
-import type { MessageEvent } from './events/types/events'
+import { DummyReceiver } from './receivers/dummy'
+import { SocketEventsReceiver, type SocketEventsReceiverOptions } from './receivers/socket'
 import { Action, type ActionInstance } from './resources/action'
 import { ChannelRef } from './resources/channel'
 import { Message, type MessageInstance } from './resources/message'
 import { sleep } from './utils'
 import type { DistributiveOmit } from './utils/typing'
-import type { ViewSubmission } from './api/interactive/view_submission'
+import type { EventsReceiver } from './receivers/base'
 
 type ReceiverOptions =
 	| ({

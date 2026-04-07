@@ -1,4 +1,4 @@
-import type { AnyMessage } from '../../api/types/message'
+import type { AnyMessage } from '../types/message'
 import type { DistributiveOmit } from '../../utils/typing'
 
 export type AppMentionEvent = {
