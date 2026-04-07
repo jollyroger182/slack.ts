@@ -25,7 +25,7 @@ export interface EventWrapper<T extends AllEvents = AllEvents> {
 export type AllEventTypes = AllEvents['type']
 
 export type SlackEventMap = {
-	[K in AllEventTypes]: AllEvents & { type: K }
+	[K in AllEventTypes]: Extract<AllEvents, { type: K }>
 }
 
 export type ReceiverEventMap = {

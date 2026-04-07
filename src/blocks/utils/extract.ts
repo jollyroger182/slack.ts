@@ -18,12 +18,14 @@ export type ExtractValues<Blocks extends { block_id?: string }[]> = {
 export type ExtractBlockValues<Block> = Block extends {
 	element: { type: string; action_id: string }
 }
-	? { [T in Block['element']['action_id']]: StateValue & { type: Block['element']['type'] } }
+	? {
+			[T in Block['element']['action_id']]: Extract<StateValue, { type: Block['element']['type'] }>
+		}
 	: Block extends { elements: { type: string; action_id?: string }[] }
 		? {
 				[Action in Block['elements'][number] as Action['action_id'] extends string
 					? Action['action_id']
-					: never]: StateValue & { type: Action['type'] }
+					: never]: Extract<StateValue, { type: Action['type'] }>
 			}
 		: never
 
@@ -33,23 +35,15 @@ export type ExtractActions<Blocks extends KnownBlock[]> = {
 
 export type ExtractBlockActions<Block extends KnownBlock> = PickActionFields<
 	(Block extends SectionBlock
-		? ExtractSectionActions<Block>
+		? Extract<Block['accessory'], { action_id?: string }>[]
 		: Block extends InputBlock
-			? [Block['element'] & { action_id?: string }]
+			? Extract<Block['element'], { action_id?: string }>[]
 			: Block extends ActionsBlock
-				? (Block['elements'][number] & { action_id?: string })[]
+				? Extract<Block['elements'][number], { action_id?: string }>[]
 				: [])[number]
 >[]
 
-type ExtractSectionActions<Block extends SectionBlock> =
-	Block['accessory'] extends SectionBlockAccessory & { action_id?: string }
-		? [Block['accessory']]
-		: []
-
-type PickActionFields<Action extends { type: string; action_id?: string }> = Action extends {
-	type: string
-	action_id?: string
-}
+type PickActionFields<Action extends { type: string; action_id?: string }> = Action extends unknown
 	? DistributivePick<Action, 'type' | 'action_id'> &
 			(Action extends { type: 'overflow'; options: infer Options extends unknown[] }
 				? { selected_option: Options[number] }

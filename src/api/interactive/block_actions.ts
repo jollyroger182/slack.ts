@@ -65,5 +65,5 @@ export type BlockAction = ButtonAction | PlainTextInputAction | OverflowAction
 export type BlockActionTypes = BlockAction['type']
 
 export type BlockActionMap = {
-	[K in BlockActionTypes]: BlockAction & { type: K }
+	[K in BlockActionTypes]: Extract<BlockAction, { type: K }>
 }

@@ -9,7 +9,9 @@ export async function* paginate<Method extends SlackPaginatingAPIMethod, T>(
 		limit?: number
 		batch?: number
 	},
-	converter: (response: SlackAPIResponse<Method> & { ok: true }) => Iterable<T> | AsyncIterable<T>,
+	converter: (
+		response: Extract<SlackAPIResponse<Method>, { ok: true }>,
+	) => Iterable<T> | AsyncIterable<T>,
 ) {
 	let remaining = params.limit ?? Infinity
 	let cursor: string | undefined

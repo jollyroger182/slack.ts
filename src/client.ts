@@ -197,7 +197,7 @@ export class App extends EventEmitter<AppEventMap> {
 	async request<Method extends SlackAPIMethod>(
 		method: Method,
 		params: SlackAPIParams<Method>,
-	): Promise<SlackAPIResponse<Method> & { ok: true }> {
+	): Promise<Extract<SlackAPIResponse<Method>, { ok: true }>> {
 		const httpMethod = POST_METHODS.includes(method) ? 'POST' : 'GET'
 		const body = httpMethod !== 'GET' ? JSON.stringify(params) : undefined
 
@@ -258,9 +258,9 @@ type AppEventMap = {
 } & {
 	[K in `message#${string}`]: [MessageInstance]
 } & {
-	[K in AnyMessage & { subtype: string } as `message:${K['subtype']}`]: [MessageInstance<K>]
+	[K in Extract<AnyMessage, { subtype: string }> as `message:${K['subtype']}`]: [MessageInstance<K>]
 } & {
-	[K in AnyMessage & { subtype: string } as `message:${K['subtype']}#${string}`]: [
+	[K in Extract<AnyMessage, { subtype: string }> as `message:${K['subtype']}#${string}`]: [
 		MessageInstance<K>,
 	]
 } & {
