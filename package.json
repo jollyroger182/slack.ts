@@ -1,6 +1,6 @@
 {
 	"name": "slack.ts",
-	"version": "0.0.8",
+	"version": "0.0.9",
 	"description": "A fully-typed, opinionated Slack API library",
 	"author": "@jollyroger182",
 	"license": "MIT",
