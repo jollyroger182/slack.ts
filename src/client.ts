@@ -153,6 +153,10 @@ export class App extends EventEmitter<AppEventMap> {
 		this.emit(`message#${payload.channel}`, message)
 	}
 
+	get receiver() {
+		return this.#receiver
+	}
+
 	/**
 	 * Registers a callback for `message` events.
 	 *
