@@ -12,6 +12,8 @@ import type {
 	ConversationsHistoryResponse,
 	ConversationsInfoParams,
 	ConversationsInfoResponse,
+	ConversationsListParams,
+	ConversationsListResponse,
 	ConversationsRepliesParams,
 	ConversationsRepliesResponse,
 } from './web/conversations'
@@ -41,13 +43,17 @@ export interface SlackWebAPIMap {
 		params: ChatPostMessageParams
 		response: ChatPostMessageResponse
 	}
+	'conversations.history': {
+		params: ConversationsHistoryParams
+		response: ConversationsHistoryResponse
+	}
 	'conversations.info': {
 		params: ConversationsInfoParams
 		response: ConversationsInfoResponse
 	}
-	'conversations.history': {
-		params: ConversationsHistoryParams
-		response: ConversationsHistoryResponse
+	'conversations.list': {
+		params: ConversationsListParams
+		response: ConversationsListResponse
 	}
 	'conversations.replies': {
 		params: ConversationsRepliesParams

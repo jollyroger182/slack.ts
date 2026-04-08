@@ -19,13 +19,21 @@ import { SlackWebAPIError, SlackWebAPIPlatformError } from './error'
 import { DummyReceiver } from './receivers/dummy'
 import { SocketEventsReceiver, type SocketEventsReceiverOptions } from './receivers/socket'
 import { Action, type ActionInstance } from './resources/action'
-import { ChannelRef } from './resources/channel'
+import { Channel, ChannelRef } from './resources/channel'
 import { Message, type MessageInstance } from './resources/message'
 import { sleep } from './utils'
 import type { DistributiveOmit } from './utils/typing'
 import type { EventsReceiver } from './receivers/base'
 import type { SlashCommandPayload } from './api/slash'
 import { SlashCommand, type SlashCommandInstance } from './resources/slash'
+import type {
+	Conversation,
+	IM,
+	MPIM,
+	PrivateChannel,
+	PublicChannel,
+} from './api/types/conversation'
+import { paginate } from './utils/paginate'
 
 type ReceiverOptions =
 	| ({
@@ -55,6 +63,13 @@ export type EventCallbackData<Event extends AllEvents> = {
 export type EventCallback<Event extends AllEvents> = (data: EventCallbackData<Event>) => unknown
 
 export type BlockActionCallback<Type extends BlockAction> = (data: Action<Type>) => unknown
+
+type ChannelTypeMap = {
+	public_channel: PublicChannel
+	private_channel: PrivateChannel
+	mpim: MPIM
+	im: IM
+}
 
 export class App extends EventEmitter<AppEventMap> {
 	#token?: string
@@ -189,6 +204,14 @@ export class App extends EventEmitter<AppEventMap> {
 	 */
 	channel(id: string) {
 		return new ChannelRef(this, id)
+	}
+
+	async *channels<Types extends ('public_channel' | 'private_channel' | 'mpim' | 'im')[]>(
+		...types: Types
+	): AsyncGenerator<Channel<ChannelTypeMap[Types[number]]>> {
+		yield* paginate(this, 'conversations.list', { types: types.join(',') }, (r) =>
+			r.channels.map((c) => new Channel(this, c.id, c as ChannelTypeMap[Types[number]])),
+		)
 	}
 
 	/**

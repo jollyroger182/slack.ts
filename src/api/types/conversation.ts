@@ -56,34 +56,34 @@ interface NonIMCommon extends ConversationCommon {
 	is_moved?: number
 }
 
-interface Channel extends NonIMCommon {
+export interface PublicChannel extends NonIMCommon {
 	is_channel: true
 	is_private: false
 	previous_names?: string[]
 }
 
-interface Group extends NonIMCommon {
+export interface PrivateChannel extends NonIMCommon {
 	is_channel: true
 	is_private: true
 	is_mpim: false
 }
 
-interface MPIM extends NonIMCommon {
+export interface MPIM extends NonIMCommon {
 	is_channel: true
 	is_private: true
 	is_mpim: true
 }
 
-interface IM extends ConversationCommon {
+export interface IM extends ConversationCommon {
 	is_im: true
 	user: string
 	priority: number
-	unread_count: number
-	unread_count_display: number
+	unread_count?: number
+	unread_count_display?: number
 	latest?: unknown // TODO: message type
 }
 
-export type Conversation = Channel | Group | MPIM | IM
+export type Conversation = PublicChannel | PrivateChannel | MPIM | IM
 
 interface Purpose {
 	value: string

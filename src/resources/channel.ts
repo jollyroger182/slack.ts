@@ -120,18 +120,18 @@ export class ChannelRef extends ChannelMixin implements PromiseLike<ChannelInsta
 	}
 }
 
-export class Channel extends ChannelMixin {
-	#data: Conversation
+export class Channel<T extends Conversation = Conversation> extends ChannelMixin {
+	#data: T
 
-	constructor(client: App, id: string, data: Conversation) {
+	constructor(client: App, id: string, data: T) {
 		super(client, id)
 		this.#data = data
 		return makeProxy(this, () => this.#data)
 	}
 
 	/** A reference to the creator of this channel. Only available for non-DM channels. */
-	get creator() {
-		return this.#data.creator ? new UserRef(this.client, this.#data.creator) : undefined
+	get creator(): undefined extends T['creator'] ? UserRef | undefined : UserRef {
+		return this.#data.creator ? new UserRef(this.client, this.#data.creator) : (undefined as any)
 	}
 }
 

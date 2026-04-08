@@ -6,6 +6,22 @@ import type {
 import type { Conversation } from '../types/conversation'
 import type { AnyMessage } from '../types/message'
 
+export interface ConversationsHistoryParams
+	extends CursorPaginationParams, TimestampPaginationParams {
+	/** Conversation ID to fetch history for. */
+	channel: string
+
+	/** Return all metadata associated with this message. */
+	include_all_metadata?: boolean
+}
+
+export interface ConversationsHistoryResponse extends CursorPaginationResponse {
+	messages: AnyMessage[]
+	pin_count: number
+	channel_actions_ts?: number | null
+	channel_actions_count?: number
+}
+
 export interface ConversationsInfoParams {
 	/** Conversation ID to learn more about */
 	channel: string
@@ -29,20 +45,28 @@ export interface ConversationsInfoResponse {
 	channel: Conversation
 }
 
-export interface ConversationsHistoryParams
-	extends CursorPaginationParams, TimestampPaginationParams {
-	/** Conversation ID to fetch history for. */
-	channel: string
+export interface ConversationsListParams extends CursorPaginationParams {
+	/**
+	 * Set to `true` to exclude archived channels from the list.
+	 *
+	 * @default false
+	 */
+	exclude_archived?: boolean
 
-	/** Return all metadata associated with this message. */
-	include_all_metadata?: boolean
+	/** Encoded team id to list channels in, required if token belongs to org-wide app */
+	team_id?: string
+
+	/**
+	 * Mix and match channel types by providing a comma-separated list of any combination of
+	 * `public_channel`, `private_channel`, `mpim`, `im`
+	 *
+	 * @default `public_channel`
+	 */
+	types?: string
 }
 
-export interface ConversationsHistoryResponse extends CursorPaginationResponse {
-	messages: AnyMessage[]
-	pin_count: number
-	channel_actions_ts?: number | null
-	channel_actions_count?: number
+export interface ConversationsListResponse extends CursorPaginationResponse {
+	channels: Conversation[]
 }
 
 export interface ConversationsRepliesParams
