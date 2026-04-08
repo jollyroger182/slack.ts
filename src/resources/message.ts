@@ -274,7 +274,7 @@ class MessageWait<Blocks extends KnownBlock[] = KnownBlock[]> {
 					clearTimeout(timer)
 				}
 				for (const name of subscriptions) {
-					this.client.off(name, callback)
+					this.client.off(name as any, callback)
 				}
 			}
 
@@ -294,14 +294,14 @@ class MessageWait<Blocks extends KnownBlock[] = KnownBlock[]> {
 			const subscriptions: string[] = []
 			for (const specifier of specifiers) {
 				if (typeof specifier === 'string') {
-					this.client.on(`action.${specifier}`, callback)
+					this.client.on(`action.${specifier as string}`, callback)
 					subscriptions.push(`action.${specifier}`)
 
 					const index = specifier.indexOf('.')
 					if (index >= 0) {
 						const type = specifier.substring(0, index)
 						const actionId = specifier.substring(index + 1)
-						this.client.on(`action:${type}.${actionId}`, callback)
+						this.client.on(`action:${type as BlockActionTypes}.${actionId}`, callback)
 						subscriptions.push(`action:${type}.${actionId}`)
 					}
 				} else {
