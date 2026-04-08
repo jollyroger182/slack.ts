@@ -18,6 +18,8 @@ import type { AnyMessage, NormalMessage } from './api/types/message'
 import { SlackWebAPIError, SlackWebAPIPlatformError } from './error'
 import { DummyReceiver } from './receivers/dummy'
 import { SocketEventsReceiver, type SocketEventsReceiverOptions } from './receivers/socket'
+import { HttpServerReceiver, type HttpServerReceiverOptions } from './receivers/http'
+import { HttpFetchReceiver, type HttpFetchReceiverOptions } from './receivers/fetch'
 import { Action, type ActionInstance } from './resources/action'
 import { Channel, ChannelRef } from './resources/channel'
 import { Message, type MessageInstance } from './resources/message'
@@ -39,6 +41,12 @@ type ReceiverOptions =
 	| ({
 			type: 'socket'
 	  } & DistributiveOmit<SocketEventsReceiverOptions, 'client'>)
+	| ({
+			type: 'http'
+	  } & DistributiveOmit<HttpServerReceiverOptions, 'client'>)
+	| ({
+			type: 'fetch'
+	  } & DistributiveOmit<HttpFetchReceiverOptions, 'client'>)
 	| {
 			type: 'dummy'
 			options?: never
@@ -83,6 +91,12 @@ export class App extends EventEmitter<AppEventMap> {
 		switch (receiver.type) {
 			case 'socket':
 				this.#receiver = new SocketEventsReceiver({ ...receiver, client: this })
+				break
+			case 'http':
+				this.#receiver = new HttpServerReceiver({ ...receiver, client: this })
+				break
+			case 'fetch':
+				this.#receiver = new HttpFetchReceiver({ ...receiver, client: this })
 				break
 			default:
 				this.#receiver = new DummyReceiver()
