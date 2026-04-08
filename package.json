@@ -46,6 +46,7 @@
 	},
 	"dependencies": {
 		"@slack/types": "^2.20.1",
+		"slack-undoc-client": "1.1.1",
 		"ws": "^8.20.0"
 	}
 }

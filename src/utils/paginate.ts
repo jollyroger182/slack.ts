@@ -1,4 +1,5 @@
 import type { SlackAPIParams, SlackAPIResponse, SlackPaginatingAPIMethod } from '../api'
+import type { CursorPaginationResponse } from '../api/types/api'
 import type { App } from '../client'
 import type { DistributiveOmit } from './typing'
 
@@ -17,17 +18,14 @@ export async function* paginate<Method extends SlackPaginatingAPIMethod, T>(
 	let cursor: string | undefined
 	if (remaining <= 0) return
 	while (true) {
-		const batch = await client.request(method, {
-			...params,
-			cursor,
-			limit: params.batch ?? undefined,
-			batch: undefined,
-		})
+		const { batch: _, ...payload } = params
+		const body = { ...payload, cursor, limit: params.batch ?? undefined }
+		const batch = await client.request(method, body)
 		for await (const item of converter(batch)) {
 			yield item
 			if (--remaining <= 0) return
 		}
-		cursor = batch.response_metadata?.next_cursor
+		cursor = (batch as CursorPaginationResponse).response_metadata?.next_cursor
 		if (!batch.has_more || !cursor) return
 	}
 }

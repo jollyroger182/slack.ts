@@ -1,3 +1,5 @@
+import type { SlackApiMap } from 'slack-undoc-client'
+
 import type { CursorPaginationResponse } from './types/api'
 import type {
 	AppsConnectionsOpenParams,
@@ -54,7 +56,7 @@ import type {
 } from './web/users'
 import type { ViewsOpenParams, ViewsOpenResponse } from './web/views'
 
-export interface SlackWebAPIMap {
+interface SlackWebAPIMapInternal {
 	'users.profile.set': {
 		params: UsersProfileSetParams
 		response: UsersProfileSetResponse
@@ -145,6 +147,9 @@ export interface SlackWebAPIMap {
 		response: ViewsOpenResponse
 	}
 }
+
+export interface SlackWebAPIMap
+	extends SlackWebAPIMapInternal, Omit<SlackApiMap, keyof SlackWebAPIMapInternal> {}
 
 export type SlackAPIMethod = keyof SlackWebAPIMap
 export type SlackPaginatingAPIMethod = {

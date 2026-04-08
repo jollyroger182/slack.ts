@@ -233,8 +233,8 @@ export class App extends EventEmitter<AppEventMap> {
 		params: SlackAPIParams<Method>,
 	): Promise<Extract<SlackAPIResponse<Method>, { ok: true }>>
 
-	async request(
-		method: string,
+	async request<Method extends string>(
+		method: Method extends SlackAPIMethod ? never : Method,
 		params: Record<string, unknown> & {
 			token?: string | { cookie: string; token: string }
 		},
@@ -242,6 +242,15 @@ export class App extends EventEmitter<AppEventMap> {
 
 	/**
 	 * Makes a Slack Web API request.
+	 *
+	 * This method can be used to call undocumented Slack API methods. Most of these methods require
+	 * an `xoxd-` cookie and an `xoxc-` token, rather than the normal `xoxb-` and `xoxp-` tokens. You
+	 * can obtain this cookie and token from a Slack browser session. Then, pass them in an object of
+	 * the form `{ cookie: string; token: string }` to the `token` parameter.
+	 *
+	 * This method contains typings for some Slack API methods (broader support to come), as well as
+	 * some undocumented methods (provided by the `slack-undoc-client` library). Use the undocumented
+	 * endpoints at your own risk since they may break at any time.
 	 *
 	 * @param method The Slack Web API method to call
 	 * @param params The parameters for the method
