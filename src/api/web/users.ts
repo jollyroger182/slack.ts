@@ -1,4 +1,4 @@
-import type { User } from '../types/user'
+import type { User, UserProfile } from '../types/user'
 
 export interface UsersInfoParams {
 	/** User to get info on */
@@ -10,4 +10,34 @@ export interface UsersInfoParams {
 
 export interface UsersInfoResponse {
 	user: User
+}
+
+interface ProfileUpdate {
+	display_name?: string
+	email?: string
+	first_name?: string
+	last_name?: string
+	phone?: string
+	pronouns?: string
+	real_name?: string
+	start_date?: string
+	title?: string
+	fields?: Record<string, { value: string; alt?: string }>
+}
+
+export type UsersProfileSetParams = {} & (
+	| {
+			name: string
+			value: string
+			profile?: never
+	  }
+	| {
+			name?: never
+			value?: never
+			profile: ProfileUpdate
+	  }
+)
+
+export interface UsersProfileSetResponse {
+	profile: UserProfile
 }

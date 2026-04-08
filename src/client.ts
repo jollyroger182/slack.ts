@@ -53,7 +53,7 @@ type ReceiverOptions =
 	  }
 
 interface AppOptions {
-	token?: string
+	token?: string | { cookie: string; token: string }
 	receiver?: ReceiverOptions
 }
 
@@ -80,7 +80,7 @@ type ChannelTypeMap = {
 }
 
 export class App extends EventEmitter<AppEventMap> {
-	#token?: string
+	#token?: string | { cookie: string; token: string }
 	#receiver: EventsReceiver
 
 	constructor({ token, receiver = { type: 'dummy' } }: AppOptions = {}) {
@@ -228,6 +228,18 @@ export class App extends EventEmitter<AppEventMap> {
 		)
 	}
 
+	async request<Method extends SlackAPIMethod>(
+		method: Method,
+		params: SlackAPIParams<Method>,
+	): Promise<Extract<SlackAPIResponse<Method>, { ok: true }>>
+
+	async request(
+		method: string,
+		params: Record<string, unknown> & {
+			token?: string | { cookie: string; token: string }
+		},
+	): Promise<{ ok: true } & Record<string, unknown>>
+
 	/**
 	 * Makes a Slack Web API request.
 	 *
@@ -260,7 +272,13 @@ export class App extends EventEmitter<AppEventMap> {
 			headers.append('Content-Type', 'application/json; charset=utf-8')
 		}
 		if (params.token || this.#token) {
-			headers.set('Authorization', `Bearer ${params.token || this.#token}`)
+			const token = params.token || this.#token
+			if (typeof token === 'string') {
+				headers.set('Authorization', `Bearer ${params.token || this.#token}`)
+			} else if (token?.cookie && token?.token) {
+				headers.set('Cookie', `d=${token.cookie}`)
+				headers.set('Authorization', `Bearer ${token.token}`)
+			}
 		}
 
 		const res = await request<SlackAPIResponse<Method>>(url.toString(), {

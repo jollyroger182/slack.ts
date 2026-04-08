@@ -46,10 +46,19 @@ import type {
 	FilesGetUploadURLExternalParams,
 	FilesGetUploadURLExternalResponse,
 } from './web/files'
-import type { UsersInfoParams, UsersInfoResponse } from './web/users'
+import type {
+	UsersInfoParams,
+	UsersInfoResponse,
+	UsersProfileSetParams,
+	UsersProfileSetResponse,
+} from './web/users'
 import type { ViewsOpenParams, ViewsOpenResponse } from './web/views'
 
 export interface SlackWebAPIMap {
+	'users.profile.set': {
+		params: UsersProfileSetParams
+		response: UsersProfileSetResponse
+	}
 	'bots.info': {
 		params: BotsInfoParams
 		response: BotsInfoResponse
@@ -142,13 +151,14 @@ export type SlackPaginatingAPIMethod = {
 	[K in SlackAPIMethod]: SlackWebAPIMap[K]['response'] extends CursorPaginationResponse ? K : never
 }[SlackAPIMethod]
 export type SlackAPIParams<Method extends SlackAPIMethod> = SlackWebAPIMap[Method]['params'] & {
-	token?: string
+	token?: string | { cookie: string; token: string }
 }
 export type SlackAPIResponse<Method extends SlackAPIMethod> =
 	| { ok: false; error: string }
 	| ({ ok: true } & SlackWebAPIMap[Method]['response'])
 
 export const POST_METHODS: SlackAPIMethod[] = [
+	'users.profile.set',
 	'auth.teams.list',
 	'apps.connections.open',
 	'apps.manifest.create',
