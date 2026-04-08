@@ -15,7 +15,15 @@ import type {
 	AppsUninstallParams,
 	AppsUninstallResponse,
 } from './web/apps'
-import type { AuthTestParams, AuthTestResponse } from './web/auth'
+import type {
+	AuthRevokeParams,
+	AuthRevokeResponse,
+	AuthTeamsListParams,
+	AuthTeamsListResponse,
+	AuthTestParams,
+	AuthTestResponse,
+} from './web/auth'
+import type { BotsInfoParams, BotsInfoResponse } from './web/bots'
 import type {
 	ChatPostEphemeralParams,
 	ChatPostEphemeralResponse,
@@ -42,6 +50,18 @@ import type { UsersInfoParams, UsersInfoResponse } from './web/users'
 import type { ViewsOpenParams, ViewsOpenResponse } from './web/views'
 
 export interface SlackWebAPIMap {
+	'bots.info': {
+		params: BotsInfoParams
+		response: BotsInfoResponse
+	}
+	'auth.teams.list': {
+		params: AuthTeamsListParams
+		response: AuthTeamsListResponse
+	}
+	'auth.revoke': {
+		params: AuthRevokeParams
+		response: AuthRevokeResponse
+	}
 	// apps.event.authorizations.list
 	'apps.connections.open': {
 		params: AppsConnectionsOpenParams
@@ -129,6 +149,7 @@ export type SlackAPIResponse<Method extends SlackAPIMethod> =
 	| ({ ok: true } & SlackWebAPIMap[Method]['response'])
 
 export const POST_METHODS: SlackAPIMethod[] = [
+	'auth.teams.list',
 	'apps.connections.open',
 	'apps.manifest.create',
 	'apps.manifest.delete',
