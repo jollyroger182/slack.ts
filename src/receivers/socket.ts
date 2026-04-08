@@ -1,24 +1,26 @@
-import EventEmitter from 'events'
 import WebSocket from 'ws'
 import type { EventWrapper } from '../api/events'
 import type { BlockActions } from '../api/interactive/block_actions'
-import type { App } from '../client'
-import type { EventsReceiver, ReceiverEventMap } from './base'
 import type { SlashCommandPayload } from '../api/slash'
+import type { App } from '../client'
+import { AsyncEventEmitter } from '../utils/events'
+import type { EventsReceiver, ReceiverEventMap } from './base'
 
 export interface SocketEventsReceiverOptions {
 	appToken: string
 	client: App
 }
 
-export class SocketEventsReceiver extends EventEmitter<ReceiverEventMap> implements EventsReceiver {
+export class SocketEventsReceiver
+	extends AsyncEventEmitter<ReceiverEventMap>
+	implements EventsReceiver
+{
 	#appToken: string
 	public client: App
 	#ws?: WebSocket
 
 	constructor({ appToken, client }: SocketEventsReceiverOptions) {
-		super({ captureRejections: true })
-		this.on('error', this.#onEventError.bind(this))
+		super()
 		this.#appToken = appToken
 		this.client = client
 	}

@@ -36,6 +36,7 @@ import type {
 	PublicChannel,
 } from './api/types/conversation'
 import { paginate } from './utils/paginate'
+import { AsyncEventEmitter } from './utils/events'
 
 type ReceiverOptions =
 	| ({
@@ -79,13 +80,12 @@ type ChannelTypeMap = {
 	im: IM
 }
 
-export class App extends EventEmitter<AppEventMap> {
+export class App extends AsyncEventEmitter<AppEventMap> {
 	#token?: string | { cookie: string; token: string }
 	#receiver: EventsReceiver
 
 	constructor({ token, receiver = { type: 'dummy' } }: AppOptions = {}) {
-		super({ captureRejections: true })
-		this.on('error', this.#onCallbackError.bind(this))
+		super()
 
 		this.#token = token
 		switch (receiver.type) {
@@ -109,30 +109,33 @@ export class App extends EventEmitter<AppEventMap> {
 		this.on('event:message', this.#onMessage.bind(this))
 	}
 
-	#onEvent(event: EventWrapper) {
-		this.emit('event', event)
-		this.emit(`event:${event.event.type}`, { payload: event.event as any, event: event as any })
+	async #onEvent(event: EventWrapper) {
+		await this.emit('event', event)
+		await this.emit(`event:${event.event.type}`, {
+			payload: event.event as any,
+			event: event as any,
+		})
 	}
 
-	#onBlockActions(event: BlockActions) {
-		this.emit('actions', event)
+	async #onBlockActions(event: BlockActions) {
+		await this.emit('actions', event)
 		for (const action of event.actions) {
 			const obj = new Action(this, action, event) as ActionInstance
-			this.emit(`action:${action.type}`, obj as any)
-			this.emit(`action.${action.action_id}`, obj)
-			this.emit(`action:${action.type}.${action.action_id}`, obj as any)
+			await this.emit(`action:${action.type}`, obj as any)
+			await this.emit(`action.${action.action_id}`, obj)
+			await this.emit(`action:${action.type}.${action.action_id}`, obj as any)
 		}
 	}
 
-	#onViewSubmission(event: ViewSubmission) {
-		this.emit('submit', event)
-		this.emit(`submit.${event.view.callback_id}`, event)
+	async #onViewSubmission(event: ViewSubmission) {
+		await this.emit('submit', event)
+		await this.emit(`submit.${event.view.callback_id}`, event)
 	}
 
-	#onSlashCommand(event: SlashCommandPayload) {
+	async #onSlashCommand(event: SlashCommandPayload) {
 		const command = new SlashCommand(this, event) as SlashCommandInstance
-		this.emit('slash', command)
-		this.emit(`/${event.command.substring(1)}`, command)
+		await this.emit('slash', command)
+		await this.emit(`/${event.command.substring(1)}`, command)
 	}
 
 	async #onCallbackError(error: any) {
@@ -140,17 +143,17 @@ export class App extends EventEmitter<AppEventMap> {
 		console.error(error)
 	}
 
-	#onMessage({ payload }: { payload: MessageEvent }) {
+	async #onMessage({ payload }: { payload: MessageEvent }) {
 		const message = new Message<AnyMessage>(
 			this,
 			payload.channel,
 			payload.ts,
 			payload,
 		) as MessageInstance
-		this.emit('message', message)
-		this.emit(`message:${payload.subtype ?? 'normal'}`, message as any)
-		this.emit(`message:${payload.subtype ?? 'normal'}#${payload.channel}`, message as any)
-		this.emit(`message#${payload.channel}`, message)
+		await this.emit('message', message)
+		await this.emit(`message:${payload.subtype ?? 'normal'}`, message as any)
+		await this.emit(`message:${payload.subtype ?? 'normal'}#${payload.channel}`, message as any)
+		await this.emit(`message#${payload.channel}`, message)
 	}
 
 	get receiver() {
@@ -186,7 +189,7 @@ export class App extends EventEmitter<AppEventMap> {
 	 * @param callback Function to execute when the event is received
 	 */
 	event<Event extends AllEvents>(type: Event['type'], callback: EventCallback<Event>) {
-		this.on(`event:${type}`, async ({ event }) => {
+		this.on(`event:${type as AllEventTypes}`, async ({ event }: { event: EventWrapper }) => {
 			await callback({ event: event as EventWrapper<Event>, client: this })
 		})
 	}
@@ -200,7 +203,7 @@ export class App extends EventEmitter<AppEventMap> {
 	 * @param callback Function to execute when the event is received
 	 */
 	action<Type extends BlockAction>(type: Type['type'], callback: BlockActionCallback<Type>) {
-		this.on(`action:${type}`, async (action) => {
+		this.on(`action:${type as BlockActionTypes}`, async (action: ActionInstance) => {
 			await callback(action as unknown as ActionInstance<Type>)
 		})
 	}

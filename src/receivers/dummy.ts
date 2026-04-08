@@ -1,7 +1,7 @@
-import { EventEmitter } from 'events'
+import { AsyncEventEmitter } from '../utils/events'
 import type { EventsReceiver, ReceiverEventMap } from './base'
 
-export class DummyReceiver extends EventEmitter<ReceiverEventMap> implements EventsReceiver {
+export class DummyReceiver extends AsyncEventEmitter<ReceiverEventMap> implements EventsReceiver {
 	constructor() {
 		super()
 	}

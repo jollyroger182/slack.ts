@@ -1,5 +1,5 @@
-import { EventEmitter } from 'events'
 import type { App } from '../client'
+import { AsyncEventEmitter } from '../utils/events'
 import { parseSlackRequest, type SlackHttpPayload } from '../utils/http'
 import type { EventsReceiver, ReceiverEventMap } from './base'
 
@@ -40,13 +40,15 @@ export interface HttpFetchReceiverOptions {
  * })
  * ```
  */
-export class HttpFetchReceiver extends EventEmitter<ReceiverEventMap> implements EventsReceiver {
+export class HttpFetchReceiver
+	extends AsyncEventEmitter<ReceiverEventMap>
+	implements EventsReceiver
+{
 	#signingSecret: string
 	#client: App
 
 	constructor({ signingSecret, client }: HttpFetchReceiverOptions) {
-		super({ captureRejections: true })
-		this.on('error', this.#onError.bind(this))
+		super()
 		this.#signingSecret = signingSecret
 		this.#client = client
 	}
@@ -80,7 +82,7 @@ export class HttpFetchReceiver extends EventEmitter<ReceiverEventMap> implements
 		}
 	}
 
-	#handlePayload(payload: SlackHttpPayload): Response {
+	async #handlePayload(payload: SlackHttpPayload): Promise<Response> {
 		switch (payload.type) {
 			case 'url_verification':
 				return new Response(JSON.stringify({ challenge: payload.challenge }), {
@@ -89,19 +91,19 @@ export class HttpFetchReceiver extends EventEmitter<ReceiverEventMap> implements
 				})
 
 			case 'event':
-				this.emit('event', payload.payload)
+				await this.emit('event', payload.payload)
 				return new Response(null, { status: 200 })
 
 			case 'block_actions':
-				this.emit('block_actions', payload.payload)
+				await this.emit('block_actions', payload.payload)
 				return new Response(null, { status: 200 })
 
 			case 'view_submission':
-				this.emit('view_submission', payload.payload)
+				await this.emit('view_submission', payload.payload)
 				return new Response(null, { status: 200 })
 
 			case 'slash_command':
-				this.emit('slash_command', payload.payload)
+				await this.emit('slash_command', payload.payload)
 				return new Response(null, { status: 200 })
 
 			default:

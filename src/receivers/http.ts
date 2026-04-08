@@ -1,5 +1,5 @@
-import { EventEmitter } from 'events'
 import { createServer, type IncomingMessage, type Server, type ServerResponse } from 'http'
+import { AsyncEventEmitter } from '../utils/events'
 import type { EventsReceiver, ReceiverEventMap } from './base'
 import { HttpFetchReceiver, type HttpFetchReceiverOptions } from './fetch'
 
@@ -32,7 +32,10 @@ export interface HttpServerReceiverOptions extends Omit<HttpFetchReceiverOptions
  * console.log('Server listening on port 3000 at /slack/events')
  * ```
  */
-export class HttpServerReceiver extends EventEmitter<ReceiverEventMap> implements EventsReceiver {
+export class HttpServerReceiver
+	extends AsyncEventEmitter<ReceiverEventMap>
+	implements EventsReceiver
+{
 	#fetchReceiver: HttpFetchReceiver
 	#server?: Server
 	#port: number
@@ -44,8 +47,7 @@ export class HttpServerReceiver extends EventEmitter<ReceiverEventMap> implement
 		port = 3000,
 		path = '/slack/events',
 	}: HttpServerReceiverOptions) {
-		super({ captureRejections: true })
-		this.on('error', this.#onError.bind(this))
+		super()
 
 		this.#fetchReceiver = new HttpFetchReceiver({ signingSecret, client })
 		this.#port = port
