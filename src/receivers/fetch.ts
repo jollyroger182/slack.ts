@@ -6,6 +6,11 @@ import type { EventsReceiver, ReceiverEventMap } from './base'
 export interface HttpFetchReceiverOptions {
 	signingSecret: string
 	client: App
+	/**
+	 * Optional function that will be called with each `Promise` that is not awaited. Most useful in
+	 * serverless environments like Cloudflare Workers, but can also be used to catch errors.
+	 */
+	waitUntil?: (obj: Promise<unknown>) => unknown
 }
 
 /**
@@ -46,11 +51,13 @@ export class HttpFetchReceiver
 {
 	#signingSecret: string
 	#client: App
+	#waitUntil?: (obj: Promise<unknown>) => unknown
 
-	constructor({ signingSecret, client }: HttpFetchReceiverOptions) {
+	constructor({ signingSecret, client, waitUntil }: HttpFetchReceiverOptions) {
 		super()
 		this.#signingSecret = signingSecret
 		this.#client = client
+		this.#waitUntil = waitUntil
 	}
 
 	#onError(error: any) {
@@ -91,19 +98,19 @@ export class HttpFetchReceiver
 				})
 
 			case 'event':
-				await this.emit('event', payload.payload)
+				this.#waitUntil?.(this.emit('event', payload.payload))
 				return new Response(null, { status: 200 })
 
 			case 'block_actions':
-				await this.emit('block_actions', payload.payload)
+				this.#waitUntil?.(this.emit('block_actions', payload.payload))
 				return new Response(null, { status: 200 })
 
 			case 'view_submission':
-				await this.emit('view_submission', payload.payload)
+				this.#waitUntil?.(this.emit('view_submission', payload.payload))
 				return new Response(null, { status: 200 })
 
 			case 'slash_command':
-				await this.emit('slash_command', payload.payload)
+				this.#waitUntil?.(this.emit('slash_command', payload.payload))
 				return new Response(null, { status: 200 })
 
 			default:
