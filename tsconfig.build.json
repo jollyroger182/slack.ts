@@ -10,11 +10,7 @@
 		"declarationMap": true,
 		"outDir": "./dist"
 	},
-	"exclude": [
-		"node_modules",
-		"dist",
-		"tests",
-		"examples",
-		"./build.ts"
+	"include": [
+		"src/**/*.ts"
 	]
 }
