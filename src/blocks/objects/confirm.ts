@@ -3,6 +3,17 @@ import { Builder } from '../base'
 import { ensureIsTextObjectBuilder, type TextObjectBuilder } from './text'
 import { SlackError } from '../../error'
 
+/**
+ * Builder for confirmation dialogs.
+ *
+ * Confirmation dialogs are displayed when users interact with interactive elements and require
+ * confirmation before the action is executed.
+ *
+ * @template HasTitle Whether a title has been set
+ * @template HasText Whether text has been set
+ * @template HasConfirm Whether the confirm button text has been set
+ * @template HasDeny Whether the deny button text has been set
+ */
 export class ConfirmBuilder<
 	HasTitle extends boolean = false,
 	HasText extends boolean = false,
@@ -21,6 +32,12 @@ export class ConfirmBuilder<
 		super()
 	}
 
+	/**
+	 * Sets the title for this confirmation dialog.
+	 *
+	 * @param title The dialog title
+	 * @returns This builder with the title set
+	 */
 	title(
 		title: string | TextObjectBuilder<false>,
 	): ConfirmBuilder<true, HasText, HasConfirm, HasDeny> {
@@ -28,11 +45,23 @@ export class ConfirmBuilder<
 		return this as any
 	}
 
+	/**
+	 * Sets the text for this confirmation dialog.
+	 *
+	 * @param text The dialog text
+	 * @returns This builder with the text set
+	 */
 	text(text: string | TextObjectBuilder): ConfirmBuilder<HasTitle, true, HasConfirm, HasDeny> {
 		this._text = ensureIsTextObjectBuilder(text)
 		return this as any
 	}
 
+	/**
+	 * Sets the text for the confirm button.
+	 *
+	 * @param confirm The confirm button text
+	 * @returns This builder with the confirm button text set
+	 */
 	confirm(
 		confirm: string | TextObjectBuilder<false>,
 	): ConfirmBuilder<HasTitle, HasText, true, HasDeny> {
@@ -40,6 +69,12 @@ export class ConfirmBuilder<
 		return this as any
 	}
 
+	/**
+	 * Sets the text for the deny button.
+	 *
+	 * @param deny The deny button text
+	 * @returns This builder with the deny button text set
+	 */
 	deny(
 		deny: string | TextObjectBuilder<false>,
 	): ConfirmBuilder<HasTitle, HasText, HasConfirm, true> {
@@ -47,6 +82,12 @@ export class ConfirmBuilder<
 		return this as any
 	}
 
+	/**
+	 * Sets the style for the confirm button.
+	 *
+	 * @param style The button style ('primary' or 'danger')
+	 * @returns This builder
+	 */
 	style(style: ColorScheme) {
 		this._style = style
 		return this
@@ -66,6 +107,15 @@ export class ConfirmBuilder<
 	}
 }
 
+/**
+ * Creates a confirmation dialog builder.
+ *
+ * Accepts partial field configuration. The `title`, `text`, `confirm`, and `deny` fields must be
+ * set before calling `build()`.
+ *
+ * @param fields Optional initial configuration fields
+ * @returns A confirmation dialog builder
+ */
 export function confirm<
 	Fields extends {
 		title?: string | TextObjectBuilder<false>

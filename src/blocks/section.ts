@@ -22,6 +22,16 @@ type TypedSectionBlock<
 		? { accessory: Output }
 		: { accessory?: never })
 
+/**
+ * Builder for section blocks.
+ *
+ * Section blocks display text with optional fields and an accessory element.
+ *
+ * @template Mrkdwn Whether the text uses markdown formatting
+ * @template HasFields Whether fields have been added
+ * @template Accessory The accessory element type (button or overflow menu)
+ * @template BlockID The block ID type
+ */
 export class SectionBlockBuilder<
 	Mrkdwn extends boolean | undefined = boolean | undefined,
 	HasFields extends boolean = false,
@@ -46,6 +56,12 @@ export class SectionBlockBuilder<
 		return this._id(blockId)
 	}
 
+	/**
+	 * Sets the accessory element (button or overflow menu).
+	 *
+	 * @param accessory The accessory element to display
+	 * @returns This builder with the accessory set
+	 */
 	accessory<Accessory extends SectionAccessoryBuilder>(
 		accessory: Accessory,
 	): SectionBlockBuilder<Mrkdwn, HasFields, Accessory, BlockID> {
@@ -53,11 +69,23 @@ export class SectionBlockBuilder<
 		return this as any
 	}
 
+	/**
+	 * Sets whether the section should expand to fill the available width.
+	 *
+	 * @param expand Whether to expand the section
+	 * @returns This builder
+	 */
 	expand(expand: boolean) {
 		this._expand = expand
 		return this
 	}
 
+	/**
+	 * Adds field text to display in columns.
+	 *
+	 * @param fields Text or text objects for the fields
+	 * @returns This builder with fields added
+	 */
 	fields(
 		...fields: (string | TextObjectBuilder)[]
 	): SectionBlockBuilder<Mrkdwn, true, Accessory, BlockID> {
@@ -78,11 +106,35 @@ export class SectionBlockBuilder<
 	}
 }
 
+/**
+ * Creates a section block builder without text.
+ *
+ * @returns A section block builder
+ */
 export function section(): SectionBlockBuilder<undefined>
+/**
+ * Creates a section block builder with markdown text.
+ *
+ * @param text The markdown text to display
+ * @returns A section block builder
+ */
 export function section(text: string): SectionBlockBuilder<true>
+/**
+ * Creates a section block builder with text.
+ *
+ * @param text The text object with formatting
+ * @returns A section block builder
+ */
 export function section<Mrkdwn extends boolean>(
 	text: TextObjectBuilder<Mrkdwn>,
 ): SectionBlockBuilder<Mrkdwn>
+/**
+ * Creates a section block builder with fields.
+ *
+ * @param field0 The first field text
+ * @param fields Additional field texts
+ * @returns A section block builder with fields
+ */
 export function section(
 	field0: string | TextObjectBuilder,
 	...fields: (string | TextObjectBuilder)[]

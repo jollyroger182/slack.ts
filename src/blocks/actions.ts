@@ -16,6 +16,14 @@ type TypedActionsBlock<
 	}
 }
 
+/**
+ * Builder for actions blocks.
+ *
+ * Actions blocks contain interactive elements like buttons and overflow menus.
+ *
+ * @template Actions The array of action element builders
+ * @template BlockID The block ID type
+ */
 export class ActionsBlockBuilder<
 	Actions extends ActionsElementBuilder[],
 	BlockID extends string = string,
@@ -28,6 +36,12 @@ export class ActionsBlockBuilder<
 		return this._id(blockId)
 	}
 
+	/**
+	 * Adds an action element to this block.
+	 *
+	 * @param action The action element to add
+	 * @returns This builder with the new action added
+	 */
 	action<Action extends ActionsElementBuilder>(
 		action: Action,
 	): ActionsBlockBuilder<[...Actions, Action]> {
@@ -44,6 +58,12 @@ export class ActionsBlockBuilder<
 	}
 }
 
+/**
+ * Creates an actions block builder.
+ *
+ * @param actions Initial list of action elements
+ * @returns An actions block builder
+ */
 export function actions<Actions extends ActionsElementBuilder[]>(...actions: Actions) {
 	return new ActionsBlockBuilder(actions)
 }

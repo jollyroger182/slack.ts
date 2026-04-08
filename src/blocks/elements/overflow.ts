@@ -13,6 +13,14 @@ type TypedOverflow<Options extends OptionObjectBuilder[], ActionID extends strin
 	}
 }
 
+/**
+ * Builder for overflow menu elements.
+ *
+ * Overflow menus display a list of options in a dropdown menu.
+ *
+ * @template Options The array of option builders
+ * @template ActionID The action ID type used to identify this overflow menu
+ */
 export class OverflowBuilder<
 	Options extends OptionObjectBuilder[],
 	ActionID extends string = string,
@@ -27,6 +35,12 @@ export class OverflowBuilder<
 		return this._id(actionId)
 	}
 
+	/**
+	 * Adds a confirmation dialog when the user selects an option.
+	 *
+	 * @param confirm A confirmation builder or configuration object
+	 * @returns This builder
+	 */
 	confirm(
 		confirm:
 			| ConfirmBuilder<true, true, true, true>
@@ -52,6 +66,12 @@ export class OverflowBuilder<
 	}
 }
 
+/**
+ * Creates an overflow menu element builder.
+ *
+ * @param options The menu options
+ * @returns An overflow menu element builder
+ */
 export function overflow<Options extends OptionObjectBuilder[]>(...options: Options) {
 	return new OverflowBuilder(options)
 }

@@ -220,6 +220,12 @@ export class App extends EventEmitter<AppEventMap> {
 		return new ChannelRef(this, id)
 	}
 
+	/**
+	 * Lists channels of the specified types.
+	 *
+	 * @param types Channel types to list (public_channel, private_channel, mpim, im)
+	 * @returns An async generator that yields channel objects
+	 */
 	async *channels<Types extends ('public_channel' | 'private_channel' | 'mpim' | 'im')[]>(
 		...types: Types
 	): AsyncGenerator<Channel<ChannelTypeMap[Types[number]]>> {
