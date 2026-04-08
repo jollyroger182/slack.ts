@@ -49,20 +49,27 @@ export class SocketEventsReceiver extends EventEmitter<ReceiverEventMap> impleme
 	#onMessage(event: WebSocket.MessageEvent) {
 		console.debug('[socket-mode] message received')
 		if (typeof event.data === 'string') {
-			const data = JSON.parse(event.data) as AnySocketPayload
-			if (data.type === 'events_api') {
-				this.#ws?.send(JSON.stringify({ envelope_id: data.envelope_id }))
-				this.emit('event', data.payload)
-			} else if (data.type === 'interactive') {
-				this.#ws?.send(JSON.stringify({ envelope_id: data.envelope_id }))
-				this.emit(data.payload.type, data.payload)
-			} else if (data.type === 'slash_commands') {
-				this.#ws?.send(JSON.stringify({ envelope_id: data.envelope_id }))
-				this.emit('slash_command', data.payload)
-			} else if (data.type === 'hello') {
-				console.debug('[socket-mode] received server hello, app id', data.connection_info.app_id)
-			} else {
-				console.warn('[socket-mode] unknown message:', data)
+			try {
+				const data = JSON.parse(event.data) as AnySocketPayload
+				if (data.type === 'events_api') {
+					this.#ws?.send(JSON.stringify({ envelope_id: data.envelope_id }))
+					this.emit('event', data.payload)
+				} else if (data.type === 'interactive') {
+					this.#ws?.send(JSON.stringify({ envelope_id: data.envelope_id }))
+					this.emit(data.payload.type, data.payload)
+				} else if (data.type === 'slash_commands') {
+					this.#ws?.send(JSON.stringify({ envelope_id: data.envelope_id }))
+					this.emit('slash_command', data.payload)
+				} else if (data.type === 'hello') {
+					console.debug('[socket-mode] received server hello, app id', data.connection_info.app_id)
+				} else {
+					console.warn('[socket-mode] unknown message:', data)
+				}
+			} catch (error) {
+				console.error(
+					'[socket-mode] failed to parse message:',
+					error instanceof Error ? error.message : error,
+				)
 			}
 		}
 	}

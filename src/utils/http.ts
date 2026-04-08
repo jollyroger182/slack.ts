@@ -47,7 +47,10 @@ export async function parseSlackRequest(
 	const signatureBuffer = Buffer.from(signature)
 	const expectedBuffer = Buffer.from(expectedSignature)
 
-	if (!timingSafeEqual(signatureBuffer, expectedBuffer)) {
+	if (
+		signatureBuffer.length !== expectedBuffer.length ||
+		!timingSafeEqual(signatureBuffer, expectedBuffer)
+	) {
 		throw new Error('Invalid signature')
 	}
 
@@ -55,13 +58,21 @@ export async function parseSlackRequest(
 	let body: unknown
 
 	if (contentType.includes('application/json')) {
-		body = JSON.parse(bodyText)
+		try {
+			body = JSON.parse(bodyText)
+		} catch (error) {
+			throw new Error('Invalid JSON payload')
+		}
 	} else if (contentType.includes('application/x-www-form-urlencoded')) {
 		const params = new URLSearchParams(bodyText)
 		const formBody = parseFormBody(params)
 
 		if (params.has('payload')) {
-			body = JSON.parse(params.get('payload')!)
+			try {
+				body = JSON.parse(params.get('payload')!)
+			} catch (error) {
+				throw new Error('Invalid JSON in form payload')
+			}
 		} else {
 			body = formBody
 		}
