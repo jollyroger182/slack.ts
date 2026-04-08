@@ -1,8 +1,8 @@
 import type { KnownBlock } from '@slack/types'
-import type { ChatPostMessageParams } from '../api/web/chat'
+import type { NormalMessage } from '../api/types/message'
+import type { ChatPostEphemeralParams, ChatPostMessageParams } from '../api/web/chat'
 import type { App } from '../client'
 import { SlackError } from '../error'
-import type { NormalMessage } from '../api/types/message'
 
 export type SendMessageFile = {
 	file: Buffer | ArrayBuffer
@@ -24,7 +24,10 @@ export interface SendMessageWithFiles<Blocks extends KnownBlock[] = KnownBlock[]
 export type SendMessageWithoutFiles<Blocks extends KnownBlock[] = KnownBlock[]> = {
 	files?: never
 	blocks?: Blocks
-} & ChatPostMessageParams
+} & (
+	| ({ ephemeral?: false } & ChatPostMessageParams)
+	| ({ ephemeral: true } & ChatPostEphemeralParams)
+)
 
 export type SendMessageParams<Blocks extends KnownBlock[] = KnownBlock[]> =
 	| SendMessageWithFiles<Blocks>
@@ -48,8 +51,13 @@ export async function sendMessage<Blocks extends KnownBlock[] = KnownBlock[]>(
 			initial_comment: params.text,
 			blocks: params.blocks,
 		})
+	} else if (params.ephemeral) {
+		const { ephemeral: _, ...payload } = params
+		const message = await client.request('chat.postEphemeral', payload)
+		console.log(message)
 	} else {
-		const message = await client.request('chat.postMessage', params)
+		const { ephemeral: _, ...payload } = params
+		const message = await client.request('chat.postMessage', payload)
 		return {
 			channel: message.channel,
 			ts: message.ts,

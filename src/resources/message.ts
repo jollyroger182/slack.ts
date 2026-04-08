@@ -203,8 +203,8 @@ export class Message<
 	 * channel join messages), this may not be the user you expect. Read the Slack documentation to
 	 * find out.
 	 */
-	get author() {
-		return new UserRef(this.client, this.#data.user)
+	get author(): undefined extends Subtype['user'] ? UserRef | undefined : UserRef {
+		return this.#data.user ? new UserRef(this.client, this.#data.user) : (undefined as any)
 	}
 
 	protected override get _threadTs(): string | undefined {

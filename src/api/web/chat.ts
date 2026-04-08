@@ -13,6 +13,22 @@ type TextMessage = {
 	text?: string
 } & ({ blocks: KnownBlock[] } | { text: string })
 
+export type ChatPostEphemeralParams = {
+	channel: string
+	user: string
+	attachments?: Attachment[]
+	icon_emoji?: string
+	icon_url?: string
+	link_names?: boolean
+	parse?: 'none' | 'full'
+	thread_ts?: string
+	username?: string
+} & (MarkdownMessage | TextMessage)
+
+export interface ChatPostEphemeralResponse {
+	message_ts: string
+}
+
 export type ChatPostMessageParams = {
 	channel: string
 	attachments?: Attachment[]

@@ -12,4 +12,8 @@ app.on('/echo', async (command) => {
 	await command.respond.message(command.text)
 })
 
+app.on('message:message_deleted', async (message) => {
+	console.log(message.raw)
+})
+
 await app.start()

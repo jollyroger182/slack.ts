@@ -1,7 +1,12 @@
 import type { CursorPaginationResponse } from './types/api'
 import type { AppsConnectionsOpenParams, AppsConnectionsOpenResponse } from './web/apps'
 import type { AuthTestParams, AuthTestResponse } from './web/auth'
-import type { ChatPostMessageParams, ChatPostMessageResponse } from './web/chat'
+import type {
+	ChatPostEphemeralParams,
+	ChatPostEphemeralResponse,
+	ChatPostMessageParams,
+	ChatPostMessageResponse,
+} from './web/chat'
 import type {
 	ConversationsHistoryParams,
 	ConversationsHistoryResponse,
@@ -27,6 +32,10 @@ export interface SlackWebAPIMap {
 	'auth.test': {
 		params: AuthTestParams
 		response: AuthTestResponse
+	}
+	'chat.postEphemeral': {
+		params: ChatPostEphemeralParams
+		response: ChatPostEphemeralResponse
 	}
 	'chat.postMessage': {
 		params: ChatPostMessageParams
@@ -75,6 +84,7 @@ export type SlackAPIResponse<Method extends SlackAPIMethod> =
 
 export const POST_METHODS: SlackAPIMethod[] = [
 	'apps.connections.open',
+	'chat.postEphemeral',
 	'chat.postMessage',
 	'files.completeUploadExternal',
 	'views.open',

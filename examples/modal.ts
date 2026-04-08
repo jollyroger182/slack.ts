@@ -15,8 +15,8 @@ const app = new App({
 	receiver: { type: 'socket', appToken: process.env.SLACK_APP_TOKEN! },
 })
 
-app.on('message', async (message) => {
-	if (!message.isNormal() || !message.text?.startsWith('?order')) return
+app.on('message:normal', async (message) => {
+	if (!message.text?.startsWith('?order')) return
 
 	const confirmMessage = await message.channel.send({
 		text: 'Click here to enter your information',

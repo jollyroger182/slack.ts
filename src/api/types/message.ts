@@ -62,6 +62,7 @@ interface MessageCommon {
 	thread_ts?: string
 	text?: string
 	user?: string
+	hidden?: boolean
 }
 
 // message subtypes
@@ -78,6 +79,12 @@ export interface NormalMessage<Blocks extends KnownBlock[] = KnownBlock[]>
 	files?: File[]
 }
 
+export interface BotMessageMessage extends MessageCommon, MaybeAttachments, MaybeBlocks {
+	subtype: 'bot_message'
+
+	bot_id: string
+}
+
 export interface ChannelJoinMessage extends MessageCommon {
 	subtype: 'channel_join'
 
@@ -86,4 +93,24 @@ export interface ChannelJoinMessage extends MessageCommon {
 	inviter?: string
 }
 
-export type AnyMessage = NormalMessage | ChannelJoinMessage
+export interface MessageChangedMessage extends MessageCommon {
+	subtype: 'message_changed'
+
+	hidden: true
+	message: NormalMessage // TODO is this correct?
+}
+
+export interface MessageDeletedMessage extends MessageCommon {
+	subtype: 'message_deleted'
+
+	hidden: true
+	deleted_ts: string
+	previous_message: Exclude<AnyMessage, { hidden: true }>
+}
+
+export type AnyMessage =
+	| NormalMessage
+	| BotMessageMessage
+	| ChannelJoinMessage
+	| MessageChangedMessage
+	| MessageDeletedMessage
