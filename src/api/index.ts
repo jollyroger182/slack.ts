@@ -1,5 +1,20 @@
 import type { CursorPaginationResponse } from './types/api'
-import type { AppsConnectionsOpenParams, AppsConnectionsOpenResponse } from './web/apps'
+import type {
+	AppsConnectionsOpenParams,
+	AppsConnectionsOpenResponse,
+	AppsManifestCreateParams,
+	AppsManifestCreateResponse,
+	AppsManifestDeleteParams,
+	AppsManifestDeleteResponse,
+	AppsManifestExportParams,
+	AppsManifestExportResponse,
+	AppsManifestUpdateParams,
+	AppsManifestUpdateResponse,
+	AppsManifestValidateParams,
+	AppsManifestValidateResponse,
+	AppsUninstallParams,
+	AppsUninstallResponse,
+} from './web/apps'
 import type { AuthTestParams, AuthTestResponse } from './web/auth'
 import type {
 	ChatPostEphemeralParams,
@@ -27,9 +42,34 @@ import type { UsersInfoParams, UsersInfoResponse } from './web/users'
 import type { ViewsOpenParams, ViewsOpenResponse } from './web/views'
 
 export interface SlackWebAPIMap {
+	// apps.event.authorizations.list
 	'apps.connections.open': {
 		params: AppsConnectionsOpenParams
 		response: AppsConnectionsOpenResponse
+	}
+	'apps.manifest.create': {
+		params: AppsManifestCreateParams
+		response: AppsManifestCreateResponse
+	}
+	'apps.manifest.delete': {
+		params: AppsManifestDeleteParams
+		response: AppsManifestDeleteResponse
+	}
+	'apps.manifest.export': {
+		params: AppsManifestExportParams
+		response: AppsManifestExportResponse
+	}
+	'apps.manifest.update': {
+		params: AppsManifestUpdateParams
+		response: AppsManifestUpdateResponse
+	}
+	'apps.manifest.validate': {
+		params: AppsManifestValidateParams
+		response: AppsManifestValidateResponse
+	}
+	'apps.uninstall': {
+		params: AppsUninstallParams
+		response: AppsUninstallResponse
 	}
 	'auth.test': {
 		params: AuthTestParams
@@ -90,6 +130,12 @@ export type SlackAPIResponse<Method extends SlackAPIMethod> =
 
 export const POST_METHODS: SlackAPIMethod[] = [
 	'apps.connections.open',
+	'apps.manifest.create',
+	'apps.manifest.delete',
+	'apps.manifest.export',
+	'apps.manifest.update',
+	'apps.manifest.validate',
+	'apps.uninstall',
 	'chat.postEphemeral',
 	'chat.postMessage',
 	'files.completeUploadExternal',
