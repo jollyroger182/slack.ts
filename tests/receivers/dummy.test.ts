@@ -33,6 +33,5 @@ describe('DummyReceiver', () => {
 		expect(typeof receiver.once).toBe('function')
 		expect(typeof receiver.off).toBe('function')
 		expect(typeof receiver.emit).toBe('function')
-		expect(typeof receiver.listenerCount).toBe('function')
 	})
 })

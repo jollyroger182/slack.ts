@@ -1,7 +1,6 @@
-type EventListener<
-	EventMap extends Record<string, unknown[]>,
-	Event extends string,
-> = Event extends keyof EventMap ? (...args: EventMap[Event]) => unknown : never
+type EventListener<EventMap extends Record<string, unknown[]>, Event extends keyof EventMap> = (
+	...args: EventMap[Event]
+) => unknown
 
 export class AsyncEventEmitter<
 	EventMap extends Record<string, unknown[]> = Record<string, unknown[]>,
@@ -17,6 +16,17 @@ export class AsyncEventEmitter<
 		if (!this.#listeners[event]) this.#listeners[event] = []
 		if (this.#listeners[event]!.includes(listener)) return
 		this.#listeners[event]!.push(listener)
+	}
+
+	once<Event extends keyof EventMap & string>(
+		event: Event,
+		listener: EventListener<EventMap, Event>,
+	) {
+		const callback = (...args: EventMap[Event]) => {
+			this.off(event, callback)
+			return listener(...args)
+		}
+		this.on(event, callback)
 	}
 
 	off<Event extends keyof EventMap & string>(
