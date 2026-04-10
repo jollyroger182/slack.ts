@@ -22,7 +22,7 @@ export class AsyncEventEmitter<
 		event: Event,
 		listener: EventListener<EventMap, Event>,
 	) {
-		const callback = (...args: EventMap[Event]) => {
+		const callback: EventListener<EventMap, Event> = (...args: EventMap[Event]) => {
 			this.off(event, callback)
 			return listener(...args)
 		}

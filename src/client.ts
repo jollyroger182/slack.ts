@@ -15,7 +15,7 @@ import type {
 } from './api/interactive/block_actions'
 import type { ViewSubmission } from './api/interactive/view_submission'
 import type { AnyMessage, NormalMessage } from './api/types/message'
-import { SlackWebAPIError, SlackWebAPIPlatformError } from './error'
+import { SlackTimeoutError, SlackWebAPIError, SlackWebAPIPlatformError } from './error'
 import { DummyReceiver } from './receivers/dummy'
 import { SocketEventsReceiver, type SocketEventsReceiverOptions } from './receivers/socket'
 import { HttpServerReceiver, type HttpServerReceiverOptions } from './receivers/http'
@@ -24,7 +24,7 @@ import { Action, type ActionInstance } from './resources/action'
 import { Channel, ChannelRef } from './resources/channel'
 import { Message, type MessageInstance } from './resources/message'
 import { sleep } from './utils'
-import type { DistributiveOmit } from './utils/typing'
+import type { DistributiveOmit, DistributivePick } from './utils/typing'
 import type { EventsReceiver } from './receivers/base'
 import type { SlashCommandPayload } from './api/slash'
 import { SlashCommand, type SlashCommandInstance } from './resources/slash'
@@ -37,6 +37,7 @@ import type {
 } from './api/types/conversation'
 import { paginate } from './utils/paginate'
 import { AsyncEventEmitter } from './utils/events'
+import { BlockElementBuilder } from './blocks/elements/base'
 
 type ReceiverOptions =
 	| ({
@@ -216,6 +217,10 @@ export class App extends AsyncEventEmitter<AppEventMap> {
 		await this.#receiver.start()
 	}
 
+	get wait() {
+		return new AppWait(this)
+	}
+
 	/**
 	 * Gets a channel reference object. You can use this object to call API methods, or `await` it to
 	 * fetch channel details.
@@ -350,6 +355,76 @@ type AppEventMap = {
 } & {
 	[K in `/${string}`]: [SlashCommandInstance]
 }
+
+class AppWait {
+	private _timeout = 60_0_000
+
+	constructor(private client: App) {}
+
+	/**
+	 * Sets the timeout of the wait. A `SlackTimeoutError` will be thrown if no matching event occurs
+	 * after the timeout. Set this to `0` to disable timeouts; i.e., methods will wait forever. (This
+	 * is dangerous because it creates potential memory leaks!)
+	 *
+	 * By default, timeout is set to 10 minutes.
+	 *
+	 * @param timeout Timeout in milliseconds
+	 * @returns `this` for chaining
+	 */
+	timeout(timeout: number) {
+		this._timeout = timeout
+		return this
+	}
+
+	async action<
+		Actions extends (
+			| BlockElementBuilder<{ type: BlockActionTypes; action_id: string }>
+			| { type: BlockActionTypes; action_id: string }
+		)[],
+	>(...actions: Actions): Promise<ActionInstance<ExtractAction<Actions[number]>>> {
+		const objs = actions.map((a) => (a instanceof BlockElementBuilder ? a.build() : a))
+
+		return new Promise((resolve, reject) => {
+			const cleanup = () => {
+				for (const sub of subscriptions) {
+					this.client.off(sub, callback)
+				}
+				if (timer) {
+					clearTimeout(timer)
+				}
+			}
+
+			const callback = (action: ActionInstance) => {
+				cleanup()
+				resolve(action)
+			}
+
+			const subscriptions: `action:${BlockActionTypes}.${string}`[] = []
+			for (const obj of objs) {
+				const key = `action:${obj.type}.${obj.action_id}` as const
+				this.client.on(key, callback)
+				subscriptions.push(key)
+			}
+
+			const timer: ReturnType<typeof setTimeout> | null = this._timeout
+				? setTimeout(() => {
+						cleanup()
+						reject(new SlackTimeoutError(`Timed out waiting for action (${this._timeout} ms)`))
+					}, this._timeout)
+				: null
+		})
+	}
+}
+
+type ExtractAction<
+	Action extends
+		| BlockElementBuilder<{ type: string; action_id: string }>
+		| { type: string; action_id: string },
+> = BlockAction &
+	DistributivePick<
+		Action extends BlockElementBuilder<infer Output> ? Output : Action,
+		'type' | 'action_id'
+	>
 
 async function request<T>(url: string, options: RequestInit): Promise<T> {
 	const res = await fetch(url, options)
