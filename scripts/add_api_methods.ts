@@ -8,7 +8,7 @@ while (true) {
 	const segment = name.split('.')[0]
 	const classPrefix = name
 		.split('.')
-		.map((x) => x.charAt(0).toUpperCase() + x.substring(1).toLowerCase())
+		.map((x) => x.charAt(0).toUpperCase() + x.substring(1))
 		.join('')
 
 	const file = `src/api/web/${segment}.ts`
