@@ -4,7 +4,6 @@ const indexFile = 'src/api/index.ts'
 
 while (true) {
 	const name = prompt('Name:')!
-	const post = !!prompt('Post?')!
 
 	const segment = name.split('.')[0]
 	const classPrefix = name
@@ -38,11 +37,5 @@ while (true) {
 		'export interface SlackWebAPIMap {',
 		`export interface SlackWebAPIMap {\n\t\'${name}\': {\n\t\tparams: ${classPrefix}Params\n\t\tresponse: ${classPrefix}Response\n\t}`,
 	)
-	if (post) {
-		indexText = indexText.replace(
-			'export const POST_METHODS: SlackAPIMethod[] = [',
-			`export const POST_METHODS: SlackAPIMethod[] = [\n\t'${name}',`,
-		)
-	}
 	await Bun.write(indexFile, indexText)
 }

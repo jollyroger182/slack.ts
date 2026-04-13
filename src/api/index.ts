@@ -161,19 +161,3 @@ export type SlackAPIParams<Method extends SlackAPIMethod> = SlackWebAPIMap[Metho
 export type SlackAPIResponse<Method extends SlackAPIMethod> =
 	| { ok: false; error: string }
 	| ({ ok: true } & SlackWebAPIMap[Method]['response'])
-
-export const POST_METHODS: SlackAPIMethod[] = [
-	'users.profile.set',
-	'auth.teams.list',
-	'apps.connections.open',
-	'apps.manifest.create',
-	'apps.manifest.delete',
-	'apps.manifest.export',
-	'apps.manifest.update',
-	'apps.manifest.validate',
-	'apps.uninstall',
-	'chat.postEphemeral',
-	'chat.postMessage',
-	'files.completeUploadExternal',
-	'views.open',
-]

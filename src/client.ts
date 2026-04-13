@@ -1,9 +1,4 @@
-import {
-	POST_METHODS,
-	type SlackAPIMethod,
-	type SlackAPIParams,
-	type SlackAPIResponse,
-} from './api'
+import { type SlackAPIMethod, type SlackAPIParams, type SlackAPIResponse } from './api'
 import type { AllEvents, AllEventTypes, EventWrapper, SlackEventMap } from './api/events'
 import type { MessageEvent } from './api/events/events'
 import type {
