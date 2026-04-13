@@ -3,6 +3,11 @@ import type { File } from './file'
 
 // objects
 
+export interface MessageMetadata {
+	event_type: string
+	event_payload?: unknown
+}
+
 export type Attachment = {
 	blocks?: KnownBlock[]
 	color?: 'good' | 'warning' | 'danger' | string
@@ -77,6 +82,7 @@ export interface NormalMessage<Blocks extends KnownBlock[] = KnownBlock[]>
 	client_msg_id?: string
 	parent_user_id?: string
 	files?: File[]
+	streaming_state?: 'in_progress' | 'completed'
 }
 
 export interface BotMessageMessage extends MessageCommon, MaybeAttachments, MaybeBlocks {

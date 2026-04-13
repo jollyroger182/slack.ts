@@ -31,6 +31,12 @@ import type {
 	ChatPostEphemeralResponse,
 	ChatPostMessageParams,
 	ChatPostMessageResponse,
+	ChatAppendStreamParams,
+	ChatAppendStreamResponse
+	ChatStartStreamParams,
+	ChatStartStreamResponse
+	ChatStopStreamParams,
+	ChatStopStreamResponse
 } from './web/chat'
 import type {
 	ConversationsHistoryParams,
