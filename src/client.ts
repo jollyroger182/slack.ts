@@ -1,4 +1,3 @@
-import EventEmitter from 'events'
 import {
 	POST_METHODS,
 	type SlackAPIMethod,
@@ -14,30 +13,25 @@ import type {
 	BlockActionTypes,
 } from './api/interactive/block_actions'
 import type { ViewSubmission } from './api/interactive/view_submission'
+import type { SlashCommandPayload } from './api/slash'
+import type { IM, MPIM, PrivateChannel, PublicChannel } from './api/types/conversation'
 import type { AnyMessage, NormalMessage } from './api/types/message'
+import { BlockElementBuilder } from './blocks/elements/base'
 import { SlackTimeoutError, SlackWebAPIError, SlackWebAPIPlatformError } from './error'
+import type { EventsReceiver } from './receivers/base'
 import { DummyReceiver } from './receivers/dummy'
-import { SocketEventsReceiver, type SocketEventsReceiverOptions } from './receivers/socket'
-import { HttpServerReceiver, type HttpServerReceiverOptions } from './receivers/http'
 import { HttpFetchReceiver, type HttpFetchReceiverOptions } from './receivers/fetch'
+import { HttpServerReceiver, type HttpServerReceiverOptions } from './receivers/http'
+import { SocketEventsReceiver, type SocketEventsReceiverOptions } from './receivers/socket'
 import { Action, type ActionInstance } from './resources/action'
 import { Channel, ChannelRef } from './resources/channel'
 import { Message, type MessageInstance } from './resources/message'
-import { sleep } from './utils'
-import type { DistributiveOmit, DistributivePick } from './utils/typing'
-import type { EventsReceiver } from './receivers/base'
-import type { SlashCommandPayload } from './api/slash'
 import { SlashCommand, type SlashCommandInstance } from './resources/slash'
-import type {
-	Conversation,
-	IM,
-	MPIM,
-	PrivateChannel,
-	PublicChannel,
-} from './api/types/conversation'
-import { paginate } from './utils/paginate'
+import { UserRef } from './resources/user'
+import { sleep } from './utils'
 import { AsyncEventEmitter } from './utils/events'
-import { BlockElementBuilder } from './blocks/elements/base'
+import { paginate } from './utils/paginate'
+import type { DistributiveOmit, DistributivePick } from './utils/typing'
 
 type ReceiverOptions =
 	| ({
@@ -278,26 +272,21 @@ export class App extends AsyncEventEmitter<AppEventMap> {
 		method: Method,
 		params: SlackAPIParams<Method>,
 	): Promise<Extract<SlackAPIResponse<Method>, { ok: true }>> {
-		const httpMethod = POST_METHODS.includes(method) ? 'POST' : 'GET'
-		const body = httpMethod !== 'GET' ? JSON.stringify(params) : undefined
-
-		const url = new URL(`https://slack.com/api/${method}`)
-		if (httpMethod === 'GET' && params) {
-			for (const [key, value] of Object.entries(params)) {
-				if (value instanceof Array) {
-					for (const item of value) {
-						url.searchParams.append(key, item)
-					}
-				} else if (value !== undefined && value !== null) {
-					url.searchParams.set(key, String(value))
-				}
+		const body = new FormData()
+		let hasBody = false
+		for (const [key, value] of Object.entries(params)) {
+			if (key === 'token') continue
+			hasBody = true
+			if (typeof value === 'string') {
+				body.set(key, value)
+			} else {
+				body.set(key, JSON.stringify(value))
 			}
 		}
 
+		const url = `https://slack.com/api/${method}`
+
 		const headers = new Headers()
-		if (body) {
-			headers.append('Content-Type', 'application/json; charset=utf-8')
-		}
 		if (params.token || this.#token) {
 			const token = params.token || this.#token
 			if (typeof token === 'string') {
@@ -308,14 +297,14 @@ export class App extends AsyncEventEmitter<AppEventMap> {
 			}
 		}
 
-		const res = await request<SlackAPIResponse<Method>>(url.toString(), {
-			method: httpMethod,
-			body,
+		const res = await request<SlackAPIResponse<Method>>(url, {
+			method: 'POST',
+			body: hasBody ? body : undefined,
 			headers,
 		})
 
 		if (!res.ok) {
-			throw new SlackWebAPIPlatformError(url.toString(), res, res.error)
+			throw new SlackWebAPIPlatformError(url, res, res.error)
 		}
 
 		return res
