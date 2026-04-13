@@ -227,6 +227,17 @@ export class App extends AsyncEventEmitter<AppEventMap> {
 	}
 
 	/**
+	 * Gets a user reference object. You can use this object to call API methods, or `await` it to
+	 * fetch user details.
+	 *
+	 * @param id User ID
+	 * @returns A user reference object
+	 */
+	user(id: string) {
+		return new UserRef(this, id)
+	}
+
+	/**
 	 * Lists channels of the specified types.
 	 *
 	 * @param types Channel types to list (public_channel, private_channel, mpim, im)
