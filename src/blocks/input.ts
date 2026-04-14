@@ -5,6 +5,7 @@ import type { BlockElementBuilder } from './elements/base'
 import type { CheckboxesBuilder } from './elements/checkboxes'
 import { DatePickerBuilder } from './elements/date_picker'
 import type { DatetimePickerBuilder } from './elements/datetime_picker'
+import type { EmailInputBuilder } from './elements/email_input'
 import type { PlainTextInputBuilder } from './elements/plain_text_input'
 import { ensureIsTextObjectBuilder, type TextObjectBuilder } from './objects/text'
 
@@ -12,6 +13,7 @@ type InputElementBuilder =
 	| CheckboxesBuilder<any, string>
 	| DatePickerBuilder
 	| DatetimePickerBuilder
+	| EmailInputBuilder<string>
 	| PlainTextInputBuilder<string>
 
 type TypedInputBlock<Element extends InputElementBuilder, BlockID extends string> = InputBlock & {
@@ -34,6 +36,9 @@ export class InputBlockBuilder<
 	BlockID extends string = string,
 > extends BlockBuilder<TypedInputBlock<Element, BlockID>, BlockID, HasLabel> {
 	private _label?: TextObjectBuilder<false>
+	private _hint?: TextObjectBuilder<false>
+	private _dispatch?: boolean
+	private _optional?: boolean
 
 	constructor(private _element: Element) {
 		super()
@@ -56,6 +61,21 @@ export class InputBlockBuilder<
 		return this as any
 	}
 
+	hint(text: string | TextObjectBuilder<false>) {
+		this._hint = ensureIsTextObjectBuilder(text).plain()
+		return this
+	}
+
+	dispatch(dispatch: boolean = true) {
+		this._dispatch = dispatch
+		return this
+	}
+
+	optional(optional: boolean = true) {
+		this._optional = optional
+		return this
+	}
+
 	override build(
 		this: InputBlockBuilder<Element, true, BlockID>,
 	): TypedInputBlock<Element, BlockID> {
@@ -66,6 +86,9 @@ export class InputBlockBuilder<
 			type: 'input',
 			element: this._element.build() as any,
 			label: this._label.build(),
+			hint: this._hint?.build(),
+			dispatch_action: this._dispatch,
+			optional: this._optional,
 		}
 	}
 }
