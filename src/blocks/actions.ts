@@ -4,12 +4,14 @@ import type { BlockElementBuilder } from './elements/base'
 import type { ButtonBuilder } from './elements/button'
 import type { CheckboxesBuilder } from './elements/checkboxes'
 import type { DatePickerBuilder } from './elements/date_picker'
+import type { DatetimePickerBuilder } from './elements/datetime_picker'
 import type { OverflowBuilder } from './elements/overflow'
 
 type ActionsElementBuilder =
 	| ButtonBuilder<string>
 	| CheckboxesBuilder<any, string>
 	| DatePickerBuilder
+	| DatetimePickerBuilder
 	| OverflowBuilder<any, string>
 
 type TypedActionsBlock<

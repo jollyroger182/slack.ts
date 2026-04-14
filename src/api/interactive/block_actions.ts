@@ -61,6 +61,12 @@ export interface DatePickerAction extends ActionCommon {
 	selected_date: string
 }
 
+export interface DatetimePickerAction extends ActionCommon {
+	type: 'datetimepicker'
+	initial_date_time?: number
+	selected_date_time: number
+}
+
 export interface FeedbackButtonsAction extends ActionCommon {
 	type: 'feedback_buttons'
 	text: PlainTextElement
