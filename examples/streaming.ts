@@ -79,6 +79,16 @@ app.on('message:normal', async (message) => {
 	})
 })
 
+app.on('action:feedback_buttons', async (action) => {
+	await action.respond.message({ text: '> Thank you for your feedback!' })
+})
+
+app.on('action:icon_button', async (action) => {
+	if (action.icon === 'trash') {
+		await action.respond.delete()
+	}
+})
+
 const { user_id } = await app.request('auth.test', {})
 
 await app.start()
