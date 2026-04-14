@@ -4,7 +4,10 @@ import { Builder } from '../base'
 export abstract class BlockElementBuilder<
 	Output,
 	ActionID extends string = string,
+	Complete extends boolean = true,
 > extends Builder<Output> {
+	private _blockElementIsNotComplete?: Complete
+
 	protected _actionId: string = randomUUID()
 
 	protected _id(actionId: string) {
@@ -12,7 +15,9 @@ export abstract class BlockElementBuilder<
 		return this as any
 	}
 
-	abstract id<ActionID extends string>(actionId: ActionID): BlockElementBuilder<unknown, ActionID>
+	abstract id<ActionID extends string>(
+		actionId: ActionID,
+	): BlockElementBuilder<unknown, ActionID, Complete>
 
 	override _build(): { action_id: ActionID } {
 		return { action_id: this._actionId as any }
