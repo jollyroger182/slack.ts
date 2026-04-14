@@ -12,11 +12,13 @@ import {
 	type SendMessageWithoutFiles,
 } from '../utils/messaging'
 import { paginate } from '../utils/paginate'
-import type { DistributiveOmit, DistributivePick } from '../utils/typing'
+import type { DistributiveOmit } from '../utils/typing'
 import type { ActionInstance } from './action'
 import { ChannelRef } from './channel'
-import { UserRef } from './user'
+import { type UserInstance, UserRef } from './user'
 import type { ActionsToPrefixedID, ExtractActions } from '../blocks/utils/extract'
+import { startStreaming } from '../utils/streaming'
+import type { StreamChunk } from '../api/web/chat'
 
 interface FetchRepliesParams extends Omit<TimestampPaginationParams, 'limit'> {
 	/**
@@ -116,6 +118,29 @@ class MessageMixin<Blocks extends KnownBlock[] = KnownBlock[]> {
 				data.message,
 			) as MessageInstance<NormalMessage>
 		}
+	}
+
+	/**
+	 * Sends a streaming message in reply to this message.
+	 *
+	 * @param user The user to stream to. Either a User object or an object with "id" and "team_id"
+	 *   properties.
+	 * @param chunks The initial chunks to display on the message.
+	 * @returns The streaming message
+	 */
+	async stream(
+		user: UserInstance | { id: string; team_id: string },
+		chunks?: (string | StreamChunk)[],
+	) {
+		return await startStreaming(this.client, {
+			channel: this.#channel,
+			thread_ts: this.#ts,
+			recipient_user_id: user.id,
+			recipient_team_id: user.team_id,
+			chunks: chunks?.map<StreamChunk>((c) =>
+				typeof c === 'string' ? { type: 'markdown_text', text: c } : c,
+			),
+		})
 	}
 
 	/**

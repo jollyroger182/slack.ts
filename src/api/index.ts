@@ -32,11 +32,11 @@ import type {
 	ChatPostMessageParams,
 	ChatPostMessageResponse,
 	ChatAppendStreamParams,
-	ChatAppendStreamResponse
+	ChatAppendStreamResponse,
 	ChatStartStreamParams,
-	ChatStartStreamResponse
+	ChatStartStreamResponse,
 	ChatStopStreamParams,
-	ChatStopStreamResponse
+	ChatStopStreamResponse,
 } from './web/chat'
 import type {
 	ConversationsHistoryParams,
@@ -63,6 +63,18 @@ import type {
 import type { ViewsOpenParams, ViewsOpenResponse } from './web/views'
 
 interface SlackWebAPIMapInternal {
+	'chat.appendStream': {
+		params: ChatAppendStreamParams
+		response: ChatAppendStreamResponse
+	}
+	'chat.startStream': {
+		params: ChatStartStreamParams
+		response: ChatStartStreamResponse
+	}
+	'chat.stopStream': {
+		params: ChatStopStreamParams
+		response: ChatStopStreamResponse
+	}
 	'users.profile.set': {
 		params: UsersProfileSetParams
 		response: UsersProfileSetResponse

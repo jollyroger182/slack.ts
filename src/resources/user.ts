@@ -82,6 +82,10 @@ export class User extends UserMixin {
 		this.#data = data
 		return makeProxy(this, () => this.#data)
 	}
+
+	get raw() {
+		return this.#data
+	}
 }
 
 export type UserInstance = User & UserData

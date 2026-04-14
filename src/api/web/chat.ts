@@ -60,7 +60,7 @@ export type StreamChunk =
 			status?: 'pending' | 'in_progress' | 'complete' | 'error'
 			details?: string
 			output?: string
-			sources: {
+			sources?: {
 				type: 'url'
 				text: string
 				url: string
