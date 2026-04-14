@@ -4,8 +4,9 @@ import { BlockBuilder } from './base'
 import type { BlockElementBuilder } from './elements/base'
 import type { PlainTextInputBuilder } from './elements/plain_text_input'
 import { ensureIsTextObjectBuilder, type TextObjectBuilder } from './objects/text'
+import type { CheckboxesBuilder } from './elements/checkboxes'
 
-type InputElementBuilder = PlainTextInputBuilder<string>
+type InputElementBuilder = CheckboxesBuilder<any, string> | PlainTextInputBuilder<string>
 
 type TypedInputBlock<Element extends InputElementBuilder, BlockID extends string> = InputBlock & {
 	block_id: BlockID

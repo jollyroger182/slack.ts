@@ -50,6 +50,11 @@ export interface ButtonAction extends ActionCommon {
 	style?: 'primary' | 'danger'
 }
 
+export interface CheckboxesAction extends ActionCommon {
+	type: 'checkboxes'
+	selected_options: PlainTextOption[]
+}
+
 export interface FeedbackButtonsAction extends ActionCommon {
 	type: 'feedback_buttons'
 	text: PlainTextElement
@@ -75,6 +80,7 @@ export interface OverflowAction extends ActionCommon {
 
 export type BlockAction =
 	| ButtonAction
+	| CheckboxesAction
 	| FeedbackButtonsAction
 	| IconButtonAction
 	| PlainTextInputAction

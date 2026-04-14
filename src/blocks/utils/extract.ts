@@ -1,5 +1,6 @@
 import type {
 	ActionsBlock,
+	ContextActionsBlock,
 	InputBlock,
 	KnownBlock,
 	PlainTextOption,
@@ -40,13 +41,18 @@ export type ExtractBlockActions<Block extends KnownBlock> = PickActionFields<
 			? Extract<Block['element'], { action_id?: string }>[]
 			: Block extends ActionsBlock
 				? Extract<Block['elements'][number], { action_id?: string }>[]
-				: [])[number]
+				: Block extends ContextActionsBlock
+					? Extract<Block['elements'][number], { action_id?: string }>[]
+					: [])[number]
 >[]
 
 type PickActionFields<Action extends { type: string; action_id?: string }> = Action extends unknown
 	? DistributivePick<Action, 'type' | 'action_id'> &
 			(Action extends { type: 'overflow'; options: infer Options extends unknown[] }
 				? { selected_option: Options[number] }
+				: {}) &
+			(Action extends { type: 'checkboxes'; options: infer Options extends unknown[] }
+				? { selected_options: Options[number][] }
 				: {})
 	: never
 

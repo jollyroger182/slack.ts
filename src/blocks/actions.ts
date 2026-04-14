@@ -3,8 +3,12 @@ import type { ActionsBlock } from '@slack/types'
 import type { ButtonBuilder } from './elements/button'
 import type { BlockElementBuilder } from './elements/base'
 import type { OverflowBuilder } from './elements/overflow'
+import type { CheckboxesBuilder } from './elements/checkboxes'
 
-type ActionsElementBuilder = ButtonBuilder<string> | OverflowBuilder<any, string>
+type ActionsElementBuilder =
+	| ButtonBuilder<string>
+	| CheckboxesBuilder<any, string>
+	| OverflowBuilder<any, string>
 
 type TypedActionsBlock<
 	Actions extends ActionsElementBuilder[],

@@ -1,4 +1,5 @@
 export { button } from './button'
+export { checkboxes } from './checkboxes'
 export { feedbackButtons } from './feedback_buttons'
 export { iconButton } from './icon_button'
 export { overflow } from './overflow'

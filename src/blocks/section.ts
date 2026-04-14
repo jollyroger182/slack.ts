@@ -4,8 +4,9 @@ import { ensureIsTextObjectBuilder, type TextObjectBuilder } from './objects/tex
 import type { OverflowBuilder } from './elements/overflow'
 import type { ButtonBuilder } from './elements/button'
 import type { BlockElementBuilder } from './elements/base'
+import type { CheckboxesBuilder } from './elements/checkboxes'
 
-type SectionAccessoryBuilder = ButtonBuilder | OverflowBuilder<any>
+type SectionAccessoryBuilder = ButtonBuilder | CheckboxesBuilder<any, string> | OverflowBuilder<any>
 
 type TypedSectionBlock<
 	Mrkdwn extends boolean | undefined = boolean | undefined,
