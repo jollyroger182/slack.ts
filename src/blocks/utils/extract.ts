@@ -3,9 +3,7 @@ import type {
 	ContextActionsBlock,
 	InputBlock,
 	KnownBlock,
-	PlainTextOption,
 	SectionBlock,
-	SectionBlockAccessory,
 } from '@slack/types'
 import type { StateValue } from '../../api/types/value'
 import type { DistributivePick } from '../../utils/typing'
@@ -17,18 +15,24 @@ export type ExtractValues<Blocks extends { block_id?: string }[]> = {
 }
 
 export type ExtractBlockValues<Block> = Block extends {
-	element: { type: string; action_id: string }
+	accessory: { type: string; action_id: string }
 }
-	? {
-			[T in Block['element']['action_id']]: Extract<StateValue, { type: Block['element']['type'] }>
-		}
-	: Block extends { elements: { type: string; action_id?: string }[] }
-		? {
-				[Action in Block['elements'][number] as Action['action_id'] extends string
-					? Action['action_id']
-					: never]: Extract<StateValue, { type: Action['type'] }>
-			}
-		: never
+	? ExtractValuesFromElement<Block['accessory']>
+	: Block extends { element: { type: string; action_id: string } }
+		? ExtractValuesFromElement<Block['element']>
+		: Block extends { elements: { type: string; action_id?: string }[] }
+			? ExtractValuesFromElement<Block['elements'][number]>
+			: never
+
+export type ExtractValuesFromElement<Element extends { type: string; action_id?: string }> = {
+	[Elem in Element as Elem['action_id'] extends string ? Elem['action_id'] : never]: Extract<
+		StateValue,
+		{ type: Elem['type'] }
+	> &
+		(Elem extends { type: 'checkboxes'; options: infer Options extends unknown[] }
+			? { selected_options: Options[number][] }
+			: {})
+}
 
 export type ExtractActions<Blocks extends KnownBlock[]> = {
 	[K in keyof Blocks]: ExtractBlockActions<Blocks[K]>
