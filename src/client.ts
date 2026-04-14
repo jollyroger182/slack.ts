@@ -285,7 +285,7 @@ export class App extends AsyncEventEmitter<AppEventMap> {
 			hasBody = true
 			if (typeof value === 'string') {
 				body.set(key, value)
-			} else {
+			} else if (value !== undefined) {
 				body.set(key, JSON.stringify(value))
 			}
 		}
