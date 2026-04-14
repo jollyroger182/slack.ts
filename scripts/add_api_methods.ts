@@ -34,8 +34,8 @@ while (true) {
 			indexText
 	}
 	indexText = indexText.replace(
-		'export interface SlackWebAPIMap {',
-		`export interface SlackWebAPIMap {\n\t\'${name}\': {\n\t\tparams: ${classPrefix}Params\n\t\tresponse: ${classPrefix}Response\n\t}`,
+		'interface SlackWebAPIMapInternal {',
+		`interface SlackWebAPIMapInternal {\n\t\'${name}\': {\n\t\tparams: ${classPrefix}Params\n\t\tresponse: ${classPrefix}Response\n\t}`,
 	)
 	await Bun.write(indexFile, indexText)
 }
