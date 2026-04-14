@@ -1,4 +1,5 @@
 export { button } from './button'
 export { feedbackButtons } from './feedback_buttons'
+export { iconButton } from './icon_button'
 export { overflow } from './overflow'
 export { plainTextInput } from './plain_text_input'

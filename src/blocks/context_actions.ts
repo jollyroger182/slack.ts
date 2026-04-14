@@ -2,8 +2,11 @@ import type { ContextActionsBlock } from '@slack/types'
 import { BlockBuilder } from './base'
 import type { BlockElementBuilder } from './elements/base'
 import type { FeedbackButtonsBuilder } from './elements/feedback_buttons'
+import type { IconButtonBuilder } from './elements/icon_button'
 
-type ContextActionsElementBuilder = FeedbackButtonsBuilder<string, string, string>
+type ContextActionsElementBuilder =
+	| FeedbackButtonsBuilder<string, string, string>
+	| IconButtonBuilder
 
 type TypedContextActionsBlock<
 	Actions extends ContextActionsElementBuilder[],

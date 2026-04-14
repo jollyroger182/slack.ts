@@ -8,7 +8,7 @@
  * - OPENAI_MODEL: A string to pass in the "model" field in the request data. (Default: "gpt-5-nano")
  */
 
-import { App, blocks, contextActions, feedbackButtons } from 'slack.ts'
+import { App, blocks, contextActions, feedbackButtons, iconButton } from 'slack.ts'
 
 const API_KEY = process.env.OPENAPI_API_KEY
 const API_URL = process.env.OPENAPI_API_URL || 'https://api.openai.com/v1'
@@ -71,7 +71,10 @@ app.on('message:normal', async (message) => {
 	}
 	await stream.stop({
 		blocks: blocks(
-			contextActions(feedbackButtons().positive('Good', 'good').negative('Bad', 'bad')),
+			contextActions(
+				feedbackButtons().positive('Good', 'good').negative('Bad', 'bad'),
+				iconButton('trash', 'Delete this response'),
+			),
 		),
 	})
 })
