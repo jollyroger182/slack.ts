@@ -9,7 +9,7 @@ type TypedIconButton<ActionID extends string> = IconButton & {
 	action_id: ActionID
 }
 
-type Icon = 'trash'
+export type IconButtonIcon = 'trash'
 
 export class IconButtonBuilder<ActionID extends string = string> extends BlockElementBuilder<
 	TypedIconButton<ActionID>,
@@ -21,7 +21,7 @@ export class IconButtonBuilder<ActionID extends string = string> extends BlockEl
 	private _visibleToUserIds?: string[]
 
 	constructor(
-		private _icon: Icon,
+		private _icon: IconButtonIcon,
 		private _text: TextObjectBuilder<false>,
 	) {
 		super()
@@ -93,6 +93,6 @@ export class IconButtonBuilder<ActionID extends string = string> extends BlockEl
 	}
 }
 
-export function iconButton(icon: Icon, text: string | TextObjectBuilder<false>) {
+export function iconButton(icon: IconButtonIcon, text: string | TextObjectBuilder<false>) {
 	return new IconButtonBuilder(icon, ensureIsTextObjectBuilder(text).plain())
 }

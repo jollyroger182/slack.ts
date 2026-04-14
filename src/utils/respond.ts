@@ -10,6 +10,7 @@ export class Responder<HasResponseURL extends boolean = true> {
 		private client: App,
 		private response_url: string | undefined,
 		private trigger_id: string,
+		private thread_ts?: string,
 	) {}
 
 	async message(this: Responder<true>, message: string | MessageResponseParams) {
@@ -18,6 +19,7 @@ export class Responder<HasResponseURL extends boolean = true> {
 		if (typeof message === 'string') message = { text: message }
 
 		const payload = {
+			thread_ts: this.thread_ts,
 			text: message.text,
 			blocks: message.blocks,
 			response_type: message.ephemeral ? 'ephemeral' : 'in_channel',

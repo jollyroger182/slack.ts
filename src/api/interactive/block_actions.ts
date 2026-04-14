@@ -2,6 +2,7 @@ import type { ConfirmationDialog, PlainTextElement, PlainTextOption } from '@sla
 import type { AnyMessage } from '../types/message'
 import type { InteractionCommon } from './common'
 import type { StateValue } from '../types/value'
+import type { IconButtonIcon } from '../../blocks/elements/icon_button'
 
 export interface BlockActions extends InteractionCommon {
 	type: 'block_actions'
@@ -49,6 +50,18 @@ export interface ButtonAction extends ActionCommon {
 	style?: 'primary' | 'danger'
 }
 
+export interface FeedbackButtonsAction extends ActionCommon {
+	type: 'feedback_buttons'
+	text: PlainTextElement
+	value: string
+}
+
+export interface IconButtonAction extends ActionCommon {
+	type: 'icon_button'
+	icon: IconButtonIcon
+	text: PlainTextElement
+}
+
 export interface PlainTextInputAction extends ActionCommon {
 	type: 'plain_text_input'
 	value: string | null
@@ -60,7 +73,12 @@ export interface OverflowAction extends ActionCommon {
 	selected_option: PlainTextOption
 }
 
-export type BlockAction = ButtonAction | PlainTextInputAction | OverflowAction
+export type BlockAction =
+	| ButtonAction
+	| FeedbackButtonsAction
+	| IconButtonAction
+	| PlainTextInputAction
+	| OverflowAction
 
 export type BlockActionTypes = BlockAction['type']
 

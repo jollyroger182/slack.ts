@@ -26,7 +26,12 @@ export class Action<Type extends BlockAction = BlockAction> {
 	}
 
 	get respond(): Responder<true> {
-		return new Responder(this.client, this.#event.response_url, this.#event.trigger_id)
+		return new Responder(
+			this.client,
+			this.#event.response_url,
+			this.#event.trigger_id,
+			this.#event.message?.thread_ts,
+		)
 	}
 }
 
