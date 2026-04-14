@@ -55,6 +55,12 @@ export interface CheckboxesAction extends ActionCommon {
 	selected_options: PlainTextOption[]
 }
 
+export interface DatePickerAction extends ActionCommon {
+	type: 'date_picker'
+	initial_date?: string
+	selected_date: string
+}
+
 export interface FeedbackButtonsAction extends ActionCommon {
 	type: 'feedback_buttons'
 	text: PlainTextElement

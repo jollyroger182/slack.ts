@@ -1,13 +1,15 @@
-import { BlockBuilder } from './base'
 import type { ActionsBlock } from '@slack/types'
-import type { ButtonBuilder } from './elements/button'
+import { BlockBuilder } from './base'
 import type { BlockElementBuilder } from './elements/base'
-import type { OverflowBuilder } from './elements/overflow'
+import type { ButtonBuilder } from './elements/button'
 import type { CheckboxesBuilder } from './elements/checkboxes'
+import type { DatePickerBuilder } from './elements/date_picker'
+import type { OverflowBuilder } from './elements/overflow'
 
 type ActionsElementBuilder =
 	| ButtonBuilder<string>
 	| CheckboxesBuilder<any, string>
+	| DatePickerBuilder
 	| OverflowBuilder<any, string>
 
 type TypedActionsBlock<

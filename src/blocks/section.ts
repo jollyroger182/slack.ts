@@ -1,12 +1,17 @@
-import { BlockBuilder } from './base'
 import type { SectionBlock } from '@slack/types'
-import { ensureIsTextObjectBuilder, type TextObjectBuilder } from './objects/text'
-import type { OverflowBuilder } from './elements/overflow'
-import type { ButtonBuilder } from './elements/button'
+import { BlockBuilder } from './base'
 import type { BlockElementBuilder } from './elements/base'
+import type { ButtonBuilder } from './elements/button'
 import type { CheckboxesBuilder } from './elements/checkboxes'
+import type { DatePickerBuilder } from './elements/date_picker'
+import type { OverflowBuilder } from './elements/overflow'
+import { ensureIsTextObjectBuilder, type TextObjectBuilder } from './objects/text'
 
-type SectionAccessoryBuilder = ButtonBuilder | CheckboxesBuilder<any, string> | OverflowBuilder<any>
+type SectionAccessoryBuilder =
+	| ButtonBuilder
+	| CheckboxesBuilder<any, string>
+	| DatePickerBuilder
+	| OverflowBuilder<any>
 
 type TypedSectionBlock<
 	Mrkdwn extends boolean | undefined = boolean | undefined,
