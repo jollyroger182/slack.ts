@@ -111,6 +111,7 @@ export class App extends AsyncEventEmitter<AppEventMap> {
 		await this.emit('actions', event)
 		for (const action of event.actions) {
 			const obj = new Action(this, action, event) as ActionInstance
+			await this.emit(`action`, obj)
 			await this.emit(`action:${action.type}`, obj as any)
 			await this.emit(`action.${action.action_id}`, obj)
 			await this.emit(`action:${action.type}.${action.action_id}`, obj as any)
