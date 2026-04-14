@@ -21,7 +21,9 @@ export function blocks<Builders extends BlockBuilder<unknown>[]>(
  *
  * @template Output The type of object this builder creates when built
  */
-export abstract class Builder<Output> {
+export abstract class Builder<Output, Complete = true> {
+	private _itemIsNotComplete?: Complete
+
 	abstract build(): Output
 
 	protected _build(): Record<never, never> {
@@ -40,7 +42,7 @@ export abstract class BlockBuilder<
 	Output,
 	BlockID extends string = string,
 	Complete extends boolean = true,
-> extends Builder<Output> {
+> extends Builder<Output, Complete> {
 	private _blockIsNotComplete?: Complete
 
 	private _blockId: string = randomUUID()

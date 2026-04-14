@@ -5,7 +5,7 @@ export abstract class BlockElementBuilder<
 	Output,
 	ActionID extends string = string,
 	Complete extends boolean = true,
-> extends Builder<Output> {
+> extends Builder<Output, Complete> {
 	private _blockElementIsNotComplete?: Complete
 
 	protected _actionId: string = randomUUID()

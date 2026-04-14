@@ -1,9 +1,9 @@
 import type { SectionBlock } from '@slack/types'
-import { BlockBuilder } from './base'
-import type { BlockElementBuilder } from './elements/base'
+import { BlockBuilder, Builder } from './base'
 import type { ButtonBuilder } from './elements/button'
 import type { CheckboxesBuilder } from './elements/checkboxes'
 import type { DatePickerBuilder } from './elements/date_picker'
+import type { ImageBuilder } from './elements/image'
 import type { OverflowBuilder } from './elements/overflow'
 import { ensureIsTextObjectBuilder, type TextObjectBuilder } from './objects/text'
 
@@ -11,6 +11,7 @@ type SectionAccessoryBuilder =
 	| ButtonBuilder
 	| CheckboxesBuilder<any, string>
 	| DatePickerBuilder
+	| ImageBuilder<true>
 	| OverflowBuilder<any>
 
 type TypedSectionBlock<
@@ -24,9 +25,7 @@ type TypedSectionBlock<
 		: Mrkdwn extends false
 			? { text: { type: 'plain_text' } }
 			: { text?: never }) &
-	(Accessory extends BlockElementBuilder<infer Output>
-		? { accessory: Output }
-		: { accessory?: never })
+	(Accessory extends Builder<infer Output> ? { accessory: Output } : { accessory?: never })
 
 /**
  * Builder for section blocks.
