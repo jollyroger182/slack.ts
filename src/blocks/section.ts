@@ -4,9 +4,8 @@ import type { ButtonBuilder } from './elements/button'
 import type { CheckboxesBuilder } from './elements/checkboxes'
 import type { DatePickerBuilder } from './elements/date_picker'
 import type { ImageBuilder } from './elements/image'
-import type { MultiStaticSelectBuilder } from './elements/multi_static_select'
 import type { OverflowBuilder } from './elements/overflow'
-import type { StaticSelectBuilder } from './elements/static_select'
+import type { AnySelectMenuBuilder } from './elements/select'
 import { ensureIsTextObjectBuilder, type TextObjectBuilder } from './objects/text'
 
 type SectionAccessoryBuilder =
@@ -14,9 +13,8 @@ type SectionAccessoryBuilder =
 	| CheckboxesBuilder<any, string>
 	| DatePickerBuilder
 	| ImageBuilder<true>
-	| MultiStaticSelectBuilder<any>
 	| OverflowBuilder<any>
-	| StaticSelectBuilder<any>
+	| AnySelectMenuBuilder
 
 type TypedSectionBlock<
 	Mrkdwn extends boolean | undefined = boolean | undefined,

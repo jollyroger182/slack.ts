@@ -2,8 +2,7 @@ import type { ColorScheme, IconButton } from '@slack/types'
 import { ConfirmBuilder, confirm as buildConfirm } from '../objects/confirm'
 import { ensureIsTextObjectBuilder, type TextObjectBuilder } from '../objects/text'
 import { BlockElementBuilder } from './base'
-import type { UserRef } from '../../resources'
-import type { User } from '../../../dist'
+import type { User, UserRef } from '../../resources'
 
 type TypedIconButton<ActionID extends string> = IconButton & {
 	action_id: ActionID
