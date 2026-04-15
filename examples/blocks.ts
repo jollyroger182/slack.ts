@@ -80,11 +80,25 @@ app.on('action.show_modal', async (action) => {
 					.multiple()
 					.default('a', 'b')
 					.id('mstatic'),
-			),
-			input('multi convo select', select().multiple().conversations().id('value')).id('convo'),
-			input('multi user select', select().multiple().users().id('value')).id('user'),
-			input('multi channel select', select().multiple().channels().id('value')).id('channel'),
-			input('multi dynamic select', select().multiple().dynamic().id('value')).id('dynamic'),
+			).dispatch(),
+			input(
+				'multi convo select',
+				select()
+					.multiple()
+					.conversations()
+					.placeholder('placeholder')
+					.confirm({ title: 'confirm?', text: 'are you sure?', confirm: 'yes', deny: 'no' })
+					.id('value'),
+			)
+				.dispatch()
+				.id('convo'),
+			input('multi user select', select().multiple().users().id('value')).dispatch().id('user'),
+			input('multi channel select', select().multiple().channels().id('value'))
+				.dispatch()
+				.id('channel'),
+			input('multi dynamic select', select().multiple().dynamic().id('value'))
+				.dispatch()
+				.id('dynamic'),
 			input(
 				plainTextInput()
 					.triggers('on_enter_pressed')
@@ -112,10 +126,15 @@ app.on('action.show_modal', async (action) => {
 	})
 
 	const submission = await modal.wait.submit()
+	console.log(JSON.stringify(submission.values, null, 2))
 })
 
 app.on('action', (action) => {
 	console.log(action.raw)
+})
+
+app.on('autocomplete', async (event) => {
+	await event.respond(option('text').value('a'), option('more text').value('b'))
 })
 
 await app.start()

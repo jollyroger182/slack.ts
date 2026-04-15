@@ -3,11 +3,13 @@ import type { AllEvents, EventWrapper } from '../api/events'
 import type { BlockActions } from '../api/interactive/block_actions'
 import type { ViewSubmission } from '../api/interactive/view_submission'
 import type { SlashCommandPayload } from '../api/slash'
+import type { BlockSuggestion } from '../api/interactive/block_suggestion'
 
 export type SlackHttpPayload =
 	| { type: 'url_verification'; challenge: string }
 	| { type: 'event'; payload: EventWrapper<AllEvents> }
 	| { type: 'block_actions'; payload: BlockActions }
+	| { type: 'block_suggestion'; payload: BlockSuggestion }
 	| { type: 'view_submission'; payload: ViewSubmission }
 	| { type: 'slash_command'; payload: SlashCommandPayload }
 
@@ -108,6 +110,13 @@ function detectSlackPayload(body: unknown): SlackHttpPayload {
 		return {
 			type: 'block_actions',
 			payload: body as BlockActions,
+		}
+	}
+
+	if (obj.type === 'block_suggestion') {
+		return {
+			type: 'block_suggestion',
+			payload: body as BlockSuggestion,
 		}
 	}
 

@@ -1,12 +1,3 @@
-/*
-select(option(...), ...)[.multiple()]
-select(optionGroup(...), ...)[.multiple()]
-select().conversations()[.multiple()]
-select().channels()[.multiple()]
-select().users()[.multiple()]
-select().dynamic()[.multiple()]
-*/
-
 import type {
 	ChannelsSelect,
 	ColorScheme,
@@ -17,18 +8,18 @@ import type {
 	MultiExternalSelect,
 	MultiStaticSelect,
 	MultiUsersSelect,
-	PlainTextElement,
 	PlainTextOption,
 	StaticSelect,
 	UsersSelect,
 } from '@slack/types'
-import { BlockElementBuilder } from './base'
-import { OptionObjectBuilder } from '../objects/option'
-import { OptionGroupBuilder } from '../objects/option_group'
+import type { PlainTextOptionGroup } from '../../api/types/misc'
+import type { Channel, ChannelRef, User, UserRef } from '../../resources'
 import type { Builder } from '../base'
 import { ConfirmBuilder, confirm as buildConfirm } from '../objects/confirm'
+import { OptionObjectBuilder } from '../objects/option'
+import { OptionGroupBuilder } from '../objects/option_group'
 import { ensureIsTextObjectBuilder, type TextObjectBuilder } from '../objects/text'
-import type { Channel, ChannelRef, User, UserRef } from '../../resources'
+import { BlockElementBuilder } from './base'
 
 type SelectType = 'static' | 'external' | 'users' | 'conversations' | 'channels' | undefined
 
@@ -288,7 +279,7 @@ export class SelectBuilder<ActionID extends string = string> extends BlockElemen
 			throw new Error('One of options and option_groups is required for static select menus')
 		}
 
-		let optionGroups: { label: PlainTextElement; options: PlainTextOption[] }[] | undefined
+		let optionGroups: PlainTextOptionGroup[] | undefined
 		let options: PlainTextOption[] | undefined
 		let allOptions: PlainTextOption[]
 		if (this._options.options) {

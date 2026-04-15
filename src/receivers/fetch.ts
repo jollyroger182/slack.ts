@@ -60,11 +60,6 @@ export class HttpFetchReceiver
 		this.#waitUntil = waitUntil
 	}
 
-	#onError(error: any) {
-		console.error('[http-fetch] error occurred handling event')
-		console.error(error)
-	}
-
 	/**
 	 * Handles an incoming HTTP request from Slack.
 	 *
@@ -104,6 +99,15 @@ export class HttpFetchReceiver
 			case 'block_actions':
 				this.#waitUntil?.(this.emit('block_actions', payload.payload))
 				return new Response(null, { status: 200 })
+
+			case 'block_suggestion':
+				const resp = await new Promise((resolve) => {
+					this.emit('block_suggestion', payload.payload, async (options) => resolve(options))
+				})
+				return new Response(JSON.stringify(resp), {
+					status: 200,
+					headers: { 'Content-Type': 'application/json' },
+				})
 
 			case 'view_submission':
 				this.#waitUntil?.(this.emit('view_submission', payload.payload))

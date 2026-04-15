@@ -7,6 +7,7 @@ import { DatePickerBuilder } from './elements/date_picker'
 import type { DatetimePickerBuilder } from './elements/datetime_picker'
 import type { EmailInputBuilder } from './elements/email_input'
 import type { FileInputBuilder } from './elements/file_input'
+import type { NumberInputBuilder } from './elements/number_input'
 import type { PlainTextInputBuilder } from './elements/plain_text_input'
 import type { AnySelectMenuBuilder } from './elements/select'
 import { ensureIsTextObjectBuilder, type TextObjectBuilder } from './objects/text'
@@ -17,6 +18,7 @@ type InputElementBuilder =
 	| DatetimePickerBuilder
 	| EmailInputBuilder<string>
 	| FileInputBuilder
+	| NumberInputBuilder<string>
 	| PlainTextInputBuilder<string>
 	| AnySelectMenuBuilder
 

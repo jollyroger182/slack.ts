@@ -55,13 +55,11 @@ export class HttpServerReceiver
 
 		this.#fetchReceiver.on('event', (payload) => this.emit('event', payload))
 		this.#fetchReceiver.on('block_actions', (payload) => this.emit('block_actions', payload))
+		this.#fetchReceiver.on('block_suggestion', (payload, responder) =>
+			this.emit('block_suggestion', payload, responder),
+		)
 		this.#fetchReceiver.on('view_submission', (payload) => this.emit('view_submission', payload))
 		this.#fetchReceiver.on('slash_command', (payload) => this.emit('slash_command', payload))
-	}
-
-	#onError(error: any) {
-		console.error('[http-server] error occurred')
-		console.error(error)
 	}
 
 	async start(): Promise<void> {

@@ -1,15 +1,17 @@
 import type { ConfirmationDialog, PlainTextElement, PlainTextOption } from '@slack/types'
-import type { AnyMessage } from '../types/message'
-import type { InteractionCommon } from './common'
-import type { StateValue } from '../types/value'
 import type { IconButtonIcon } from '../../blocks/elements/icon_button'
+import type { AnyMessage } from '../types/message'
+import type { StateValue } from '../types/value'
+import type { AnyView } from '../types/view'
+import type { InteractionCommon } from './common'
 
 export interface BlockActions extends InteractionCommon {
 	type: 'block_actions'
 	container: BlockActionContainer
 	channel?: { id: string; name: string }
 	message?: AnyMessage
-	state?: { values: Record<string, Record<string, StateValue>> } // TODO type
+	view?: AnyView
+	state?: { values: Record<string, Record<string, StateValue>> }
 	response_url?: string
 	actions: BlockAction[]
 }
@@ -35,7 +37,7 @@ interface MessageContainer {
 	is_ephemeral: boolean
 }
 
-type BlockActionContainer = MessageAttachmentContainer | ViewContainer | MessageContainer
+export type BlockActionContainer = MessageAttachmentContainer | ViewContainer | MessageContainer
 
 interface ActionCommon {
 	block_id: string
@@ -50,9 +52,25 @@ export interface ButtonAction extends ActionCommon {
 	style?: 'primary' | 'danger'
 }
 
+export interface ChannelsSelectAction extends ActionCommon {
+	type: 'channels_select'
+	initial_channel?: string
+	selected_channel: string
+	placeholder?: PlainTextElement
+	confirm?: ConfirmationDialog
+}
+
 export interface CheckboxesAction extends ActionCommon {
 	type: 'checkboxes'
 	selected_options: PlainTextOption[]
+}
+
+export interface ConversationsSelectAction extends ActionCommon {
+	type: 'conversations_select'
+	initial_conversation?: string
+	selected_conversation: string
+	placeholder?: PlainTextElement
+	confirm?: ConfirmationDialog
 }
 
 export interface DatePickerAction extends ActionCommon {
@@ -84,9 +102,36 @@ export interface IconButtonAction extends ActionCommon {
 	text: PlainTextElement
 }
 
+export interface MultiChannelsSelectAction extends ActionCommon {
+	type: 'multi_channels_select'
+	initial_channels?: string[]
+	selected_channels: string[]
+	placeholder?: PlainTextElement
+	confirm?: ConfirmationDialog
+}
+
+export interface MultiConversationsSelectAction extends ActionCommon {
+	type: 'multi_conversations_select'
+	initial_conversations?: string[]
+	selected_conversations: string[]
+	placeholder?: PlainTextElement
+	confirm?: ConfirmationDialog
+}
+
+export interface MultiUsersSelectAction extends ActionCommon {
+	type: 'multi_users_select'
+	initial_users?: string[]
+	selected_users: string[]
+	placeholder?: PlainTextElement
+	confirm?: ConfirmationDialog
+}
+
 export interface MultiStaticSelectAction extends ActionCommon {
 	type: 'multi_static_select'
+	initial_options?: PlainTextOption[]
 	selected_options: PlainTextOption[]
+	placeholder?: PlainTextElement
+	confirm?: ConfirmationDialog
 }
 
 export interface PlainTextInputAction extends ActionCommon {
@@ -102,14 +147,30 @@ export interface OverflowAction extends ActionCommon {
 
 export interface StaticSelectAction extends ActionCommon {
 	type: 'static_select'
+	initial_option?: PlainTextOption
 	selected_option: PlainTextOption
+	placeholder?: PlainTextElement
+	confirm?: ConfirmationDialog
+}
+
+export interface UsersSelectAction extends ActionCommon {
+	type: 'users_select'
+	initial_user?: string
+	selected_user: string
+	placeholder?: PlainTextElement
+	confirm?: ConfirmationDialog
 }
 
 export type BlockAction =
 	| ButtonAction
+	| ChannelsSelectAction
 	| CheckboxesAction
+	| ConversationsSelectAction
 	| FeedbackButtonsAction
 	| IconButtonAction
+	| MultiChannelsSelectAction
+	| MultiConversationsSelectAction
+	| MultiUsersSelectAction
 	| MultiStaticSelectAction
 	| PlainTextInputAction
 	| OverflowAction

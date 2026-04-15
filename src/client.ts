@@ -7,18 +7,20 @@ import type {
 	BlockActions,
 	BlockActionTypes,
 } from './api/interactive/block_actions'
+import type { BlockSuggestion } from './api/interactive/block_suggestion'
 import type { ViewSubmission } from './api/interactive/view_submission'
 import type { SlashCommandPayload } from './api/slash'
 import type { IM, MPIM, PrivateChannel, PublicChannel } from './api/types/conversation'
 import type { AnyMessage, NormalMessage } from './api/types/message'
 import { BlockElementBuilder } from './blocks/elements/base'
 import { SlackTimeoutError, SlackWebAPIError, SlackWebAPIPlatformError } from './error'
-import type { EventsReceiver } from './receivers/base'
+import type { BlockSuggestionResponder, EventsReceiver } from './receivers/base'
 import { DummyReceiver } from './receivers/dummy'
 import { HttpFetchReceiver, type HttpFetchReceiverOptions } from './receivers/fetch'
 import { HttpServerReceiver, type HttpServerReceiverOptions } from './receivers/http'
 import { SocketEventsReceiver, type SocketEventsReceiverOptions } from './receivers/socket'
 import { Action, type ActionInstance } from './resources/action'
+import { Autocomplete } from './resources/autocomplete'
 import { Channel, ChannelRef } from './resources/channel'
 import { Message, type MessageInstance } from './resources/message'
 import { SlashCommand, type SlashCommandInstance } from './resources/slash'
@@ -93,6 +95,7 @@ export class App extends AsyncEventEmitter<AppEventMap> {
 		}
 		this.#receiver.on('event', this.#onEvent.bind(this))
 		this.#receiver.on('block_actions', this.#onBlockActions.bind(this))
+		this.#receiver.on('block_suggestion', this.#onBlockSuggestion.bind(this))
 		this.#receiver.on('view_submission', this.#onViewSubmission.bind(this))
 		this.#receiver.on('slash_command', this.#onSlashCommand.bind(this))
 
@@ -100,33 +103,52 @@ export class App extends AsyncEventEmitter<AppEventMap> {
 	}
 
 	async #onEvent(event: EventWrapper) {
-		await this.emit('event', event)
-		await this.emit(`event:${event.event.type}`, {
-			payload: event.event as any,
-			event: event as any,
-		})
+		await Promise.all([
+			this.emit('event', event),
+			this.emit(`event:${event.event.type}`, {
+				payload: event.event as any,
+				event: event as any,
+			}),
+		])
 	}
 
 	async #onBlockActions(event: BlockActions) {
-		await this.emit('actions', event)
-		for (const action of event.actions) {
-			const obj = new Action(this, action, event) as ActionInstance
-			await this.emit(`action`, obj)
-			await this.emit(`action:${action.type}`, obj as any)
-			await this.emit(`action.${action.action_id}`, obj)
-			await this.emit(`action:${action.type}.${action.action_id}`, obj as any)
-		}
+		await Promise.all(
+			[this.emit('actions', event)].concat(
+				event.actions.flatMap((action) => {
+					const obj = new Action(this, action, event) as ActionInstance
+					return [
+						this.emit(`action`, obj),
+						this.emit(`action:${action.type}`, obj as any),
+						this.emit(`action.${action.action_id}`, obj),
+						this.emit(`action:${action.type}.${action.action_id}`, obj as any),
+					]
+				}),
+			),
+		)
+	}
+
+	async #onBlockSuggestion(event: BlockSuggestion, responder: BlockSuggestionResponder) {
+		const obj = new Autocomplete(this, event, responder)
+		await Promise.all([
+			this.emit('autocomplete', obj),
+			this.emit(`autocomplete.${event.action_id}`, obj),
+		])
 	}
 
 	async #onViewSubmission(event: ViewSubmission) {
-		await this.emit('submit', event)
-		await this.emit(`submit.${event.view.callback_id}`, event)
+		await Promise.all([
+			this.emit('submit', event),
+			this.emit(`submit.${event.view.callback_id}`, event),
+		])
 	}
 
 	async #onSlashCommand(event: SlashCommandPayload) {
 		const command = new SlashCommand(this, event) as SlashCommandInstance
-		await this.emit('slash', command)
-		await this.emit(`/${event.command.substring(1)}`, command)
+		await Promise.all([
+			this.emit('slash', command),
+			this.emit(`/${event.command.substring(1)}`, command),
+		])
 	}
 
 	async #onMessage({ payload }: { payload: MessageEvent }) {
@@ -136,10 +158,12 @@ export class App extends AsyncEventEmitter<AppEventMap> {
 			payload.ts,
 			payload,
 		) as MessageInstance
-		await this.emit('message', message)
-		await this.emit(`message:${payload.subtype ?? 'normal'}`, message as any)
-		await this.emit(`message:${payload.subtype ?? 'normal'}#${payload.channel}`, message as any)
-		await this.emit(`message#${payload.channel}`, message)
+		await Promise.all([
+			this.emit('message', message),
+			this.emit(`message:${payload.subtype ?? 'normal'}`, message as any),
+			this.emit(`message:${payload.subtype ?? 'normal'}#${payload.channel}`, message as any),
+			this.emit(`message#${payload.channel}`, message),
+		])
 	}
 
 	get receiver() {
@@ -321,6 +345,7 @@ type AppEventMap = {
 	message: [MessageInstance]
 	'message:normal': [MessageInstance<NormalMessage>]
 	slash: [SlashCommandInstance]
+	autocomplete: [Autocomplete]
 } & {
 	[K in AllEventTypes as `event:${K}`]: [
 		{ payload: SlackEventMap[K]; event: EventWrapper<SlackEventMap[K]> },
@@ -345,6 +370,8 @@ type AppEventMap = {
 	[K in `message:normal#${string}`]: [MessageInstance<NormalMessage>]
 } & {
 	[K in `/${string}`]: [SlashCommandInstance]
+} & {
+	[K in `autocomplete.${string}`]: [Autocomplete]
 }
 
 class AppWait {

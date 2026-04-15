@@ -5,6 +5,7 @@ import type { SlashCommandPayload } from '../api/slash'
 import type { App } from '../client'
 import { AsyncEventEmitter } from '../utils/events'
 import type { EventsReceiver, ReceiverEventMap } from './base'
+import type { BlockSuggestion } from '../api/interactive/block_suggestion'
 
 export interface SocketEventsReceiverOptions {
 	appToken: string
@@ -23,11 +24,6 @@ export class SocketEventsReceiver
 		super()
 		this.#appToken = appToken
 		this.client = client
-	}
-
-	#onEventError(error: any) {
-		console.error('[socket-mode] error occurred handling event')
-		console.error(error)
 	}
 
 	async start() {
@@ -57,8 +53,14 @@ export class SocketEventsReceiver
 					this.#ws?.send(JSON.stringify({ envelope_id: data.envelope_id }))
 					this.emit('event', data.payload)
 				} else if (data.type === 'interactive') {
-					this.#ws?.send(JSON.stringify({ envelope_id: data.envelope_id }))
-					this.emit(data.payload.type, data.payload)
+					if (data.payload.type === 'block_suggestion') {
+						this.emit(data.payload.type, data.payload, async (options) => {
+							this.#ws?.send(JSON.stringify({ envelope_id: data.envelope_id, payload: options }))
+						})
+					} else {
+						this.#ws?.send(JSON.stringify({ envelope_id: data.envelope_id }))
+						this.emit(data.payload.type, data.payload)
+					}
 				} else if (data.type === 'slash_commands') {
 					this.#ws?.send(JSON.stringify({ envelope_id: data.envelope_id }))
 					this.emit('slash_command', data.payload)
@@ -105,7 +107,7 @@ interface SocketEventPayload extends SocketPayloadWrapper {
 
 interface SocketInteractivePayload extends SocketPayloadWrapper {
 	type: 'interactive'
-	payload: BlockActions // TODO other interactions
+	payload: BlockActions | BlockSuggestion
 	accepts_response_payload: false
 }
 

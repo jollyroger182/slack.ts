@@ -22,3 +22,5 @@ export interface ModalView<Blocks extends KnownBlock[] = KnownBlock[]> {
 	app_installed_team_id: string
 	bot_id: string
 }
+
+export type AnyView<Blocks extends KnownBlock[] = KnownBlock[]> = ModalView<Blocks>

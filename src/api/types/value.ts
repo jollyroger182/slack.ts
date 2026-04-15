@@ -1,9 +1,19 @@
 import type { PlainTextOption } from '@slack/types'
 import type { File } from './file'
 
+export interface ChannelsSelectValue {
+	type: 'channels_select'
+	selected_channel: string
+}
+
 export interface CheckboxesValue {
 	type: 'checkboxes'
 	selected_options: PlainTextOption[]
+}
+
+export interface ConversationsSelectValue {
+	type: 'conversations_select'
+	selected_conversation: string
 }
 
 export interface DatePickerValue {
