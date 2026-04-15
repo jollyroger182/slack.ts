@@ -4,15 +4,17 @@ import type { ButtonBuilder } from './elements/button'
 import type { CheckboxesBuilder } from './elements/checkboxes'
 import type { DatePickerBuilder } from './elements/date_picker'
 import type { ImageBuilder } from './elements/image'
+import type { MultiStaticSelectBuilder } from './elements/multi_static_select'
 import type { OverflowBuilder } from './elements/overflow'
-import { ensureIsTextObjectBuilder, type TextObjectBuilder } from './objects/text'
 import type { StaticSelectBuilder } from './elements/static_select'
+import { ensureIsTextObjectBuilder, type TextObjectBuilder } from './objects/text'
 
 type SectionAccessoryBuilder =
 	| ButtonBuilder
 	| CheckboxesBuilder<any, string>
 	| DatePickerBuilder
 	| ImageBuilder<true>
+	| MultiStaticSelectBuilder<any>
 	| OverflowBuilder<any>
 	| StaticSelectBuilder<any>
 

@@ -7,9 +7,10 @@ import { DatePickerBuilder } from './elements/date_picker'
 import type { DatetimePickerBuilder } from './elements/datetime_picker'
 import type { EmailInputBuilder } from './elements/email_input'
 import type { FileInputBuilder } from './elements/file_input'
+import type { MultiStaticSelectBuilder } from './elements/multi_static_select'
 import type { PlainTextInputBuilder } from './elements/plain_text_input'
-import { ensureIsTextObjectBuilder, type TextObjectBuilder } from './objects/text'
 import type { StaticSelectBuilder } from './elements/static_select'
+import { ensureIsTextObjectBuilder, type TextObjectBuilder } from './objects/text'
 
 type InputElementBuilder =
 	| CheckboxesBuilder<any, string>
@@ -17,6 +18,7 @@ type InputElementBuilder =
 	| DatetimePickerBuilder
 	| EmailInputBuilder<string>
 	| FileInputBuilder
+	| MultiStaticSelectBuilder<any>
 	| PlainTextInputBuilder<string>
 	| StaticSelectBuilder<any>
 

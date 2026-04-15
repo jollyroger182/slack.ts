@@ -26,6 +26,11 @@ export interface FileInputValue {
 	files: File[]
 }
 
+export interface MultiStaticSelectValue {
+	type: 'multi_static_select'
+	selected_options: PlainTextOption[]
+}
+
 export interface PlainTextInputValue {
 	type: 'plain_text_input'
 	value: string

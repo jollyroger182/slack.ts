@@ -84,6 +84,11 @@ export interface IconButtonAction extends ActionCommon {
 	text: PlainTextElement
 }
 
+export interface MultiStaticSelectAction extends ActionCommon {
+	type: 'multi_static_select'
+	selected_options: PlainTextOption[]
+}
+
 export interface PlainTextInputAction extends ActionCommon {
 	type: 'plain_text_input'
 	value: string | null
@@ -105,6 +110,7 @@ export type BlockAction =
 	| CheckboxesAction
 	| FeedbackButtonsAction
 	| IconButtonAction
+	| MultiStaticSelectAction
 	| PlainTextInputAction
 	| OverflowAction
 	| StaticSelectAction
