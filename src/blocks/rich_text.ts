@@ -17,9 +17,8 @@ import type {
 	RichTextUsergroupMention,
 	RichTextUserMention,
 } from '@slack/types'
+import type { Channel, ChannelRef, User, UserRef } from '../resources'
 import { BlockBuilder, Builder } from './base'
-import type { ChannelRef, User, UserRef } from '../resources'
-import type { Channel } from '../../dist'
 
 type TypedRichTextBlock<BlockID extends string> = RichTextBlock & { block_id: BlockID }
 
