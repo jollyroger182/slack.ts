@@ -129,11 +129,6 @@ export class App extends AsyncEventEmitter<AppEventMap> {
 		await this.emit(`/${event.command.substring(1)}`, command)
 	}
 
-	async #onCallbackError(error: any) {
-		console.error('Error occurred executing callback')
-		console.error(error)
-	}
-
 	async #onMessage({ payload }: { payload: MessageEvent }) {
 		const message = new Message<AnyMessage>(
 			this,

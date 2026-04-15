@@ -53,8 +53,7 @@ export async function sendMessage<Blocks extends KnownBlock[] = KnownBlock[]>(
 		})
 	} else if (params.ephemeral) {
 		const { ephemeral: _, ...payload } = params
-		const message = await client.request('chat.postEphemeral', payload)
-		console.log(message)
+		await client.request('chat.postEphemeral', payload)
 	} else {
 		const { ephemeral: _, ...payload } = params
 		const message = await client.request('chat.postMessage', payload)
