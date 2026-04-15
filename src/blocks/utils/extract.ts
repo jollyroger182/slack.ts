@@ -7,6 +7,7 @@ import type {
 } from '@slack/types'
 import type { StateValue } from '../../api/types/value'
 import type { DistributivePick } from '../../utils/typing'
+import type { OptionObjectBuilder } from '../objects/option'
 
 export type ExtractValues<Blocks extends { block_id?: string }[]> = {
 	[Block in Blocks[number] as Block['block_id'] extends string
@@ -100,3 +101,7 @@ export type ActionsToPrefixedID<Action extends { type: string; action_id?: strin
 	Action extends { type: string; action_id: string }
 		? `${Action['type']}.${Action['action_id']}` | Action['action_id']
 		: string
+
+export type ExtractOptionValues<Options extends OptionObjectBuilder[]> = {
+	[K in keyof Options]: Options[K] extends OptionObjectBuilder<infer Value> ? Value : never
+}[keyof Options]

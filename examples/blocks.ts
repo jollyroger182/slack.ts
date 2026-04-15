@@ -16,6 +16,7 @@ import {
 	overflow,
 	plain,
 	plainTextInput,
+	radio,
 	section,
 	select,
 	text,
@@ -60,6 +61,7 @@ app.on('action.show_modal', async (action) => {
 				checkboxes(option('checkbox 1').value('a'), option('checkbox 2').value('b'))
 					.default('a')
 					.id('checkboxes'),
+				radio(option('radio 1').value('a'), option('radio 2').value('b')).default('b').id('radio'),
 			).id('inputs'),
 			// actions (select menus)
 			actions(

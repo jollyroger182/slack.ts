@@ -5,6 +5,7 @@ import type { CheckboxesBuilder } from './elements/checkboxes'
 import type { DatePickerBuilder } from './elements/date_picker'
 import type { ImageBuilder } from './elements/image'
 import type { OverflowBuilder } from './elements/overflow'
+import type { RadioBuilder } from './elements/radio'
 import type { AnySelectMenuBuilder } from './elements/select'
 import { ensureIsTextObjectBuilder, type TextObjectBuilder } from './objects/text'
 
@@ -14,6 +15,7 @@ type SectionAccessoryBuilder =
 	| DatePickerBuilder
 	| ImageBuilder<true>
 	| OverflowBuilder<any>
+	| RadioBuilder<any>
 	| AnySelectMenuBuilder
 
 type TypedSectionBlock<

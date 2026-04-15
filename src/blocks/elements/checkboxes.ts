@@ -3,10 +3,7 @@ import { ConfirmBuilder, confirm as buildConfirm } from '../objects/confirm'
 import type { OptionObjectBuilder } from '../objects/option'
 import type { TextObjectBuilder } from '../objects/text'
 import { BlockElementBuilder } from './base'
-
-type ExtractOptionValues<Options extends OptionObjectBuilder[]> = {
-	[K in keyof Options]: Options[K] extends OptionObjectBuilder<infer Value> ? Value : never
-}[keyof Options]
+import type { ExtractOptionValues } from '../utils/extract'
 
 type TypedCheckboxes<
 	Options extends OptionObjectBuilder[],

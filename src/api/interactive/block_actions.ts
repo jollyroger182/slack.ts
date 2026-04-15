@@ -62,7 +62,9 @@ export interface ChannelsSelectAction extends ActionCommon {
 
 export interface CheckboxesAction extends ActionCommon {
 	type: 'checkboxes'
+	initial_options: PlainTextOption[]
 	selected_options: PlainTextOption[]
+	confirm?: ConfirmationDialog
 }
 
 export interface ConversationsSelectAction extends ActionCommon {
@@ -134,15 +136,22 @@ export interface MultiStaticSelectAction extends ActionCommon {
 	confirm?: ConfirmationDialog
 }
 
+export interface OverflowAction extends ActionCommon {
+	type: 'overflow'
+	confirm?: ConfirmationDialog
+	selected_option: PlainTextOption
+}
+
 export interface PlainTextInputAction extends ActionCommon {
 	type: 'plain_text_input'
 	value: string | null
 }
 
-export interface OverflowAction extends ActionCommon {
-	type: 'overflow'
-	confirm?: ConfirmationDialog
+export interface RadioAction extends ActionCommon {
+	type: 'radio_buttons'
+	initial_option?: PlainTextOption
 	selected_option: PlainTextOption
+	confirm?: ConfirmationDialog
 }
 
 export interface StaticSelectAction extends ActionCommon {
@@ -172,8 +181,9 @@ export type BlockAction =
 	| MultiConversationsSelectAction
 	| MultiUsersSelectAction
 	| MultiStaticSelectAction
-	| PlainTextInputAction
 	| OverflowAction
+	| PlainTextInputAction
+	| RadioAction
 	| StaticSelectAction
 
 export type BlockActionTypes = BlockAction['type']

@@ -9,6 +9,7 @@ import type { EmailInputBuilder } from './elements/email_input'
 import type { FileInputBuilder } from './elements/file_input'
 import type { NumberInputBuilder } from './elements/number_input'
 import type { PlainTextInputBuilder } from './elements/plain_text_input'
+import type { RadioBuilder } from './elements/radio'
 import type { AnySelectMenuBuilder } from './elements/select'
 import { ensureIsTextObjectBuilder, type TextObjectBuilder } from './objects/text'
 
@@ -20,6 +21,7 @@ type InputElementBuilder =
 	| FileInputBuilder
 	| NumberInputBuilder<string>
 	| PlainTextInputBuilder<string>
+	| RadioBuilder<any>
 	| AnySelectMenuBuilder
 
 type TypedInputBlock<Element extends InputElementBuilder, BlockID extends string> = InputBlock & {

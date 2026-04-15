@@ -46,6 +46,11 @@ export interface PlainTextInputValue {
 	value: string
 }
 
+export interface RadioValue {
+	type: 'radio_buttons'
+	selected_option: PlainTextOption
+}
+
 export interface StaticSelectValue {
 	type: 'static_select'
 	selected_option: PlainTextOption
