@@ -6,6 +6,7 @@ import type { CheckboxesBuilder } from './elements/checkboxes'
 import type { DatePickerBuilder } from './elements/date_picker'
 import type { DatetimePickerBuilder } from './elements/datetime_picker'
 import type { OverflowBuilder } from './elements/overflow'
+import type { StaticSelectBuilder } from './elements/static_select'
 
 type ActionsElementBuilder =
 	| ButtonBuilder<string>
@@ -13,6 +14,7 @@ type ActionsElementBuilder =
 	| DatePickerBuilder
 	| DatetimePickerBuilder
 	| OverflowBuilder<any, string>
+	| StaticSelectBuilder<any>
 
 type TypedActionsBlock<
 	Actions extends ActionsElementBuilder[],

@@ -31,6 +31,11 @@ export interface PlainTextInputValue {
 	value: string
 }
 
+export interface StaticSelectValue {
+	type: 'static_select'
+	selected_option: PlainTextOption
+}
+
 export type StateValue =
 	| CheckboxesValue
 	| DatePickerValue
@@ -38,3 +43,4 @@ export type StateValue =
 	| EmailInputValue
 	| FileInputValue
 	| PlainTextInputValue
+	| StaticSelectValue

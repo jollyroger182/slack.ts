@@ -6,6 +6,7 @@ import type { DatePickerBuilder } from './elements/date_picker'
 import type { ImageBuilder } from './elements/image'
 import type { OverflowBuilder } from './elements/overflow'
 import { ensureIsTextObjectBuilder, type TextObjectBuilder } from './objects/text'
+import type { StaticSelectBuilder } from './elements/static_select'
 
 type SectionAccessoryBuilder =
 	| ButtonBuilder
@@ -13,6 +14,7 @@ type SectionAccessoryBuilder =
 	| DatePickerBuilder
 	| ImageBuilder<true>
 	| OverflowBuilder<any>
+	| StaticSelectBuilder<any>
 
 type TypedSectionBlock<
 	Mrkdwn extends boolean | undefined = boolean | undefined,

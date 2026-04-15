@@ -95,6 +95,11 @@ export interface OverflowAction extends ActionCommon {
 	selected_option: PlainTextOption
 }
 
+export interface StaticSelectAction extends ActionCommon {
+	type: 'static_select'
+	selected_option: PlainTextOption
+}
+
 export type BlockAction =
 	| ButtonAction
 	| CheckboxesAction
@@ -102,6 +107,7 @@ export type BlockAction =
 	| IconButtonAction
 	| PlainTextInputAction
 	| OverflowAction
+	| StaticSelectAction
 
 export type BlockActionTypes = BlockAction['type']
 

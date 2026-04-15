@@ -9,6 +9,7 @@ import type { EmailInputBuilder } from './elements/email_input'
 import type { FileInputBuilder } from './elements/file_input'
 import type { PlainTextInputBuilder } from './elements/plain_text_input'
 import { ensureIsTextObjectBuilder, type TextObjectBuilder } from './objects/text'
+import type { StaticSelectBuilder } from './elements/static_select'
 
 type InputElementBuilder =
 	| CheckboxesBuilder<any, string>
@@ -17,6 +18,7 @@ type InputElementBuilder =
 	| EmailInputBuilder<string>
 	| FileInputBuilder
 	| PlainTextInputBuilder<string>
+	| StaticSelectBuilder<any>
 
 type TypedInputBlock<Element extends InputElementBuilder, BlockID extends string> = InputBlock & {
 	block_id: BlockID

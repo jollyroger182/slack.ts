@@ -31,6 +31,15 @@ export type ExtractValuesFromElement<Element extends { type: string; action_id?:
 	> &
 		(Elem extends { type: 'checkboxes'; options: infer Options extends unknown[] }
 			? { selected_options: Options[number][] }
+			: {}) &
+		(Elem extends { type: 'static_select'; options: infer Options extends unknown[] }
+			? { selected_option: Options[number] }
+			: {}) &
+		(Elem extends {
+			type: 'static_select'
+			option_groups: { options: infer Options extends unknown[] }[]
+		}
+			? { selected_option: Options[number] }
 			: {})
 }
 
@@ -52,11 +61,20 @@ export type ExtractBlockActions<Block extends KnownBlock> = PickActionFields<
 
 type PickActionFields<Action extends { type: string; action_id?: string }> = Action extends unknown
 	? DistributivePick<Action, 'type' | 'action_id'> &
-			(Action extends { type: 'overflow'; options: infer Options extends unknown[] }
-				? { selected_option: Options[number] }
-				: {}) &
 			(Action extends { type: 'checkboxes'; options: infer Options extends unknown[] }
 				? { selected_options: Options[number][] }
+				: {}) &
+			(Action extends {
+				type: 'overflow' | 'static_select'
+				options: infer Options extends unknown[]
+			}
+				? { selected_option: Options[number] }
+				: {}) &
+			(Action extends {
+				type: 'static_select'
+				option_groups: { options: infer Options extends unknown[] }[]
+			}
+				? { selected_option: Options[number] }
 				: {})
 	: never
 
