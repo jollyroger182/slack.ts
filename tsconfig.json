@@ -6,6 +6,9 @@
 		"paths": {
 			"slack.ts": [
 				"./src/index.ts"
+			],
+			"slack.ts/rich": [
+				"./src/exports/rich.ts"
 			]
 		},
 		"target": "ESNext",

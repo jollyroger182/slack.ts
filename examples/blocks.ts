@@ -16,7 +16,9 @@ import {
 	overflow,
 	plain,
 	plainTextInput,
+	R,
 	radio,
+	richText,
 	section,
 	select,
 	text,
@@ -45,6 +47,9 @@ app.on('action.show_modal', async (action) => {
 				image('a placeholder image').url('https://picsum.photos/100/100'),
 			),
 			section().fields('*mrkdwn* fields', plain('and plaintext _fields_')),
+
+			// rich text
+			richText(R.section('rich ', R.text('text').bold(), ' with support for all elements')),
 
 			// actions
 			actions(

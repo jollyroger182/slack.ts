@@ -20,6 +20,10 @@
 		".": {
 			"types": "./dist/index.d.ts",
 			"import": "./dist/index.js"
+		},
+		"./rich": {
+			"types": "./dist/exports/rich.d.ts",
+			"import": "./dist/exports/rich.js"
 		}
 	},
 	"files": [
