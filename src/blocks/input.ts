@@ -7,9 +7,8 @@ import { DatePickerBuilder } from './elements/date_picker'
 import type { DatetimePickerBuilder } from './elements/datetime_picker'
 import type { EmailInputBuilder } from './elements/email_input'
 import type { FileInputBuilder } from './elements/file_input'
-import type { MultiStaticSelectBuilder } from './elements/multi_static_select'
 import type { PlainTextInputBuilder } from './elements/plain_text_input'
-import type { StaticSelectBuilder } from './elements/static_select'
+import type { AnySelectMenuBuilder } from './elements/select'
 import { ensureIsTextObjectBuilder, type TextObjectBuilder } from './objects/text'
 
 type InputElementBuilder =
@@ -18,9 +17,8 @@ type InputElementBuilder =
 	| DatetimePickerBuilder
 	| EmailInputBuilder<string>
 	| FileInputBuilder
-	| MultiStaticSelectBuilder<any>
 	| PlainTextInputBuilder<string>
-	| StaticSelectBuilder<any>
+	| AnySelectMenuBuilder
 
 type TypedInputBlock<Element extends InputElementBuilder, BlockID extends string> = InputBlock & {
 	block_id: BlockID
@@ -99,12 +97,27 @@ export class InputBlockBuilder<
 	}
 }
 
+export function input<Element extends InputElementBuilder>(
+	element: Element,
+): InputBlockBuilder<Element>
+
+export function input<Element extends InputElementBuilder>(
+	label: string | TextObjectBuilder<false>,
+	element: Element,
+): InputBlockBuilder<Element, true>
+
 /**
  * Creates an input block builder.
  *
  * @param element The input element (typically a plain text input)
  * @returns An input block builder
  */
-export function input<Element extends InputElementBuilder>(element: Element) {
-	return new InputBlockBuilder(element)
+export function input<Element extends InputElementBuilder>(
+	element: Element | string,
+	arg2?: Element,
+) {
+	if (typeof element === 'string' && arg2) {
+		return new InputBlockBuilder(arg2).label(element)
+	}
+	return new InputBlockBuilder(element as Element)
 }
