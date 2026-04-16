@@ -1,10 +1,9 @@
 import type { KnownBlock } from '@slack/types'
-import type { ViewSubmission } from '../api/interactive/view_submission'
 import type { ModalView } from '../api/types/view'
 import type { App } from '../client'
 import { SlackTimeoutError } from '../error'
 import { makeProxy } from '../utils'
-import { Submission, type SubmissionInstance } from './submission'
+import { type SubmissionInstance } from './submission'
 
 export class Modal<Blocks extends KnownBlock[] = KnownBlock[]> {
 	#data: ModalView<Blocks>
@@ -49,10 +48,10 @@ class ModalWait<Blocks extends KnownBlock[] = KnownBlock[]> {
 				if (timeout) clearTimeout(timeout)
 			}
 
-			const callback = (event: ViewSubmission) => {
+			const callback = (event: SubmissionInstance) => {
 				if (event.view.id === this.modal.id) {
 					cleanup()
-					resolve(new Submission(this.client, event) as SubmissionInstance<Blocks>)
+					resolve(event as SubmissionInstance<Blocks>)
 				}
 			}
 

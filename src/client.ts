@@ -25,6 +25,7 @@ import { DummyReceiver } from './receivers/dummy'
 import { HttpFetchReceiver, type HttpFetchReceiverOptions } from './receivers/fetch'
 import { HttpServerReceiver, type HttpServerReceiverOptions } from './receivers/http'
 import { SocketEventsReceiver, type SocketEventsReceiverOptions } from './receivers/socket'
+import { Submission, type SubmissionInstance } from './resources'
 import { Action, type ActionInstance } from './resources/action'
 import { Autocomplete, type AutocompleteInstance } from './resources/autocomplete'
 import { Channel, ChannelRef } from './resources/channel'
@@ -145,9 +146,10 @@ export class App extends AsyncEventEmitter<AppEventMap> {
 	}
 
 	async #onViewSubmission(event: ViewSubmission) {
+		const obj = new Submission(this, event) as SubmissionInstance
 		await Promise.all([
-			this.emit('submit', event),
-			this.emit(`submit.${event.view.callback_id}`, event),
+			this.emit('submit', obj),
+			this.emit(`submit.${event.view.callback_id}`, obj),
 		])
 	}
 
@@ -306,7 +308,7 @@ type AppEventMap = {
 	event: [EventWrapper]
 	actions: [BlockActions]
 	action: [ActionInstance]
-	submit: [ViewSubmission]
+	submit: [SubmissionInstance]
 	message: [MessageInstance]
 	'message:normal': [MessageInstance<NormalMessage>]
 	slash: [SlashCommandInstance]
@@ -323,7 +325,7 @@ type AppEventMap = {
 } & {
 	[K in BlockActionTypes as `action:${K}.${string}`]: [ActionInstance<BlockActionMap[K]>]
 } & {
-	[K in `submit.${string}`]: [ViewSubmission]
+	[K in `submit.${string}`]: [SubmissionInstance]
 } & {
 	[K in `message#${string}`]: [MessageInstance]
 } & {
