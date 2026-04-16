@@ -5,7 +5,7 @@ const app = new App({
 	receiver: { type: 'socket', appToken: process.env.SLACK_APP_TOKEN! },
 })
 
-app.message(async ({ message }) => {
+app.on('message', async (message) => {
 	if (message.user === process.env.SLACK_USER_ID) return
 	await message.reply("I'm always listening :eyes:")
 })

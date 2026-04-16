@@ -91,24 +91,4 @@ describe('App', () => {
 			}
 		})
 	})
-
-	describe('event listeners', () => {
-		it('registers message callback', () => {
-			const callback = mock(() => {})
-			app.message(callback)
-			expect(callback).not.toHaveBeenCalled()
-		})
-
-		it('registers event callback', () => {
-			const callback = mock(() => {})
-			app.event('message', callback)
-			expect(callback).not.toHaveBeenCalled()
-		})
-
-		it('registers action callback', () => {
-			const callback = mock(() => {})
-			app.action('button', callback)
-			expect(callback).not.toHaveBeenCalled()
-		})
-	})
 })

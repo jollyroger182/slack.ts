@@ -184,54 +184,6 @@ export class App extends AsyncEventEmitter<AppEventMap> {
 	}
 
 	/**
-	 * Registers a callback for `message` events.
-	 *
-	 * @deprecated Use `app.on('message', callback)` or `app.on('event:message', callback)`
-	 * @param callback Function to execute when a new message is received
-	 */
-	message(callback: MessageCallback) {
-		this.on('event:message', async ({ event, payload }) => {
-			await callback({
-				event,
-				message: new Message<AnyMessage>(
-					this,
-					payload.channel,
-					payload.ts,
-					payload,
-				) as MessageInstance,
-				client: this,
-			})
-		})
-	}
-
-	/**
-	 * Registers a callback for a given type of event.
-	 *
-	 * @deprecated Use `app.on('event:type', callback)` instead
-	 * @param type Type of event to register
-	 * @param callback Function to execute when the event is received
-	 */
-	event<Event extends AllEvents>(type: Event['type'], callback: EventCallback<Event>) {
-		this.on(`event:${type as AllEventTypes}`, async ({ event }: { event: EventWrapper }) => {
-			await callback({ event: event as EventWrapper<Event>, client: this })
-		})
-	}
-
-	/**
-	 * Registers a callback for a given type of block actions.
-	 *
-	 * @deprecated Use `app.on('action:type', ...)`, `app.on('action.action_id', ...)`, or
-	 *   `app.on('action:type.action_id', ...)` instead
-	 * @param type Type of event to register
-	 * @param callback Function to execute when the event is received
-	 */
-	action<Type extends BlockAction>(type: Type['type'], callback: BlockActionCallback<Type>) {
-		this.on(`action:${type as BlockActionTypes}`, async (action: ActionInstance) => {
-			await callback(action as unknown as ActionInstance<Type>)
-		})
-	}
-
-	/**
 	 * Starts the event receiver. If you don't use the events, interactions, and slash command APIs,
 	 * you don't need to call this function.
 	 */
