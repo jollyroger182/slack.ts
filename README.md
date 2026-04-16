@@ -32,4 +32,4 @@ app.on('message', async (message) => {
 await app.start()
 ```
 
-For more examples, see [the examples directory](./examples).
+For more examples, see [the examples directory](./examples) and [the (in)complete guide](./docs/guide.md).
