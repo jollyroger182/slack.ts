@@ -60,9 +60,18 @@ import type {
 	UsersProfileSetParams,
 	UsersProfileSetResponse,
 } from './web/users'
-import type { ViewsOpenParams, ViewsOpenResponse } from './web/views'
+import type {
+	ViewsOpenParams,
+	ViewsOpenResponse,
+	ViewsPublishParams,
+	ViewsPublishResponse,
+} from './web/views'
 
 interface SlackWebAPIMapInternal {
+	'views.publish': {
+		params: ViewsPublishParams
+		response: ViewsPublishResponse
+	}
 	'chat.appendStream': {
 		params: ChatAppendStreamParams
 		response: ChatAppendStreamResponse

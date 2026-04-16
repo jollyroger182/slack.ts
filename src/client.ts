@@ -1,6 +1,12 @@
 import { type SlackAPIMethod, type SlackAPIParams, type SlackAPIResponse } from './api'
-import type { AllEvents, AllEventTypes, EventWrapper, SlackEventMap } from './api/events'
-import type { MessageEvent } from './api/events/events'
+import type {
+	AllEvents,
+	AllEventTypes,
+	AppHomeOpenedEvent,
+	EventWrapper,
+	MessageEvent,
+	SlackEventMap,
+} from './api/events'
 import type {
 	BlockAction,
 	BlockActionMap,
@@ -20,8 +26,9 @@ import { HttpFetchReceiver, type HttpFetchReceiverOptions } from './receivers/fe
 import { HttpServerReceiver, type HttpServerReceiverOptions } from './receivers/http'
 import { SocketEventsReceiver, type SocketEventsReceiverOptions } from './receivers/socket'
 import { Action, type ActionInstance } from './resources/action'
-import { Autocomplete } from './resources/autocomplete'
+import { Autocomplete, type AutocompleteInstance } from './resources/autocomplete'
 import { Channel, ChannelRef } from './resources/channel'
+import { HomeOpened, type HomeOpenedInstance } from './resources/home_opened'
 import { Message, type MessageInstance } from './resources/message'
 import { SlashCommand, type SlashCommandInstance } from './resources/slash'
 import { UserRef } from './resources/user'
@@ -100,6 +107,7 @@ export class App extends AsyncEventEmitter<AppEventMap> {
 		this.#receiver.on('slash_command', this.#onSlashCommand.bind(this))
 
 		this.on('event:message', this.#onMessage.bind(this))
+		this.on('event:app_home_opened', this.#onAppHomeOpened.bind(this))
 	}
 
 	async #onEvent(event: EventWrapper) {
@@ -129,7 +137,7 @@ export class App extends AsyncEventEmitter<AppEventMap> {
 	}
 
 	async #onBlockSuggestion(event: BlockSuggestion, responder: BlockSuggestionResponder) {
-		const obj = new Autocomplete(this, event, responder)
+		const obj = new Autocomplete(this, event, responder) as AutocompleteInstance
 		await Promise.all([
 			this.emit('autocomplete', obj),
 			this.emit(`autocomplete.${event.action_id}`, obj),
@@ -164,6 +172,11 @@ export class App extends AsyncEventEmitter<AppEventMap> {
 			this.emit(`message:${payload.subtype ?? 'normal'}#${payload.channel}`, message as any),
 			this.emit(`message#${payload.channel}`, message),
 		])
+	}
+
+	async #onAppHomeOpened({ payload }: { payload: AppHomeOpenedEvent }) {
+		const obj = new HomeOpened(this, payload) as HomeOpenedInstance
+		await this.emit('home', obj)
 	}
 
 	get receiver() {
@@ -345,7 +358,8 @@ type AppEventMap = {
 	message: [MessageInstance]
 	'message:normal': [MessageInstance<NormalMessage>]
 	slash: [SlashCommandInstance]
-	autocomplete: [Autocomplete]
+	autocomplete: [AutocompleteInstance]
+	home: [HomeOpenedInstance]
 } & {
 	[K in AllEventTypes as `event:${K}`]: [
 		{ payload: SlackEventMap[K]; event: EventWrapper<SlackEventMap[K]> },

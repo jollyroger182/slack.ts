@@ -1,8 +1,11 @@
 import type { KnownBlock, PlainTextElement } from '@slack/types'
 import type { ExtractValues } from '../../blocks/utils/extract'
 
-export interface ModalView<Blocks extends KnownBlock[] = KnownBlock[]> {
-	type: 'modal'
+// so. slack actually has all of these fields for both home and modal views...
+// ...
+// i don't know what to think about this.
+
+export interface BaseView<Blocks extends KnownBlock[] = KnownBlock[]> {
 	id: string
 	team_id: string
 	title: PlainTextElement
@@ -23,4 +26,14 @@ export interface ModalView<Blocks extends KnownBlock[] = KnownBlock[]> {
 	bot_id: string
 }
 
-export type AnyView<Blocks extends KnownBlock[] = KnownBlock[]> = ModalView<Blocks>
+export interface ModalView<Blocks extends KnownBlock[] = KnownBlock[]> extends BaseView<Blocks> {
+	type: 'modal'
+}
+
+export interface HomeView<Blocks extends KnownBlock[] = KnownBlock[]> extends BaseView<Blocks> {
+	type: 'home'
+}
+
+export type AnyView<Blocks extends KnownBlock[] = KnownBlock[]> =
+	| ModalView<Blocks>
+	| HomeView<Blocks>
