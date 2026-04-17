@@ -4,7 +4,7 @@ import type { TimestampPaginationParams } from '../api/types/api'
 import type { AnyMessage, NormalMessage } from '../api/types/message'
 import type { App } from '../client'
 import { SlackError, SlackTimeoutError } from '../error'
-import { makeProxy } from '../utils'
+import { makeProxy, type AnyToken } from '../utils'
 import {
 	sendMessage,
 	type SendMessageParams,
@@ -18,7 +18,8 @@ import { ChannelRef } from './channel'
 import { type UserInstance, UserRef } from './user'
 import type { ActionsToPrefixedID, ExtractActions } from '../blocks/utils/extract'
 import { startStreaming } from '../utils/streaming'
-import type { StreamChunk } from '../api/web/chat'
+import type { ChatUpdateParams, StreamChunk } from '../api/web/chat'
+import type { SlackAPIParams } from '../api'
 
 interface FetchRepliesParams extends Omit<TimestampPaginationParams, 'limit'> {
 	/**
@@ -40,6 +41,8 @@ interface FetchRepliesParams extends Omit<TimestampPaginationParams, 'limit'> {
 	 * @default true
 	 */
 	root?: boolean
+
+	token?: AnyToken
 }
 
 class MessageMixin<Blocks extends KnownBlock[] = KnownBlock[]> {
@@ -161,6 +164,16 @@ class MessageMixin<Blocks extends KnownBlock[] = KnownBlock[]> {
 					.filter((m) => m.ts !== this.#ts || (params.root ?? true))
 					.map((m) => new Message(this.client, this.#channel, m.ts, m) as MessageInstance),
 		)
+	}
+
+	async edit<Blocks extends KnownBlock[] = KnownBlock[]>(
+		params: DistributiveOmit<ChatUpdateParams<Blocks>, 'channel' | 'ts'> & { token?: AnyToken },
+	) {
+		await this.client.request('chat.update', {
+			channel: this.#channel,
+			ts: this.#ts,
+			...params,
+		} satisfies ChatUpdateParams<Blocks> as any)
 	}
 }
 

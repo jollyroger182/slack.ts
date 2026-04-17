@@ -33,7 +33,7 @@ import { HomeOpened, type HomeOpenedInstance } from './resources/home_opened'
 import { Message, type MessageInstance } from './resources/message'
 import { SlashCommand, type SlashCommandInstance } from './resources/slash'
 import { UserRef } from './resources/user'
-import { sleep } from './utils'
+import { sleep, type AnyToken } from './utils'
 import { AsyncEventEmitter } from './utils/events'
 import { paginate } from './utils/paginate'
 import type { DistributiveOmit, DistributivePick } from './utils/typing'
@@ -54,7 +54,7 @@ type ReceiverOptions =
 	  }
 
 interface AppOptions {
-	token?: string | { cookie: string; token: string }
+	token?: AnyToken
 	receiver?: ReceiverOptions
 }
 
@@ -81,7 +81,7 @@ type ChannelTypeMap = {
 }
 
 export class App extends AsyncEventEmitter<AppEventMap> {
-	#token?: string | { cookie: string; token: string }
+	#token?: AnyToken
 	#receiver: EventsReceiver
 
 	constructor({ token, receiver = { type: 'dummy' } }: AppOptions = {}) {
@@ -240,9 +240,7 @@ export class App extends AsyncEventEmitter<AppEventMap> {
 
 	async request<Method extends string>(
 		method: Method extends SlackAPIMethod ? never : Method,
-		params: Record<string, unknown> & {
-			token?: string | { cookie: string; token: string }
-		},
+		params: Record<string, unknown> & { token?: AnyToken },
 	): Promise<{ ok: true } & Record<string, unknown>>
 
 	/**

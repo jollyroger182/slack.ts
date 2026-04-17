@@ -1,5 +1,5 @@
 import type { KnownBlock } from '@slack/types'
-import type { Attachment, MessageMetadata, NormalMessage } from '../types/message'
+import type { Attachment, MeMessageMessage, MessageMetadata, NormalMessage } from '../types/message'
 
 interface MarkdownMessage {
 	markdown_text: string
@@ -20,7 +20,7 @@ export type ChatPostEphemeralParams = {
 	icon_emoji?: string
 	icon_url?: string
 	link_names?: boolean
-	parse?: 'none' | 'full'
+	parse?: 'none' | 'full' | 'client'
 	thread_ts?: string
 	username?: string
 } & (MarkdownMessage | TextMessage)
@@ -165,4 +165,32 @@ export interface ChatStopStreamResponse {
 	channel: string
 	ts: string
 	message: NormalMessage
+}
+
+export type ChatUpdateParams<Blocks extends KnownBlock[] = KnownBlock[]> = {
+	channel: string
+	ts: string
+	text?: string
+	blocks?: Blocks
+	attachments?: Attachment[]
+	markdown_text?: string
+	unfurled_attachments?: Attachment[]
+	metadata?: MessageMetadata
+	link_names?: boolean
+	parse?: 'none' | 'full' | 'client'
+	reply_broadcast?: boolean
+	file_ids?: string[]
+} & (
+	| (Blocks extends [KnownBlock, ...KnownBlock[]]
+			? { blocks: Blocks; markdown_text?: never }
+			: never)
+	| { text: string; markdown_text?: never }
+	| { blocks?: never; text?: never; markdown_text: string }
+)
+
+export interface ChatUpdateResponse {
+	channel: string
+	ts: string
+	text: string
+	message: NormalMessage | MeMessageMessage
 }

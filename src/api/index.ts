@@ -37,6 +37,8 @@ import type {
 	ChatStartStreamResponse,
 	ChatStopStreamParams,
 	ChatStopStreamResponse,
+	ChatUpdateParams,
+	ChatUpdateResponse,
 } from './web/chat'
 import type {
 	ConversationsHistoryParams,
@@ -66,8 +68,13 @@ import type {
 	ViewsPublishParams,
 	ViewsPublishResponse,
 } from './web/views'
+import type { AnyToken } from '../utils'
 
 interface SlackWebAPIMapInternal {
+	'chat.update': {
+		params: ChatUpdateParams
+		response: ChatUpdateResponse
+	}
 	'views.publish': {
 		params: ViewsPublishParams
 		response: ViewsPublishResponse
@@ -183,7 +190,7 @@ export type SlackPaginatingAPIMethod = {
 	[K in SlackAPIMethod]: SlackWebAPIMap[K]['response'] extends CursorPaginationResponse ? K : never
 }[SlackAPIMethod]
 export type SlackAPIParams<Method extends SlackAPIMethod> = SlackWebAPIMap[Method]['params'] & {
-	token?: string | { cookie: string; token: string }
+	token?: AnyToken
 }
 export type SlackAPIResponse<Method extends SlackAPIMethod> =
 	| { ok: false; error: string }

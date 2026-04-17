@@ -99,6 +99,13 @@ export interface ChannelJoinMessage extends MessageCommon {
 	inviter?: string
 }
 
+export interface MeMessageMessage extends MessageCommon {
+	subtype: 'me_message'
+
+	user: string
+	text: string
+}
+
 export interface MessageChangedMessage extends MessageCommon {
 	subtype: 'message_changed'
 
@@ -118,5 +125,6 @@ export type AnyMessage =
 	| NormalMessage
 	| BotMessageMessage
 	| ChannelJoinMessage
+	| MeMessageMessage
 	| MessageChangedMessage
 	| MessageDeletedMessage

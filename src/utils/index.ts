@@ -14,3 +14,5 @@ export function makeProxy(object: any, getter: () => any) {
 		},
 	})
 }
+
+export type AnyToken = string | { cookie: string; token: string }

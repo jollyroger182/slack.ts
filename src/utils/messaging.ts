@@ -3,6 +3,7 @@ import type { NormalMessage } from '../api/types/message'
 import type { ChatPostEphemeralParams, ChatPostMessageParams } from '../api/web/chat'
 import type { App } from '../client'
 import { SlackError } from '../error'
+import type { AnyToken } from '.'
 
 export type SendMessageFile = {
 	file: Buffer | ArrayBuffer
@@ -18,7 +19,7 @@ export interface SendMessageWithFiles<Blocks extends KnownBlock[] = KnownBlock[]
 	thread_ts?: string
 	text?: string
 	blocks?: Blocks
-	token?: string
+	token?: AnyToken
 }
 
 export type SendMessageWithoutFiles<Blocks extends KnownBlock[] = KnownBlock[]> = {
@@ -50,6 +51,7 @@ export async function sendMessage<Blocks extends KnownBlock[] = KnownBlock[]>(
 			thread_ts: params.thread_ts,
 			initial_comment: params.text,
 			blocks: params.blocks,
+			token: params.token,
 		})
 	} else if (params.ephemeral) {
 		const { ephemeral: _, ...payload } = params
