@@ -2,6 +2,8 @@ import type { KnownBlock } from '@slack/types'
 import type { BlockAction, BlockActionTypes } from '../api/interactive/block_actions'
 import type { TimestampPaginationParams } from '../api/types/api'
 import type { AnyMessage, NormalMessage } from '../api/types/message'
+import type { ChatUpdateParams, StreamChunk } from '../api/web/chat'
+import type { ActionsToPrefixedID, ExtractActions } from '../blocks/utils/extract'
 import type { App } from '../client'
 import { SlackError, SlackTimeoutError, SlackWebAPIPlatformError } from '../error'
 import { makeProxy, type AnyToken } from '../utils'
@@ -12,14 +14,11 @@ import {
 	type SendMessageWithoutFiles,
 } from '../utils/messaging'
 import { paginate } from '../utils/paginate'
+import { startStreaming } from '../utils/streaming'
 import type { DistributiveOmit } from '../utils/typing'
 import type { ActionInstance } from './action'
 import { ChannelRef } from './channel'
-import { type UserInstance, UserRef } from './user'
-import type { ActionsToPrefixedID, ExtractActions } from '../blocks/utils/extract'
-import { startStreaming } from '../utils/streaming'
-import type { ChatUpdateParams, StreamChunk } from '../api/web/chat'
-import type { SlackAPIParams } from '../api'
+import { UserRef, type UserInstance } from './user'
 
 interface FetchRepliesParams extends Omit<TimestampPaginationParams, 'limit'> {
 	/**
@@ -45,7 +44,10 @@ interface FetchRepliesParams extends Omit<TimestampPaginationParams, 'limit'> {
 	token?: AnyToken
 }
 
-class MessageMixin<Blocks extends KnownBlock[] = KnownBlock[]> {
+abstract class MessageMixin<
+	Subtype extends AnyMessage = AnyMessage,
+	Blocks extends KnownBlock[] = KnownBlock[],
+> {
 	#channel: string
 	#ts: string
 
@@ -57,6 +59,11 @@ class MessageMixin<Blocks extends KnownBlock[] = KnownBlock[]> {
 		this.#channel = channel
 		this.#ts = ts
 	}
+
+	protected abstract _updateData<
+		Subtype extends AnyMessage = AnyMessage,
+		Blocks extends KnownBlock[] = KnownBlock[],
+	>(data: Subtype): MessageInstance<Subtype, Blocks>
 
 	/** The channel where this message was sent */
 	get channel() {
@@ -81,7 +88,7 @@ class MessageMixin<Blocks extends KnownBlock[] = KnownBlock[]> {
 	 * see its methods (for example, `message.wait.timeout(60000)`).
 	 */
 	get wait() {
-		return new MessageWait<Blocks>(this, this.client)
+		return new MessageWait<Subtype, Blocks>(this, this.client)
 	}
 
 	/**
@@ -166,14 +173,15 @@ class MessageMixin<Blocks extends KnownBlock[] = KnownBlock[]> {
 		)
 	}
 
-	async edit<Blocks extends KnownBlock[] = KnownBlock[]>(
-		params: DistributiveOmit<ChatUpdateParams<Blocks>, 'channel' | 'ts'> & { token?: AnyToken },
+	async edit<NewBlocks extends KnownBlock[] = Blocks>(
+		params: DistributiveOmit<ChatUpdateParams<NewBlocks>, 'channel' | 'ts'> & { token?: AnyToken },
 	) {
-		await this.client.request('chat.update', {
+		const { message } = await this.client.request('chat.update', {
 			channel: this.#channel,
 			ts: this.#ts,
 			...params,
-		} satisfies ChatUpdateParams<Blocks> as any)
+		} satisfies ChatUpdateParams<NewBlocks> as any)
+		return this._updateData<Subtype, NewBlocks>(message as Subtype)
 	}
 
 	async react(name: string) {
@@ -225,12 +233,22 @@ export class MessageRef<
 	Subtype extends AnyMessage = AnyMessage,
 	Blocks extends KnownBlock[] = KnownBlock[],
 >
-	extends MessageMixin<Blocks>
-	implements PromiseLike<Message<Subtype>>
+	extends MessageMixin<Subtype, Blocks>
+	implements PromiseLike<MessageInstance<Subtype>>
 {
-	then<TResult1 = Message<Subtype>, TResult2 = never>(
+	protected override _updateData<
+		Subtype extends AnyMessage = AnyMessage,
+		Blocks extends KnownBlock[] = KnownBlock[],
+	>(data: Subtype): MessageInstance<Subtype, Blocks> {
+		return new Message(this.client, this._channelId, this.ts, data) as MessageInstance<
+			Subtype,
+			Blocks
+		>
+	}
+
+	then<TResult1 = MessageInstance<Subtype>, TResult2 = never>(
 		onfulfilled?:
-			| ((value: Message<Subtype>) => TResult1 | PromiseLike<TResult1>)
+			| ((value: MessageInstance<Subtype>) => TResult1 | PromiseLike<TResult1>)
 			| null
 			| undefined,
 		onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | null | undefined,
@@ -238,7 +256,7 @@ export class MessageRef<
 		return this.#fetch().then(onfulfilled, onrejected)
 	}
 
-	async #fetch(): Promise<Message<Subtype>> {
+	async #fetch(): Promise<MessageInstance<Subtype>> {
 		const data = await this.client.request('conversations.replies', {
 			channel: this._channelId,
 			ts: this.ts,
@@ -261,12 +279,20 @@ export class MessageRef<
 export class Message<
 	Subtype extends AnyMessage = AnyMessage,
 	Blocks extends KnownBlock[] = KnownBlock[],
-> extends MessageMixin<Blocks> {
+> extends MessageMixin<Subtype, Blocks> {
 	#data: Subtype
 
 	constructor(client: App, channel: string, ts: string, data: Subtype) {
 		super(client, channel, ts)
 		this.#data = data
+		return makeProxy(this, () => this.#data)
+	}
+
+	protected override _updateData<
+		Subtype extends AnyMessage = AnyMessage,
+		Blocks extends KnownBlock[] = KnownBlock[],
+	>(data: Subtype): MessageInstance<Subtype, Blocks> {
+		this.#data = data as any
 		return makeProxy(this, () => this.#data)
 	}
 
@@ -299,11 +325,14 @@ export type MessageInstance<
 	Blocks extends KnownBlock[] = KnownBlock[],
 > = Message<Subtype, Blocks> & Subtype
 
-class MessageWait<Blocks extends KnownBlock[] = KnownBlock[]> {
+class MessageWait<
+	Subtype extends AnyMessage = AnyMessage,
+	Blocks extends KnownBlock[] = KnownBlock[],
+> {
 	private _timeout = 60_0_000
 
 	constructor(
-		private message: MessageMixin<Blocks>,
+		private message: MessageMixin<Subtype, Blocks>,
 		private client: App,
 	) {}
 

@@ -23,7 +23,7 @@ class UserMixin {
 		this.#id = id
 	}
 
-	/** ID of the channel */
+	/** ID of the user */
 	get id() {
 		return this.#id
 	}
