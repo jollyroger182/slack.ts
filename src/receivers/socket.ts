@@ -27,22 +27,34 @@ export class SocketEventsReceiver
 	}
 
 	async start() {
-		await this._connect()
+		return this._connect()
 	}
 
 	async stop() {
-		this.#ws?.close()
-		this.#ws = undefined
+		return new Promise<void>((resolve, reject) => {
+			if (this.#ws) {
+				this.#ws.once('close', () => resolve())
+				this.#ws.once('error', (error) => reject(error))
+				this.#ws.close()
+				this.#ws = undefined
+			} else {
+				resolve()
+			}
+		})
 	}
 
 	private async _connect() {
 		const { url } = await this.client.request('apps.connections.open', { token: this.#appToken })
 
-		this.#ws = new WebSocket(url)
-		this.#ws.addEventListener('open', this.#onOpen.bind(this))
-		this.#ws.addEventListener('message', this.#onMessage.bind(this))
-		this.#ws.addEventListener('close', this.#onClose.bind(this))
-		this.#ws.addEventListener('error', this.#onError.bind(this))
+		return new Promise<void>((resolve, reject) => {
+			this.#ws = new WebSocket(url)
+			this.#ws.addEventListener('open', this.#onOpen.bind(this))
+			this.#ws.addEventListener('message', this.#onMessage.bind(this))
+			this.#ws.addEventListener('close', this.#onClose.bind(this))
+			this.#ws.addEventListener('error', this.#onError.bind(this))
+			this.#ws.once('open', () => resolve())
+			this.#ws.once('error', (error) => reject(error))
+		})
 	}
 
 	#onOpen() {
