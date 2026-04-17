@@ -168,17 +168,66 @@ export interface ChatStopStreamResponse {
 }
 
 export type ChatUpdateParams<Blocks extends KnownBlock[] = KnownBlock[]> = {
+	/**
+	 * Channel containing the message to be updated. For direct messages, ensure that this value is a
+	 * DM ID (starts with `D`) instead of a User ID (starts with either `U` or `W`).
+	 */
 	channel: string
+
+	/** Timestamp of the message to be updated. */
 	ts: string
+
+	/**
+	 * How this field works and whether it is required depends on other fields you use in your API
+	 * call. 9 for more detail. call. [See
+	 * below](https://docs.slack.dev/reference/methods/chat.update#text_usage) for more detail.
+	 */
 	text?: string
+
+	/** A JSON-based array of structured blocks. */
 	blocks?: Blocks
+
+	/** A JSON-based array of structured attachments. */
 	attachments?: Attachment[]
+
+	/**
+	 * Accepts message text formatted in markdown. This argument should not be used in conjunction
+	 * with `blocks` or `text`. Limit this field to 12,000 characters.
+	 */
 	markdown_text?: string
+
+	/** A JSON-based array of structured attachments. */
 	unfurled_attachments?: Attachment[]
+
+	/**
+	 * JSON object with event_type and event_payload fields, presented as a URL-encoded string. If you
+	 * don't include this field, the message's previous `metadata` will be retained. To remove
+	 * previous `metadata`, include an empty object for this field. Metadata you post to Slack is
+	 * accessible to any app or user who is a member of that workspace.
+	 */
 	metadata?: MessageMetadata
+
+	/**
+	 * Find and link channel names and usernames. Defaults to `none`. If you do not specify a value
+	 * for this field, the original value set for the message will be overwritten with the default,
+	 * `none`.
+	 */
 	link_names?: boolean
+
+	/**
+	 * Change how messages are treated. Defaults to `client`, unlike `chat.postMessage`. Accepts
+	 * either `none` or `full`. If you do not specify a value for this field, the original value set
+	 * for the message will be overwritten with the default, `client`.
+	 */
 	parse?: 'none' | 'full' | 'client'
+
+	/**
+	 * Broadcast an existing thread reply to make it visible to everyone in the channel or
+	 * conversation.
+	 */
 	reply_broadcast?: boolean
+
+	/** Array of new file ids that will be sent with this message. */
 	file_ids?: string[]
 } & (
 	| (Blocks extends [KnownBlock, ...KnownBlock[]]

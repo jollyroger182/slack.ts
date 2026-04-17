@@ -1,5 +1,6 @@
 import type { SlackApiMap } from 'slack-undoc-client'
 
+import type { AnyToken } from '../utils'
 import type { CursorPaginationResponse } from './types/api'
 import type {
 	AppsConnectionsOpenParams,
@@ -27,12 +28,12 @@ import type {
 } from './web/auth'
 import type { BotsInfoParams, BotsInfoResponse } from './web/bots'
 import type {
+	ChatAppendStreamParams,
+	ChatAppendStreamResponse,
 	ChatPostEphemeralParams,
 	ChatPostEphemeralResponse,
 	ChatPostMessageParams,
 	ChatPostMessageResponse,
-	ChatAppendStreamParams,
-	ChatAppendStreamResponse,
 	ChatStartStreamParams,
 	ChatStartStreamResponse,
 	ChatStopStreamParams,
@@ -45,8 +46,16 @@ import type {
 	ConversationsHistoryResponse,
 	ConversationsInfoParams,
 	ConversationsInfoResponse,
+	ConversationsInviteParams,
+	ConversationsInviteResponse,
+	ConversationsJoinParams,
+	ConversationsJoinResponse,
+	ConversationsLeaveParams,
+	ConversationsLeaveResponse,
 	ConversationsListParams,
 	ConversationsListResponse,
+	ConversationsOpenParams,
+	ConversationsOpenResponse,
 	ConversationsRepliesParams,
 	ConversationsRepliesResponse,
 } from './web/conversations'
@@ -57,8 +66,20 @@ import type {
 	FilesGetUploadURLExternalResponse,
 } from './web/files'
 import type {
+	ReactionsAddParams,
+	ReactionsAddResponse,
+	ReactionsGetParams,
+	ReactionsGetResponse,
+	ReactionsListParams,
+	ReactionsListResponse,
+	ReactionsRemoveParams,
+	ReactionsRemoveResponse,
+} from './web/reactions'
+import type {
 	UsersInfoParams,
 	UsersInfoResponse,
+	UsersListParams,
+	UsersListResponse,
 	UsersProfileSetParams,
 	UsersProfileSetResponse,
 } from './web/users'
@@ -68,9 +89,44 @@ import type {
 	ViewsPublishParams,
 	ViewsPublishResponse,
 } from './web/views'
-import type { AnyToken } from '../utils'
 
 interface SlackWebAPIMapInternal {
+	'reactions.get': {
+		params: ReactionsGetParams
+		response: ReactionsGetResponse
+	}
+	'reactions.list': {
+		params: ReactionsListParams
+		response: ReactionsListResponse
+	}
+	'reactions.remove': {
+		params: ReactionsRemoveParams
+		response: ReactionsRemoveResponse
+	}
+	'reactions.add': {
+		params: ReactionsAddParams
+		response: ReactionsAddResponse
+	}
+	'users.list': {
+		params: UsersListParams
+		response: UsersListResponse
+	}
+	'conversations.open': {
+		params: ConversationsOpenParams
+		response: ConversationsOpenResponse
+	}
+	'conversations.invite': {
+		params: ConversationsInviteParams
+		response: ConversationsInviteResponse
+	}
+	'conversations.leave': {
+		params: ConversationsLeaveParams
+		response: ConversationsLeaveResponse
+	}
+	'conversations.join': {
+		params: ConversationsJoinParams
+		response: ConversationsJoinResponse
+	}
 	'chat.update': {
 		params: ChatUpdateParams
 		response: ChatUpdateResponse

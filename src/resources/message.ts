@@ -3,7 +3,7 @@ import type { BlockAction, BlockActionTypes } from '../api/interactive/block_act
 import type { TimestampPaginationParams } from '../api/types/api'
 import type { AnyMessage, NormalMessage } from '../api/types/message'
 import type { App } from '../client'
-import { SlackError, SlackTimeoutError } from '../error'
+import { SlackError, SlackTimeoutError, SlackWebAPIPlatformError } from '../error'
 import { makeProxy, type AnyToken } from '../utils'
 import {
 	sendMessage,
@@ -174,6 +174,50 @@ class MessageMixin<Blocks extends KnownBlock[] = KnownBlock[]> {
 			ts: this.#ts,
 			...params,
 		} satisfies ChatUpdateParams<Blocks> as any)
+	}
+
+	async react(name: string) {
+		try {
+			await this.client.request('reactions.add', {
+				channel: this.#channel,
+				timestamp: this.#ts,
+				name,
+			})
+			return true
+		} catch (e) {
+			if (e instanceof SlackWebAPIPlatformError && e.error === 'already_reacted') {
+				return false
+			}
+			throw e
+		}
+	}
+
+	async unreact(name: string) {
+		try {
+			await this.client.request('reactions.remove', {
+				channel: this.#channel,
+				timestamp: this.#ts,
+				name,
+			})
+			return true
+		} catch (e) {
+			if (e instanceof SlackWebAPIPlatformError && e.error === 'no_reaction') {
+				return false
+			}
+			throw e
+		}
+	}
+
+	async reactions() {
+		const item = await this.client.request('reactions.get', {
+			full: true,
+			channel: this.#channel,
+			timestamp: this.#ts,
+		})
+		if (item.type === 'message') {
+			return item.message.reactions
+		}
+		throw new SlackError('Slack is not doing its job')
 	}
 }
 

@@ -26,7 +26,7 @@ while (true) {
 	} else if (indexText.includes(`} from './web/${segment}'`)) {
 		indexText = indexText.replace(
 			`} from './web/${segment}'`,
-			`\t${classPrefix}Params,\n\t${classPrefix}Response\n} from './web/${segment}'`,
+			`\t${classPrefix}Params,\n\t${classPrefix}Response,\n} from './web/${segment}'`,
 		)
 	} else {
 		indexText =

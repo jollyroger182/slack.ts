@@ -1,3 +1,4 @@
+import type { CursorPaginationParams, CursorPaginationResponse } from '../types/api'
 import type { User, UserProfile } from '../types/user'
 
 export interface UsersInfoParams {
@@ -40,4 +41,21 @@ export type UsersProfileSetParams = {} & (
 
 export interface UsersProfileSetResponse {
 	profile: UserProfile
+}
+
+export interface UsersListParams extends CursorPaginationParams {
+	/**
+	 * Set this to `true` to receive the locale for users.
+	 *
+	 * @default false
+	 */
+	include_locale?: boolean
+
+	/** Encoded team id to list users in, required if org token is used */
+	team_id?: string
+}
+
+export interface UsersListResponse extends CursorPaginationResponse {
+	members: User[]
+	cache_ts: number
 }

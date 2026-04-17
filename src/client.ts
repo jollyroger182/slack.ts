@@ -28,11 +28,11 @@ import { SocketEventsReceiver, type SocketEventsReceiverOptions } from './receiv
 import { Submission, type SubmissionInstance } from './resources'
 import { Action, type ActionInstance } from './resources/action'
 import { Autocomplete, type AutocompleteInstance } from './resources/autocomplete'
-import { Channel, ChannelRef } from './resources/channel'
+import { Channel, ChannelRef, type ChannelInstance } from './resources/channel'
 import { HomeOpened, type HomeOpenedInstance } from './resources/home_opened'
 import { Message, type MessageInstance } from './resources/message'
 import { SlashCommand, type SlashCommandInstance } from './resources/slash'
-import { UserRef } from './resources/user'
+import { User, UserRef, type UserInstance } from './resources/user'
 import { sleep, type AnyToken } from './utils'
 import { AsyncEventEmitter } from './utils/events'
 import { paginate } from './utils/paginate'
@@ -227,9 +227,20 @@ export class App extends AsyncEventEmitter<AppEventMap> {
 	 */
 	async *channels<Types extends ('public_channel' | 'private_channel' | 'mpim' | 'im')[]>(
 		...types: Types
-	): AsyncGenerator<Channel<ChannelTypeMap[Types[number]]>> {
+	): AsyncGenerator<ChannelInstance<ChannelTypeMap[Types[number]]>> {
 		yield* paginate(this, 'conversations.list', { types: types.join(',') }, (r) =>
-			r.channels.map((c) => new Channel(this, c.id, c as ChannelTypeMap[Types[number]])),
+			r.channels.map(
+				(c) =>
+					new Channel(this, c.id, c as ChannelTypeMap[Types[number]]) as ChannelInstance<
+						ChannelTypeMap[Types[number]]
+					>,
+			),
+		)
+	}
+
+	async *users(): AsyncGenerator<UserInstance> {
+		yield* paginate(this, 'users.list', {}, (r) =>
+			r.members.map((u) => new User(this, u.id, u) as UserInstance),
 		)
 	}
 

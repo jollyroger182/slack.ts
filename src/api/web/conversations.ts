@@ -3,7 +3,7 @@ import type {
 	CursorPaginationResponse,
 	TimestampPaginationParams,
 } from '../types/api'
-import type { Conversation } from '../types/conversation'
+import type { Conversation, IM } from '../types/conversation'
 import type { AnyMessage } from '../types/message'
 
 export interface ConversationsHistoryParams
@@ -88,4 +88,53 @@ export interface ConversationsRepliesParams
 
 export interface ConversationsRepliesResponse extends CursorPaginationResponse {
 	messages: AnyMessage[]
+}
+
+export interface ConversationsJoinParams {
+	/** ID of conversation to join */
+	channel: string
+}
+
+export interface ConversationsJoinResponse {
+	channel: Conversation
+}
+
+export interface ConversationsLeaveParams {
+	/** Conversation to leave */
+	channel: string
+}
+
+export interface ConversationsLeaveResponse {
+	not_in_channel?: boolean
+}
+
+export interface ConversationsInviteParams {
+	/** The ID of the public or private channel to invite user(s) to. */
+	channel: string
+
+	/** A comma separated list of user IDs. Up to 100 users may be listed. */
+	users: string
+
+	/**
+	 * When set to `true` and multiple user IDs are provided, continue inviting the valid ones while
+	 * disregarding invalid IDs.
+	 *
+	 * @default false
+	 */
+	force?: boolean
+}
+
+export interface ConversationsInviteResponse {
+	channel: Conversation
+}
+
+export type ConversationsOpenParams = {
+	return_im?: boolean
+	prevent_creation?: boolean
+} & ({ channel: string; users?: never } | { channel?: never; users: string })
+
+export interface ConversationsOpenResponse {
+	no_op: boolean
+	already_open: boolean
+	channel: { id: string } & Partial<IM>
 }

@@ -1,3 +1,4 @@
+import type { IM } from '../api/types/conversation'
 import type { NormalMessage } from '../api/types/message'
 import type { User as UserData } from '../api/types/user'
 import type { App } from '../client'
@@ -9,6 +10,7 @@ import {
 	type SendMessageWithoutFiles,
 } from '../utils/messaging'
 import type { DistributiveOmit } from '../utils/typing'
+import { Channel, type ChannelInstance } from './channel'
 import { Message, type MessageInstance } from './message'
 
 class UserMixin {
@@ -57,6 +59,14 @@ class UserMixin {
 				data.message,
 			) as MessageInstance<NormalMessage>
 		}
+	}
+
+	async im() {
+		const { channel } = await this.client.request('conversations.open', {
+			return_im: true,
+			users: this.#id,
+		})
+		return new Channel(this.client, channel.id, channel as IM) as ChannelInstance<IM>
 	}
 }
 

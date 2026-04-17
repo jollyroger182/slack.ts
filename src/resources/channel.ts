@@ -13,7 +13,7 @@ import {
 import { paginate } from '../utils/paginate'
 import type { DistributiveOmit } from '../utils/typing'
 import { Message, MessageRef, type MessageInstance } from './message'
-import { UserRef } from './user'
+import { User, UserRef } from './user'
 
 interface FetchMessagesParams extends Omit<TimestampPaginationParams, 'limit'> {
 	/**
@@ -104,6 +104,34 @@ class ChannelMixin {
 				.map((m) => new Message(this.client, this.#id, m.ts, m) as MessageInstance),
 		)
 	}
+
+	async join(): Promise<this extends Channel ? this : ChannelInstance> {
+		const { channel } = await this.client.request('conversations.join', { channel: this.#id })
+		if (this instanceof Channel) {
+			return this as any
+		}
+		return new Channel(this.client, this.#id, channel) as any
+	}
+
+	async leave() {
+		const { not_in_channel } = await this.client.request('conversations.leave', {
+			channel: this.#id,
+		})
+		return !not_in_channel
+	}
+
+	async invite(
+		...users: (User | UserRef | string)[]
+	): Promise<this extends Channel ? this : ChannelInstance> {
+		const { channel } = await this.client.request('conversations.invite', {
+			channel: this.#id,
+			users: users.map((u) => (typeof u === 'string' ? u : u.id)).join(','),
+		})
+		if (this instanceof Channel) {
+			return this as any
+		}
+		return new Channel(this.client, this.#id, channel) as any
+	}
 }
 
 export class ChannelRef extends ChannelMixin implements PromiseLike<ChannelInstance> {
@@ -135,4 +163,5 @@ export class Channel<T extends Conversation = Conversation> extends ChannelMixin
 	}
 }
 
-export type ChannelInstance = Channel & DistributiveOmit<Conversation, 'creator'>
+export type ChannelInstance<T extends Conversation = Conversation> = Channel<T> &
+	DistributiveOmit<T, 'creator'>
