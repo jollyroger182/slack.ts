@@ -2,6 +2,7 @@ import { createServer, type IncomingMessage, type Server, type ServerResponse } 
 import { AsyncEventEmitter } from '../utils/events'
 import type { EventsReceiver, ReceiverEventMap } from './base'
 import { HttpFetchReceiver, type HttpFetchReceiverOptions } from './fetch'
+import { AsyncLocalStorage } from 'async_hooks'
 
 export interface HttpServerReceiverOptions extends Omit<HttpFetchReceiverOptions, 'signingSecret'> {
 	signingSecret: string
@@ -41,6 +42,8 @@ export class HttpServerReceiver
 	#port: number
 	#path: string
 
+	#promises = new AsyncLocalStorage<Promise<unknown>[]>({ name: 'HttpServerReceiver.promises' })
+
 	constructor({
 		signingSecret,
 		client,
@@ -49,7 +52,11 @@ export class HttpServerReceiver
 	}: HttpServerReceiverOptions) {
 		super()
 
-		this.#fetchReceiver = new HttpFetchReceiver({ signingSecret, client })
+		this.#fetchReceiver = new HttpFetchReceiver({
+			signingSecret,
+			client,
+			waitUntil: this.#waitUntil.bind(this),
+		})
 		this.#port = port
 		this.#path = path
 
@@ -60,6 +67,11 @@ export class HttpServerReceiver
 		)
 		this.#fetchReceiver.on('view_submission', (payload) => this.emit('view_submission', payload))
 		this.#fetchReceiver.on('slash_command', (payload) => this.emit('slash_command', payload))
+	}
+
+	async #waitUntil(promise: Promise<unknown>) {
+		const promises = this.#promises.getStore()
+		promises?.push(promise)
 	}
 
 	async start(): Promise<void> {
@@ -115,6 +127,9 @@ export class HttpServerReceiver
 				body: body.length > 0 ? body : undefined,
 			})
 
+			const promises: Promise<unknown>[] = []
+			this.#promises.enterWith(promises)
+
 			const response = await this.#fetchReceiver.fetch(webRequest)
 
 			res.writeHead(response.status, Object.fromEntries(response.headers.entries()))
@@ -124,6 +139,8 @@ export class HttpServerReceiver
 			} else {
 				res.end()
 			}
+
+			await Promise.all(promises)
 		} catch (error) {
 			console.error('[http-server] error handling request:', error)
 			res.writeHead(500, { 'Content-Type': 'text/plain' })
