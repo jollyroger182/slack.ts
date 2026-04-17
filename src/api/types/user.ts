@@ -17,7 +17,7 @@ export interface User {
 	is_bot: boolean
 	updated: number
 	is_app_user: boolean
-	has_2fa: boolean
+	has_2fa?: boolean
 }
 
 export interface UserProfile {
@@ -48,4 +48,7 @@ export interface UserProfile {
 	status_expiration?: number
 	huddle_state?: string
 	huddle_state_expiration_ts?: number
+	start_date?: string
+	ooo_message?: string
+	guest_invited_by?: string
 }
