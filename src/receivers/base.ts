@@ -9,6 +9,7 @@ import type { AsyncEventEmitter } from '../utils/events'
 
 export interface EventsReceiver extends AsyncEventEmitter<ReceiverEventMap> {
 	start(): unknown
+	stop(): unknown
 }
 
 export type BlockSuggestionResponder = (

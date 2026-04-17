@@ -7,4 +7,6 @@ export class DummyReceiver extends AsyncEventEmitter<ReceiverEventMap> implement
 	}
 
 	start() {}
+
+	stop() {}
 }

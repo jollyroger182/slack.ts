@@ -193,6 +193,10 @@ export class App extends AsyncEventEmitter<AppEventMap> {
 		await this.#receiver.start()
 	}
 
+	async stop() {
+		await this.#receiver.stop()
+	}
+
 	get wait() {
 		return new AppWait(this)
 	}

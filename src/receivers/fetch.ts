@@ -124,4 +124,6 @@ export class HttpFetchReceiver
 	}
 
 	async start(): Promise<void> {}
+
+	stop() {}
 }

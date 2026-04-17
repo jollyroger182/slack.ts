@@ -30,6 +30,11 @@ export class SocketEventsReceiver
 		await this._connect()
 	}
 
+	async stop() {
+		this.#ws?.close()
+		this.#ws = undefined
+	}
+
 	private async _connect() {
 		const { url } = await this.client.request('apps.connections.open', { token: this.#appToken })
 
