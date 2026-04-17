@@ -1,26 +1,39 @@
-import { beforeEach, describe, expect, it } from 'bun:test'
+import { afterEach, beforeEach, describe, expect, it, mock, spyOn } from 'bun:test'
 import {
+	Action,
 	App,
+	button,
+	Channel,
 	DummyReceiver,
 	HttpFetchReceiver,
 	HttpServerReceiver,
+	SlackWebAPIPlatformError,
 	SocketEventsReceiver,
+	User,
+	type ChannelInstance,
+	type SlackAPIResponse,
+	type UserInstance,
 } from 'slack.ts'
+import type { IM, PublicChannel } from '../../src/api/types/conversation'
+import { blockActions, MESSAGE_EVENT, PUBLIC_CHANNEL_DATA, USER_DATA } from '../fixtures'
+import type { BlockActions, ButtonAction } from '../../src/api/interactive/block_actions'
+import type { EventWrapper } from '../../src/api/events'
 
 describe('App client', () => {
 	let app: App
+	let originalFetch: typeof fetch
 
 	beforeEach(() => {
-		app = new App()
+		app = new App({ token: 'xoxb-test-token' })
+		originalFetch = globalThis.fetch
+	})
+
+	afterEach(() => {
+		globalThis.fetch = originalFetch
 	})
 
 	it('creates app with default dummy receiver', () => {
 		expect(app.receiver).toBeInstanceOf(DummyReceiver)
-	})
-
-	it('creates app with token', () => {
-		const appWithToken = new App({ token: 'xoxb-test-token' })
-		expect(appWithToken).toBeDefined()
 	})
 
 	it('creates app with dummy receiver', () => {
@@ -43,71 +56,191 @@ describe('App client', () => {
 		expect(appWithHTTP.receiver).toBeInstanceOf(HttpServerReceiver)
 	})
 
+	it('can start and stop receiver', async () => {
+		const startSpy = spyOn(app.receiver, 'start')
+		const stopSpy = spyOn(app.receiver, 'stop')
+
+		await app.start()
+		expect(startSpy).toHaveBeenCalledTimes(1)
+
+		await app.stop()
+		expect(stopSpy).toHaveBeenCalledTimes(1)
+	})
+
+	it('can wait for actions', async () => {
+		const btn = button('press me').id('test_button')
+		const actionPayload = {
+			type: 'button',
+			block_id: '12345',
+			action_id: 'test_button',
+			action_ts: '123456.789',
+			text: { type: 'plain_text', text: 'press me' },
+		} as const
+		const payload: BlockActions = blockActions(actionPayload)
+		setTimeout(() => app.receiver.emit('block_actions', payload), 0)
+
+		const action = await app.wait.timeout(10).action(btn)
+		expect(action).toBeInstanceOf(Action)
+		expect(action.raw).toEqual(actionPayload)
+		expect(action.action_id).toBe('test_button')
+	})
+
+	it('wait can time out', () => {
+		const btn = button('press me').id('test_button')
+		const time = Date.now()
+		expect(app.wait.timeout(10).action(btn)).rejects.toThrow('Timed out waiting for action')
+		expect(Date.now() - time).toBeGreaterThanOrEqual(10)
+	})
+
+	it('wait with timeout 0 disables timeout', async () => {
+		const btn = button('press me').id('test_button')
+		const actionPayload = {
+			type: 'button',
+			block_id: '12345',
+			action_id: 'test_button',
+			action_ts: '123456.789',
+			text: { type: 'plain_text', text: 'press me' },
+		} as const
+		const payload: BlockActions = blockActions(actionPayload)
+		setTimeout(() => app.receiver.emit('block_actions', payload), 10)
+
+		const action = await app.wait.timeout(0).action(btn)
+		expect(action).toBeInstanceOf(Action)
+	})
+
 	it('provides channel factory method', () => {
 		const channel = app.channel('C123456')
-		expect(channel).toBeDefined()
 		expect(channel.id).toBe('C123456')
 	})
 
 	it('provides user factory method', () => {
 		const user = app.user('U123456')
-		expect(user).toBeDefined()
 		expect(user.id).toBe('U123456')
 	})
 
-	it('provides channel list method', () => {
-		expect(app.channels).toBeFunction()
+	it('iterates over channels', async () => {
+		const requestSpy = spyOn(app, 'request').mockResolvedValueOnce({
+			ok: true,
+			channels: [PUBLIC_CHANNEL_DATA],
+			has_more: false,
+		} satisfies SlackAPIResponse<'conversations.list'>)
+
+		const channels: ChannelInstance[] = []
+		for await (const channel of app.channels()) {
+			channels.push(channel)
+		}
+
+		expect(requestSpy).toHaveBeenCalledWith('conversations.list', {
+			types: 'public_channel,private_channel,mpim,im',
+		})
+		expect(channels[0]).toBeInstanceOf(Channel)
+		expect(channels[0]?.name).toBe(PUBLIC_CHANNEL_DATA.name)
 	})
 
-	it('provides user list method', () => {
-		expect(app.users).toBeFunction()
+	it('iterates over certain types of channels', async () => {
+		const requestSpy = spyOn(app, 'request').mockResolvedValueOnce({
+			ok: true,
+			channels: [PUBLIC_CHANNEL_DATA],
+			has_more: false,
+		} satisfies SlackAPIResponse<'conversations.list'>)
+
+		const channels: ChannelInstance<PublicChannel | IM>[] = []
+		for await (const channel of app.channels('public_channel', 'im')) {
+			channels.push(channel)
+		}
+
+		expect(requestSpy).toHaveBeenCalledWith('conversations.list', {
+			types: 'public_channel,im',
+		})
 	})
 
-	it('provides request method', () => {
-		expect(app.request).toBeFunction()
+	it('iterates over users', async () => {
+		const requestSpy = spyOn(app, 'request').mockResolvedValueOnce({
+			ok: true,
+			cache_ts: 1234567890,
+			members: [USER_DATA],
+			has_more: false,
+		} satisfies SlackAPIResponse<'users.list'>)
+
+		const users: UserInstance[] = []
+		for await (const user of app.users()) {
+			users.push(user)
+		}
+
+		expect(requestSpy).toHaveBeenCalledWith('users.list', {})
+		expect(users[0]).toBeInstanceOf(User)
+		expect(users[0]?.name).toBe(USER_DATA.name)
 	})
 
-	it('provides wait helper with action method', () => {
-		expect(app.wait).toBeDefined()
-		expect(app.wait.timeout).toBeFunction()
-		expect(app.wait.action).toBeFunction()
+	it('can make web API requests', async () => {
+		const fetchSpy = spyOn(globalThis, 'fetch').mockResolvedValueOnce(
+			new Response(JSON.stringify({ ok: true } satisfies SlackAPIResponse<'conversations.leave'>), {
+				headers: { 'Content-Type': 'application/json' },
+			}),
+		)
+
+		const resp = await app.request('conversations.leave', { channel: 'C123' })
+		expect(resp).toEqual({ ok: true })
+		expect(fetchSpy).toHaveBeenCalledTimes(1)
+		const [url, options] = fetchSpy.mock.calls[0]!
+		expect(url).toEqual('https://slack.com/api/conversations.leave')
+		expect(options?.method).toBe('POST')
+		expect(options?.body).toBeInstanceOf(FormData)
+		expect(Object.fromEntries((options?.body as FormData).entries())).toEqual({ channel: 'C123' })
+		expect(new Headers(options?.headers).get('Authorization')).toBe('Bearer xoxb-test-token')
+	})
+
+	it('retries requests on 429', async () => {
+		const fetchSpy = spyOn(globalThis, 'fetch')
+			.mockResolvedValueOnce(new Response(null, { status: 429, headers: { 'Retry-After': '0' } }))
+			.mockResolvedValueOnce(
+				new Response(
+					JSON.stringify({ ok: true } satisfies SlackAPIResponse<'conversations.leave'>),
+					{ headers: { 'Content-Type': 'application/json' } },
+				),
+			)
+
+		await app.request('conversations.leave', { channel: 'C123' })
+		expect(fetchSpy).toHaveBeenCalledTimes(2)
+	})
+
+	it('can make requests with cookie auth', async () => {
+		const cookieApp = new App({ token: { cookie: 'xoxd-ab%2Fcd', token: 'xoxc-1234' } })
+		const fetchSpy = spyOn(globalThis, 'fetch').mockResolvedValueOnce(
+			new Response(JSON.stringify({ ok: true } satisfies SlackAPIResponse<'conversations.leave'>), {
+				headers: { 'Content-Type': 'application/json' },
+			}),
+		)
+
+		await cookieApp.request('conversations.leave', { channel: 'C123' })
+		const [url, options] = fetchSpy.mock.calls[0]!
+		const headers = new Headers(options?.headers)
+		expect(headers.get('Cookie')).toBe('d=xoxd-ab%2Fcd')
+		expect(headers.get('Authorization')).toBe('Bearer xoxc-1234')
+	})
+
+	it('request throws when ok is false', async () => {
+		spyOn(globalThis, 'fetch').mockResolvedValueOnce(
+			new Response(JSON.stringify({ ok: false, error: 'unknown_error' }), {
+				headers: { 'Content-Type': 'application/json' },
+			}),
+		)
+
+		const promise = app.request('conversations.leave', { channel: 'C123' })
+		expect(promise).rejects.toThrow(SlackWebAPIPlatformError)
+		expect(promise).rejects.toThrow('Fetch https://slack.com/api/conversations.leave failed')
+		expect(promise).rejects.toMatchObject({ error: 'unknown_error' })
 	})
 
 	it('emits events on app', async () => {
-		let eventFired = false
-		app.on('event', () => {
-			eventFired = true
+		let eventFired: EventWrapper | undefined
+		app.on('event', (event) => {
+			eventFired = event
 		})
 
-		await app.receiver.emit('event', {
-			type: 'event_callback',
-			token: 'test',
-			team_id: 'T123',
-			api_app_id: 'A123',
-			event: {
-				type: 'message',
-				text: 'hello',
-				channel: 'C123',
-				user: 'U123',
-				ts: '123456.789',
-				event_ts: '123456.789',
-				team: 'T123',
-			},
-			event_id: 'Ev123',
-			event_time: 1234567890,
-			event_context: 'ctx123',
-			authorizations: [],
-			is_ext_shared_channel: false,
-			context_team_id: 'T123',
-			context_enterprise_id: null,
-		})
+		await app.receiver.emit('event', MESSAGE_EVENT)
 
-		expect(eventFired).toBeTrue()
-	})
-
-	it('has start and stop lifecycle methods', async () => {
-		expect(app.start).toBeFunction()
-		expect(app.stop).toBeFunction()
+		expect(eventFired).toEqual(MESSAGE_EVENT)
 	})
 
 	it('can create multiple apps independently', () => {
