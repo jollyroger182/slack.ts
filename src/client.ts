@@ -224,21 +224,36 @@ export class App extends AsyncEventEmitter<AppEventMap> {
 	}
 
 	/**
+	 * Lists channels of any type.
+	 *
+	 * @returns An async generator that yields channel objects
+	 */
+	channels(): AsyncGenerator<ChannelInstance>
+
+	/**
 	 * Lists channels of the specified types.
 	 *
 	 * @param types Channel types to list (public_channel, private_channel, mpim, im)
 	 * @returns An async generator that yields channel objects
 	 */
+	channels<Types extends ('public_channel' | 'private_channel' | 'mpim' | 'im')[]>(
+		...types: Types
+	): AsyncGenerator<ChannelInstance<ChannelTypeMap[Types[number]]>>
+
 	async *channels<Types extends ('public_channel' | 'private_channel' | 'mpim' | 'im')[]>(
 		...types: Types
 	): AsyncGenerator<ChannelInstance<ChannelTypeMap[Types[number]]>> {
-		yield* paginate(this, 'conversations.list', { types: types.join(',') }, (r) =>
-			r.channels.map(
-				(c) =>
-					new Channel(this, c.id, c as ChannelTypeMap[Types[number]]) as ChannelInstance<
-						ChannelTypeMap[Types[number]]
-					>,
-			),
+		yield* paginate(
+			this,
+			'conversations.list',
+			{ types: types.join(',') || 'public_channel,private_channel,mpim,im' },
+			(r) =>
+				r.channels.map(
+					(c) =>
+						new Channel(this, c.id, c as ChannelTypeMap[Types[number]]) as ChannelInstance<
+							ChannelTypeMap[Types[number]]
+						>,
+				),
 		)
 	}
 
