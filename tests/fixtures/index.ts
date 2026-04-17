@@ -7,6 +7,7 @@ import type {
 import type { PublicChannel } from '../../src/api/types/conversation'
 import type { NormalMessage } from '../../src/api/types/message'
 import type { User } from '../../src/api/types/user'
+import type { ModalView } from '../../src/api/types/view'
 
 export const PUBLIC_CHANNEL_DATA: PublicChannel = {
 	id: 'C123',
@@ -152,3 +153,38 @@ export function blockActions(...actions: BlockAction[]): BlockActions {
 		actions,
 	}
 }
+
+export function blockActionsEx(
+	overrides: Partial<BlockActions>,
+	...actions: BlockAction[]
+): BlockActions {
+	return { ...blockActions(...actions), ...overrides }
+}
+
+export const MODAL_VIEW_DATA = {
+	type: 'modal',
+	id: 'V123',
+	team_id: 'T123',
+	app_id: 'A123',
+	app_installed_team_id: 'T123',
+	blocks: [
+		{
+			type: 'section',
+			block_id: '1a2b3c',
+			text: { type: 'mrkdwn', text: 'Hello World', verbatim: false },
+		},
+	],
+	callback_id: 'callback123',
+	clear_on_close: false,
+	close: null,
+	external_id: '',
+	hash: '1234abcd',
+	notify_on_close: false,
+	previous_view_id: null,
+	private_metadata: 'some_metadata',
+	root_view_id: null,
+	state: { values: {} },
+	submit: null,
+	title: { type: 'plain_text', text: 'Modal title', emoji: true },
+	bot_id: 'B123',
+} as const satisfies ModalView
