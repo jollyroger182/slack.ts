@@ -14,8 +14,6 @@ export class Responder<HasResponseURL extends boolean = true> {
 	) {}
 
 	async message(this: Responder<true>, message: string | MessageResponseParams) {
-		if (!this.response_url) throw new SlackError('Cannot respond to this event with a message')
-
 		if (typeof message === 'string') message = { text: message }
 
 		const payload = {
@@ -26,20 +24,10 @@ export class Responder<HasResponseURL extends boolean = true> {
 			replace_original: false,
 		}
 
-		const resp = await fetch(this.response_url, {
-			method: 'POST',
-			headers: { 'Content-Type': 'application/json; charset=utf-8' },
-			body: JSON.stringify(payload),
-		})
-
-		if (!resp.ok) {
-			throw new SlackError(`Responding to response_url failed with status code ${resp.status}`)
-		}
+		await this.#send(payload)
 	}
 
 	async edit(this: Responder<true>, message: string | MessageResponseParams) {
-		if (!this.response_url) throw new SlackError('Cannot respond to this event with an edit')
-
 		if (typeof message === 'string') message = { text: message }
 
 		const payload = {
@@ -49,6 +37,22 @@ export class Responder<HasResponseURL extends boolean = true> {
 			replace_original: true,
 		}
 
+		await this.#send(payload)
+	}
+
+	async delete(this: Responder<true>) {
+		await this.#send({ delete_original: true })
+	}
+
+	async modal<View extends ViewsOpenParams['view']>(view: View) {
+		if (!view.callback_id) view.callback_id = randomUUID()
+		const resp = await this.client.request('views.open', { view, trigger_id: this.trigger_id })
+		return new Modal(this.client, resp.view) as ModalInstance<View['blocks']>
+	}
+
+	async #send(payload: any) {
+		if (!this.response_url) throw new SlackError('Cannot respond to this event')
+
 		const resp = await fetch(this.response_url, {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json; charset=utf-8' },
@@ -58,26 +62,6 @@ export class Responder<HasResponseURL extends boolean = true> {
 		if (!resp.ok) {
 			throw new SlackError(`Responding to response_url failed with status code ${resp.status}`)
 		}
-	}
-
-	async delete(this: Responder<true>) {
-		if (!this.response_url) throw new SlackError('Cannot respond to this event with deletion')
-
-		const resp = await fetch(this.response_url, {
-			method: 'POST',
-			headers: { 'Content-Type': 'application/json; charset=utf-8' },
-			body: JSON.stringify({ delete_original: true }),
-		})
-
-		if (!resp.ok) {
-			throw new SlackError(`Responding to response_url failed with status code ${resp.status}`)
-		}
-	}
-
-	async modal<View extends ViewsOpenParams['view']>(view: View) {
-		if (!view.callback_id) view.callback_id = randomUUID()
-		const resp = await this.client.request('views.open', { view, trigger_id: this.trigger_id })
-		return new Modal(this.client, resp.view) as ModalInstance<View['blocks']>
 	}
 }
 
