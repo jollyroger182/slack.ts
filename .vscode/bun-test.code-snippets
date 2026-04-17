@@ -1,0 +1,7 @@
+{
+  "Bun test imports": {
+    "prefix": "buntest",
+    "body": ["import { describe, expect, it } from 'bun:test'"],
+    "description": "Import bun:test",
+  },
+}

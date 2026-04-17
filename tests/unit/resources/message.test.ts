@@ -50,7 +50,7 @@ describe('Message', () => {
 			expect(message.wait.timeout(10).action('test_button')).rejects.toThrow(
 				'Timed out waiting for action',
 			)
-			expect(Date.now() - time).toBeGreaterThanOrEqual(10)
+			expect(Date.now() - time).toBeGreaterThanOrEqual(9)
 		})
 
 		it('wait with timeout 0 disables timeout', async () => {

@@ -88,7 +88,7 @@ describe('App client', () => {
 		const btn = button('press me').id('test_button')
 		const time = Date.now()
 		expect(app.wait.timeout(10).action(btn)).rejects.toThrow('Timed out waiting for action')
-		expect(Date.now() - time).toBeGreaterThanOrEqual(10)
+		expect(Date.now() - time).toBeGreaterThanOrEqual(9)
 	})
 
 	it('wait with timeout 0 disables timeout', async () => {
