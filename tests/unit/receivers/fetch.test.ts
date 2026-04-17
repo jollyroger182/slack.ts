@@ -1,8 +1,8 @@
 import { beforeEach, describe, expect, it } from 'bun:test'
 import { createHmac } from 'crypto'
-import type { EventWrapper } from '../../../src/api/events'
 import { App } from '../../../src/client'
 import { HttpFetchReceiver } from '../../../src/receivers/fetch'
+import { MESSAGE_EVENT } from '../../fixtures'
 
 const SIGNING_SECRET = '9973309e5bddf914572f508d4c661a61'
 
@@ -60,35 +60,12 @@ describe('HttpFetchReceiver', () => {
 		app = new App({ receiver: { type: 'fetch', signingSecret: SIGNING_SECRET, waitUntil } })
 		receiver = app.receiver as HttpFetchReceiver
 
-		const eventPayload: EventWrapper = {
-			type: 'event_callback',
-			token: 'test',
-			team_id: 'T123',
-			api_app_id: 'A123',
-			event: {
-				type: 'message',
-				text: 'hello',
-				channel: 'C123',
-				user: 'U123',
-				ts: '123456.789',
-				event_ts: '123456.789',
-				team: 'T123',
-			},
-			event_id: 'Ev123',
-			event_time: 1234567890,
-			event_context: 'ctx123',
-			authorizations: [],
-			is_ext_shared_channel: false,
-			context_team_id: 'T123',
-			context_enterprise_id: null,
-		}
-
 		let eventReceived = false
 		receiver.on('event', () => {
 			eventReceived = true
 		})
 
-		const body = JSON.stringify(eventPayload)
+		const body = JSON.stringify(MESSAGE_EVENT)
 
 		const request = new Request('http://localhost/', createSignedRequest(body))
 		await receiver.fetch(request)

@@ -3,34 +3,7 @@ import { Message, MessageRef, type MessageInstance, type SlackAPIResponse } from
 import type { PublicChannel } from '../../../src/api/types/conversation'
 import { App } from '../../../src/client'
 import { Channel, type ChannelInstance } from '../../../src/resources/channel'
-
-const DATA: PublicChannel = {
-	id: 'C123',
-	name: 'general',
-	is_channel: true,
-	is_group: false,
-	is_im: false,
-	created: 1234567890,
-	updated: 1234567890000,
-	creator: 'U123',
-	is_archived: false,
-	is_general: true,
-	unlinked: 0,
-	name_normalized: 'general',
-	is_shared: false,
-	is_ext_shared: false,
-	is_org_shared: false,
-	pending_shared: [],
-	is_pending_ext_shared: false,
-	is_member: true,
-	is_private: false,
-	is_mpim: false,
-	topic: { value: 'General channel', creator: 'U123', last_set: 1234567890 },
-	purpose: { value: 'General discussion', creator: 'U123', last_set: 1234567890 },
-	previous_names: [],
-	locale: 'en-US',
-	context_team_id: 'T123',
-}
+import { PUBLIC_CHANNEL_DATA as DATA } from '../../fixtures'
 
 describe('Channel', () => {
 	let app: App

@@ -3,31 +3,9 @@ import { createHmac } from 'crypto'
 import type { EventWrapper } from '../../../src/api/events'
 import { App } from '../../../src/client'
 import { HttpServerReceiver } from '../../../src/receivers/http'
+import { MESSAGE_EVENT } from '../../fixtures'
 
 const SIGNING_SECRET = '9973309e5bddf914572f508d4c661a61'
-
-const EVENT_PAYLOAD: EventWrapper = {
-	type: 'event_callback',
-	token: 'test',
-	team_id: 'T123',
-	api_app_id: 'A123',
-	event: {
-		type: 'message',
-		text: 'hello',
-		channel: 'C123',
-		user: 'U123',
-		ts: '123456.789',
-		event_ts: '123456.789',
-		team: 'T123',
-	},
-	event_id: 'Ev123',
-	event_time: 1234567890,
-	event_context: 'ctx123',
-	authorizations: [],
-	is_ext_shared_channel: false,
-	context_team_id: 'T123',
-	context_enterprise_id: null,
-}
 
 function createSignedRequest(
 	body: string,
@@ -80,7 +58,7 @@ describe('HttpServerReceiver', () => {
 	})
 
 	it('can receive events', async () => {
-		const body = JSON.stringify(EVENT_PAYLOAD)
+		const body = JSON.stringify(MESSAGE_EVENT)
 
 		let eventReceived: EventWrapper | undefined
 		receiver.on('event', (event) => {
@@ -94,11 +72,11 @@ describe('HttpServerReceiver', () => {
 
 		await new Promise((resolve) => setTimeout(resolve, 0))
 		expect(eventReceived).toBeDefined()
-		expect(eventReceived).toEqual(EVENT_PAYLOAD)
+		expect(eventReceived).toEqual(MESSAGE_EVENT)
 	})
 
 	it('rejects incorrect paths', async () => {
-		const body = JSON.stringify(EVENT_PAYLOAD)
+		const body = JSON.stringify(MESSAGE_EVENT)
 
 		await receiver.start()
 
@@ -111,7 +89,7 @@ describe('HttpServerReceiver', () => {
 			signingSecret: SIGNING_SECRET,
 			client: app,
 		})
-		const body = JSON.stringify(EVENT_PAYLOAD)
+		const body = JSON.stringify(MESSAGE_EVENT)
 
 		await defaultReceiver.start()
 

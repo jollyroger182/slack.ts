@@ -13,29 +13,7 @@ import type { EventWrapper } from '../../../src/api/events'
 import type { AppsConnectionsOpenResponse } from '../../../src/api/web/apps'
 import { App } from '../../../src/client'
 import { SocketEventsReceiver } from '../../../src/receivers/socket'
-
-const EVENT_PAYLOAD: EventWrapper = {
-	type: 'event_callback',
-	token: 'test',
-	team_id: 'T123',
-	api_app_id: 'A123',
-	event: {
-		type: 'message',
-		text: 'hello',
-		channel: 'C123',
-		user: 'U123',
-		ts: '123456.789',
-		event_ts: '123456.789',
-		team: 'T123',
-	},
-	event_id: 'Ev123',
-	event_time: 1234567890,
-	event_context: 'ctx123',
-	authorizations: [],
-	is_ext_shared_channel: false,
-	context_team_id: 'T123',
-	context_enterprise_id: null,
-}
+import { MESSAGE_EVENT } from '../../fixtures'
 
 describe('SocketEventsReceiver', () => {
 	let app: App
@@ -131,7 +109,7 @@ describe('SocketEventsReceiver', () => {
 			const wrapped = {
 				type: 'events_api',
 				envelope_id: 'event001',
-				payload: EVENT_PAYLOAD,
+				payload: MESSAGE_EVENT,
 				accepts_response_payload: false,
 			}
 			const message = JSON.stringify(wrapped)
@@ -141,7 +119,7 @@ describe('SocketEventsReceiver', () => {
 
 			await new Promise((resolve) => setTimeout(resolve, 10))
 
-			expect(eventReceived).toEqual(EVENT_PAYLOAD)
+			expect(eventReceived).toEqual(MESSAGE_EVENT)
 
 			expect(messagesReceived).toHaveLength(1)
 			const response = JSON.parse(messagesReceived[0]!)
