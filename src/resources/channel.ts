@@ -30,7 +30,7 @@ interface FetchMessagesParams extends Omit<TimestampPaginationParams, 'limit'> {
 	limit?: number
 }
 
-class ChannelMixin {
+abstract class ChannelMixin<T extends Conversation = Conversation> {
 	#id: string
 
 	constructor(
@@ -39,6 +39,8 @@ class ChannelMixin {
 	) {
 		this.#id = id
 	}
+
+	protected abstract _updateData(data: T): ChannelInstance<T>
 
 	/** ID of the channel */
 	get id() {
@@ -105,12 +107,9 @@ class ChannelMixin {
 		)
 	}
 
-	async join(): Promise<this extends Channel ? this : ChannelInstance> {
+	async join(): Promise<ChannelInstance<T>> {
 		const { channel } = await this.client.request('conversations.join', { channel: this.#id })
-		if (this instanceof Channel) {
-			return this as any
-		}
-		return new Channel(this.client, this.#id, channel) as any
+		return this._updateData(channel as T)
 	}
 
 	async leave() {
@@ -120,35 +119,40 @@ class ChannelMixin {
 		return !not_in_channel
 	}
 
-	async invite(
-		...users: (User | UserRef | string)[]
-	): Promise<this extends Channel ? this : ChannelInstance> {
+	async invite(...users: (User | UserRef | string)[]): Promise<ChannelInstance<T>> {
 		const { channel } = await this.client.request('conversations.invite', {
 			channel: this.#id,
 			users: users.map((u) => (typeof u === 'string' ? u : u.id)).join(','),
 		})
-		if (this instanceof Channel) {
-			return this as any
-		}
-		return new Channel(this.client, this.#id, channel) as any
+		return this._updateData(channel as T)
 	}
 }
 
-export class ChannelRef extends ChannelMixin implements PromiseLike<ChannelInstance> {
-	then<TResult1 = ChannelInstance, TResult2 = never>(
-		onfulfilled?: ((value: ChannelInstance) => TResult1 | PromiseLike<TResult1>) | null | undefined,
+export class ChannelRef<T extends Conversation = Conversation>
+	extends ChannelMixin<T>
+	implements PromiseLike<ChannelInstance<T>>
+{
+	protected override _updateData(data: T): ChannelInstance<T> {
+		return new Channel(this.client, this.id, data) as ChannelInstance<T>
+	}
+
+	then<TResult1 = ChannelInstance<T>, TResult2 = never>(
+		onfulfilled?:
+			| ((value: ChannelInstance<T>) => TResult1 | PromiseLike<TResult1>)
+			| null
+			| undefined,
 		onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | null | undefined,
 	): PromiseLike<TResult1 | TResult2> {
 		return this.#fetch().then(onfulfilled, onrejected)
 	}
 
-	async #fetch(): Promise<ChannelInstance> {
+	async #fetch(): Promise<ChannelInstance<T>> {
 		const data = await this.client.request('conversations.info', { channel: this.id })
-		return new Channel(this.client, this.id, data.channel) as ChannelInstance
+		return new Channel(this.client, this.id, data.channel as T) as ChannelInstance<T>
 	}
 }
 
-export class Channel<T extends Conversation = Conversation> extends ChannelMixin {
+export class Channel<T extends Conversation = Conversation> extends ChannelMixin<T> {
 	#data: T
 
 	constructor(client: App, id: string, data: T) {
@@ -157,9 +161,18 @@ export class Channel<T extends Conversation = Conversation> extends ChannelMixin
 		return makeProxy(this, () => this.#data)
 	}
 
+	protected override _updateData(data: T): ChannelInstance<T> {
+		this.#data = data
+		return makeProxy(this, () => this.#data)
+	}
+
 	/** A reference to the creator of this channel. Only available for non-DM channels. */
 	get creator(): undefined extends T['creator'] ? UserRef | undefined : UserRef {
 		return this.#data.creator ? new UserRef(this.client, this.#data.creator) : (undefined as any)
+	}
+
+	get raw() {
+		return this.#data
 	}
 }
 
