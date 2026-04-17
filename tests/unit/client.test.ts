@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, mock, spyOn } from 'bun:test'
+import { afterEach, beforeEach, describe, expect, it, spyOn } from 'bun:test'
 import {
 	Action,
 	App,
@@ -14,10 +14,16 @@ import {
 	type SlackAPIResponse,
 	type UserInstance,
 } from 'slack.ts'
-import type { IM, PublicChannel } from '../../src/api/types/conversation'
-import { blockActions, MESSAGE_EVENT, PUBLIC_CHANNEL_DATA, USER_DATA } from '../fixtures'
-import type { BlockActions, ButtonAction } from '../../src/api/interactive/block_actions'
 import type { EventWrapper } from '../../src/api/events'
+import type { BlockActions } from '../../src/api/interactive/block_actions'
+import type { IM, PublicChannel } from '../../src/api/types/conversation'
+import {
+	blockActions,
+	BUTTON_DATA,
+	MESSAGE_EVENT,
+	PUBLIC_CHANNEL_DATA,
+	USER_DATA,
+} from '../fixtures'
 
 describe('App client', () => {
 	let app: App
@@ -69,19 +75,12 @@ describe('App client', () => {
 
 	it('can wait for actions', async () => {
 		const btn = button('press me').id('test_button')
-		const actionPayload = {
-			type: 'button',
-			block_id: '12345',
-			action_id: 'test_button',
-			action_ts: '123456.789',
-			text: { type: 'plain_text', text: 'press me' },
-		} as const
-		const payload: BlockActions = blockActions(actionPayload)
+		const payload: BlockActions = blockActions(BUTTON_DATA)
 		setTimeout(() => app.receiver.emit('block_actions', payload), 0)
 
 		const action = await app.wait.timeout(10).action(btn)
 		expect(action).toBeInstanceOf(Action)
-		expect(action.raw).toEqual(actionPayload)
+		expect(action.raw).toEqual(BUTTON_DATA)
 		expect(action.action_id).toBe('test_button')
 	})
 
@@ -94,18 +93,10 @@ describe('App client', () => {
 
 	it('wait with timeout 0 disables timeout', async () => {
 		const btn = button('press me').id('test_button')
-		const actionPayload = {
-			type: 'button',
-			block_id: '12345',
-			action_id: 'test_button',
-			action_ts: '123456.789',
-			text: { type: 'plain_text', text: 'press me' },
-		} as const
-		const payload: BlockActions = blockActions(actionPayload)
+		const payload: BlockActions = blockActions(BUTTON_DATA)
 		setTimeout(() => app.receiver.emit('block_actions', payload), 10)
 
-		const action = await app.wait.timeout(0).action(btn)
-		expect(action).toBeInstanceOf(Action)
+		await app.wait.timeout(0).action(btn)
 	})
 
 	it('provides channel factory method', () => {

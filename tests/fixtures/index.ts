@@ -1,5 +1,9 @@
 import type { EventWrapper } from '../../src/api/events'
-import type { BlockAction, BlockActions } from '../../src/api/interactive/block_actions'
+import type {
+	BlockAction,
+	BlockActions,
+	ButtonAction,
+} from '../../src/api/interactive/block_actions'
 import type { PublicChannel } from '../../src/api/types/conversation'
 import type { NormalMessage } from '../../src/api/types/message'
 import type { User } from '../../src/api/types/user'
@@ -38,6 +42,10 @@ export const MESSAGE_DATA: NormalMessage = {
 	text: 'Hello world',
 	ts: '123456.789',
 	team: 'T123',
+}
+
+export function normalMessage(overrides?: Partial<NormalMessage>) {
+	return { ...MESSAGE_DATA, ...overrides }
 }
 
 export const MESSAGE_EVENT: EventWrapper = {
@@ -106,6 +114,14 @@ export const USER_DATA = {
 	is_app_user: false,
 	has_2fa: true,
 } satisfies User
+
+export const BUTTON_DATA = {
+	type: 'button',
+	block_id: '12345',
+	action_id: 'test_button',
+	action_ts: '123456.789',
+	text: { type: 'plain_text', text: 'press me' },
+} as const satisfies ButtonAction
 
 export function blockActions(...actions: BlockAction[]): BlockActions {
 	return {

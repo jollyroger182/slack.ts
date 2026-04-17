@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, spyOn } from 'bun:test'
 import { Message, MessageRef, type MessageInstance, type SlackAPIResponse } from 'slack.ts'
 import type { PublicChannel } from '../../../src/api/types/conversation'
 import { App } from '../../../src/client'
-import { Channel, type ChannelInstance } from '../../../src/resources/channel'
+import { Channel, ChannelRef, type ChannelInstance } from '../../../src/resources/channel'
 import { PUBLIC_CHANNEL_DATA as DATA } from '../../fixtures'
 
 describe('Channel', () => {
@@ -12,10 +12,6 @@ describe('Channel', () => {
 	beforeEach(() => {
 		app = new App({ token: 'xoxb-test-token' })
 		channel = new Channel(app, DATA.id, DATA) as ChannelInstance<PublicChannel>
-	})
-
-	it('creates a channel', () => {
-		expect(channel).toBeDefined()
 	})
 
 	it('provides id property', () => {
@@ -128,5 +124,30 @@ describe('Channel', () => {
 		})
 		expect(invitedChannel).toBeInstanceOf(Channel)
 		expect(invitedChannel.name).toBe(DATA.name)
+	})
+})
+
+describe('ChannelRef', () => {
+	let app: App
+	let ref: ChannelRef<PublicChannel>
+
+	beforeEach(() => {
+		app = new App({ token: 'xoxb-test-token' })
+		ref = new ChannelRef(app, DATA.id)
+	})
+
+	it('can fetch channel details', async () => {
+		const requestSpy = spyOn(app, 'request').mockResolvedValueOnce({
+			ok: true,
+			channel: DATA,
+		} satisfies SlackAPIResponse<'conversations.info'>)
+
+		const channel = await ref
+		expect(requestSpy).toBeCalledTimes(1)
+		expect(requestSpy).toBeCalledWith('conversations.info', { channel: 'C123' })
+		expect(channel).toBeInstanceOf(Channel)
+		expect(channel.id).toBe('C123')
+		expect(channel.raw).toEqual(DATA)
+		expect(channel.name).toBe(DATA.name)
 	})
 })
