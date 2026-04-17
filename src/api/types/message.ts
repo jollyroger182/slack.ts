@@ -53,7 +53,7 @@ interface MaybeBot {
 }
 
 interface MaybeAttachments {
-	attachments: Attachment[]
+	attachments?: Attachment[]
 }
 
 interface MaybeBlocks<Blocks extends KnownBlock[] = KnownBlock[]> {
