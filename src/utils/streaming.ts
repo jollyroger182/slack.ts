@@ -1,6 +1,9 @@
+import type { KnownBlock } from '@slack/types'
 import type { SlackAPIParams } from '../api'
 import type { StreamChunk } from '../api/web/chat'
 import type { App } from '../client'
+import { Message, type MessageInstance } from '../resources'
+import type { NormalMessage } from '../api/types/message'
 
 export async function startStreaming(client: App, params: SlackAPIParams<'chat.startStream'>) {
 	const { channel, ts } = await client.request('chat.startStream', params)
@@ -26,8 +29,18 @@ export class Streamer {
 		return this.#chain
 	}
 
-	async stop({ blocks }: Pick<SlackAPIParams<'chat.stopStream'>, 'blocks'>) {
-		await this.client.request('chat.stopStream', { channel: this.channel, ts: this.ts, blocks })
+	async stop<Blocks extends KnownBlock[] = KnownBlock[]>({ blocks }: { blocks?: Blocks } = {}) {
+		const { message } = await this.client.request('chat.stopStream', {
+			channel: this.channel,
+			ts: this.ts,
+			blocks,
+		})
+		return new Message(
+			this.client,
+			this.channel,
+			this.ts,
+			message as NormalMessage<Blocks>,
+		) as MessageInstance<NormalMessage<Blocks>, Blocks>
 	}
 
 	async sync() {
