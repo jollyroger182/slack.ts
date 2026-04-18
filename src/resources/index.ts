@@ -1,5 +1,7 @@
 export { Action, type ActionInstance } from './action'
+export { Autocomplete, type AutocompleteInstance } from './autocomplete'
 export { Channel, ChannelRef, type ChannelInstance } from './channel'
+export { HomeOpened, type HomeOpenedInstance } from './home_opened'
 export { Message, MessageRef, type MessageInstance } from './message'
 export { Modal, type ModalInstance } from './modal'
 export { SlashCommand, type SlashCommandInstance } from './slash'

@@ -1,11 +1,9 @@
-import type { PlainTextOption } from '@slack/types'
 import type { BlockSuggestion } from '../api/interactive/block_suggestion'
-import type { App } from '../client'
-import { makeProxy } from '../utils'
-import type { BlockSuggestionResponder } from '../receivers/base'
-import type { PlainTextOptionGroup } from '../api/types/misc'
 import { OptionObjectBuilder } from '../blocks/objects/option'
 import type { OptionGroupBuilder } from '../blocks/objects/option_group'
+import type { App } from '../client'
+import type { BlockSuggestionResponder } from '../receivers/base'
+import { makeProxy } from '../utils'
 
 export class Autocomplete {
 	#data: BlockSuggestion

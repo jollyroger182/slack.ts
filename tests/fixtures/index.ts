@@ -1,13 +1,15 @@
-import type { EventWrapper } from '../../src/api/events'
+import type { AppHomeOpenedEvent, EventWrapper } from '../../src/api/events'
 import type {
 	BlockAction,
 	BlockActions,
 	ButtonAction,
 } from '../../src/api/interactive/block_actions'
+import type { BlockSuggestion } from '../../src/api/interactive/block_suggestion'
+import type { InteractionCommon } from '../../src/api/interactive/common'
 import type { PublicChannel } from '../../src/api/types/conversation'
 import type { NormalMessage } from '../../src/api/types/message'
 import type { User } from '../../src/api/types/user'
-import type { ModalView } from '../../src/api/types/view'
+import type { HomeView, ModalView } from '../../src/api/types/view'
 
 export const PUBLIC_CHANNEL_DATA: PublicChannel = {
 	id: 'C123',
@@ -124,19 +126,23 @@ export const BUTTON_DATA = {
 	text: { type: 'plain_text', text: 'press me' },
 } as const satisfies ButtonAction
 
+const INTERACTION_COMMON = {
+	team: { id: 'T123', domain: 'test' },
+	user: {
+		id: 'U123',
+		username: USER_DATA.name,
+		name: USER_DATA.profile.display_name,
+		team_id: 'T123',
+	},
+	api_app_id: 'A123',
+	token: 'abcdef',
+	trigger_id: '123456abc',
+} satisfies InteractionCommon
+
 export function blockActions(...actions: BlockAction[]): BlockActions {
 	return {
+		...INTERACTION_COMMON,
 		type: 'block_actions',
-		team: { id: 'T123', domain: 'test' },
-		user: {
-			id: 'U123',
-			username: USER_DATA.name,
-			name: USER_DATA.profile.display_name,
-			team_id: 'T123',
-		},
-		api_app_id: 'A123',
-		token: 'abcdef',
-		trigger_id: '123456abc',
 		container: {
 			type: 'message',
 			channel_id: 'C123',
@@ -188,3 +194,60 @@ export const MODAL_VIEW_DATA = {
 	title: { type: 'plain_text', text: 'Modal title', emoji: true },
 	bot_id: 'B123',
 } as const satisfies ModalView
+
+export const HOME_VIEW_DATA = {
+	type: 'home',
+	id: 'V123',
+	team_id: 'T123',
+	app_id: 'A123',
+	app_installed_team_id: 'T123',
+	blocks: [
+		{
+			type: 'section',
+			block_id: '1a2b3c',
+			text: { type: 'mrkdwn', text: 'Hello World', verbatim: false },
+		},
+	],
+	callback_id: '',
+	clear_on_close: false,
+	close: null,
+	external_id: '',
+	hash: '1234abcd',
+	notify_on_close: false,
+	previous_view_id: null,
+	private_metadata: 'some_metadata',
+	root_view_id: null,
+	state: { values: {} },
+	submit: null,
+	title: { type: 'plain_text', text: 'Home view', emoji: true },
+	bot_id: 'B123',
+} as const satisfies HomeView
+
+export const BLOCK_SUGGESTION_DATA = {
+	...INTERACTION_COMMON,
+	type: 'block_suggestion',
+	container: {
+		type: 'message',
+		channel_id: 'C123',
+		message_ts: '123456.789',
+		is_ephemeral: false,
+	},
+	message: {
+		type: 'message',
+		ts: '123456.789',
+		user: 'U123',
+		text: 'hello world',
+		team: 'T123',
+	},
+	block_id: 'block123',
+	action_id: 'menu123',
+	value: 'abc',
+} as const satisfies BlockSuggestion
+
+export const HOME_OPENED_DATA = {
+	type: 'app_home_opened',
+	user: 'U123',
+	tab: 'home',
+	event_ts: '123456.789',
+	channel: 'D123',
+} as const satisfies AppHomeOpenedEvent

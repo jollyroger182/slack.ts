@@ -14,6 +14,10 @@ export class HomeOpened {
 		return makeProxy(this, () => this.#data)
 	}
 
+	get raw() {
+		return this.#data
+	}
+
 	async respond(view: SlackAPIParams<'views.publish'>['view']) {
 		return await this.client.request('views.publish', { user_id: this.#data.user, view })
 	}
