@@ -1,8 +1,10 @@
 import WebSocket from 'ws'
+import { SLACK_EVENT_TYPES, type AllEvents, type EventWrapper } from '../api/events'
 import type { App } from '../client'
+import { SlackError, SlackTimeoutError } from '../error'
+import type { User, UserRef } from '../resources'
 import { AsyncEventEmitter } from '../utils/events'
 import type { EventsReceiver, ReceiverEventMap } from './base'
-import { SLACK_EVENT_TYPES, type AllEvents, type EventWrapper } from '../api/events'
 
 export interface RTMReceiverOptions {
 	client: App
@@ -48,7 +50,71 @@ export class RTMReceiver
 		})
 	}
 
-	async _syncConnect(): Promise<void> {
+	async subscribe(...users: (string | User | UserRef)[]) {
+		if (this.#ws?.readyState !== WebSocket.OPEN) {
+			throw new SlackError('Connection is not open')
+		}
+		const ids = users.map((u) => (typeof u === 'string' ? u : u.id))
+		this.#ws?.send(JSON.stringify({ type: 'presence_sub', ids }))
+	}
+
+	async presence(
+		timeout: number,
+		...users: (string | User | UserRef)[]
+	): Promise<Record<string, 'away' | 'active'>>
+	async presence(
+		firstUser: string | User | UserRef,
+		...users: (string | User | UserRef)[]
+	): Promise<Record<string, 'away' | 'active'>>
+
+	async presence(first: number | string | User | UserRef, ...users: (string | User | UserRef)[]) {
+		let timeout: number = 10000
+		if (typeof first === 'number') {
+			timeout = first
+		} else {
+			users.splice(0, 0, first)
+		}
+
+		const ids = users.map((u) => (typeof u === 'string' ? u : u.id))
+
+		return new Promise((resolve, reject) => {
+			const ws = this.#ws
+
+			if (ws?.readyState !== WebSocket.OPEN) {
+				throw new SlackError('Connection is not open')
+			}
+
+			const cleanup = () => {
+				this.off('presence_change', callback)
+				clearTimeout(timer)
+			}
+
+			const timer = setTimeout(() => {
+				cleanup()
+				reject(new SlackTimeoutError('Timed out waiting for presence event'))
+			}, timeout)
+
+			const gotUsers: Record<string, 'active' | 'away'> = {}
+			const callback = (event: PresenceChangeEvent) => {
+				const batch = event.users ?? [event.user]
+				for (const id of batch) {
+					if (ids.includes(id)) {
+						gotUsers[id] = event.presence
+					}
+				}
+				if (ids.every((u) => gotUsers[u])) {
+					cleanup()
+					resolve(gotUsers)
+				}
+			}
+
+			this.on('presence_change', callback)
+
+			ws.send(JSON.stringify({ type: 'presence_query', ids }))
+		})
+	}
+
+	private async _syncConnect(): Promise<void> {
 		console.debug('[rtm] attempting connection to slack')
 		return this._connect().catch((error) => {
 			console.error('[rtm] connection failed, retrying')
@@ -96,28 +162,31 @@ export class RTMReceiver
 
 	#onMessage(event: WebSocket.MessageEvent) {
 		if (typeof event.data === 'string') {
-			const payload = JSON.parse(event.data.replaceAll('\0', '')) as RTMEvent
+			try {
+				const payload = JSON.parse(event.data.replaceAll('\0', '')) as RTMEvent
 
-			if ('type' in payload && payload.type) {
-				this.emit(payload.type as any, payload)
-			}
-
-			if (payload.type === 'pong') {
-				const pingTime = payload.time
-				const rtt = Date.now() - pingTime
-				console.debug('[rtm] ping took', rtt, 'ms')
-			} else if (payload.type === 'error') {
-				console.error('[rtm] error received:', payload.error)
-			} else if (payload.type === 'reconnect_url') {
-				console.debug('[rtm] got new reconnect_url', payload.url)
-				this.#reconnectUrl = payload.url
-			} else if (payload.type === 'hello') {
-				console.debug('[rtm] received hello event from', payload.region)
-			} else if (isSlackEvent(payload)) {
-				this.emit('event', makeEventWrapper(payload))
-			} else {
-				console.warn('[rtm] unknown event')
-				console.warn(payload)
+				if (payload.type === 'pong') {
+					const pingTime = payload.time
+					const rtt = Date.now() - pingTime
+					console.debug('[rtm] ping took', rtt, 'ms')
+				} else if (payload.type === 'error') {
+					console.error('[rtm] error received:', payload.error)
+				} else if (payload.type === 'reconnect_url') {
+					console.debug('[rtm] got new reconnect_url', payload.url)
+					this.#reconnectUrl = payload.url
+				} else if (payload.type === 'hello') {
+					console.debug('[rtm] received hello event from', payload.region)
+				} else if (isSlackEvent(payload)) {
+					this.emit('event', makeEventWrapper(payload))
+				} else if (payload?.type) {
+					this.emit(payload.type, payload as any)
+				} else {
+					console.warn('[rtm] unknown payload')
+					console.warn(payload)
+				}
+			} catch (e) {
+				console.error('[rtm] error parsing received message')
+				console.error(e)
 			}
 		}
 	}
@@ -214,12 +283,13 @@ export interface PrefChangeEvent {
 	event_ts: string
 }
 
-export interface PresenceChangeEvent {
+export type PresenceChangeEvent = {
 	type: 'presence_change'
-	user: string
+	user?: string
+	users?: string[]
 	presence: 'active' | 'away'
 	event_ts: string
-}
+} & ({ user: string; users?: never } | { users: string[]; user?: never })
 
 export interface PongEvent {
 	type: 'pong'
@@ -290,7 +360,7 @@ export type RTMEvent =
 // | GroupMarkedEvent
 
 export type RTMEventEmitterMap = {
-	[K in RTMEvent as K['type']]: [K]
+	[K in Exclude<RTMEvent, AllEvents> as K['type']]: [K]
 }
 
 export const SLACK_RTM_API_EVENTS = [
