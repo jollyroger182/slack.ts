@@ -1,16 +1,15 @@
-import { App, RTMReceiver } from 'slack.ts'
+import { App } from 'slack.ts'
 
 const app = new App({
 	token: { cookie: process.env.SLACK_XOXD!, token: process.env.SLACK_XOXC! },
 	receiver: { type: 'rtm' },
 })
-const rtm = app.receiver as RTMReceiver
 
 app.on('event:reaction_added', async ({ payload }) => {
 	if (payload.item.type === 'message') {
 		const msg = await app.channel(payload.item.channel).message(payload.item.ts)
 		console.log(`+:${payload.reaction}:`, msg.text)
-		await rtm.subscribe(payload.user)
+		await app.receiver.subscribe(payload.user)
 	}
 })
 
@@ -22,7 +21,7 @@ app.on('message:message_changed', (message) => {
 	console.log(message)
 })
 
-rtm.on('presence_change', (event) => {
+app.receiver.on('presence_change', (event) => {
 	console.log(event.user ?? event.users, event.presence)
 })
 

@@ -7,17 +7,15 @@ import type { BlockActions } from '../../../src/api/interactive/block_actions'
 import {
 	Action,
 	blocks,
-	button,
 	section,
 	SlackWebAPIPlatformError,
 	User,
 	type SlackAPIResponse,
 	type UserInstance,
 } from 'slack.ts'
-import { channel } from 'node:diagnostics_channel'
 
 describe('Message', () => {
-	let app: App
+	let app: App<'dummy'>
 	let message: MessageInstance<NormalMessage>
 
 	beforeEach(() => {

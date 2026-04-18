@@ -55,9 +55,17 @@ type ReceiverOptions =
 			options?: never
 	  }
 
-interface AppOptions {
+type ReceiverMap = {
+	socket: SocketEventsReceiver
+	http: HttpServerReceiver
+	fetch: HttpFetchReceiver
+	rtm: RTMReceiver
+	dummy: DummyReceiver
+}
+
+interface AppOptions<Receiver extends ReceiverOptions['type'] = ReceiverOptions['type']> {
 	token?: AnyToken
-	receiver?: ReceiverOptions
+	receiver?: Extract<ReceiverOptions, { type: Receiver }>
 }
 
 export type MessageCallbackData = {
@@ -82,29 +90,35 @@ type ChannelTypeMap = {
 	im: IM
 }
 
-export class App extends AsyncEventEmitter<AppEventMap> {
+export class App<
+	Receiver extends ReceiverOptions['type'] = ReceiverOptions['type'],
+> extends AsyncEventEmitter<AppEventMap> {
+	private __brand?: Receiver
+
 	#token?: AnyToken
 	#receiver: EventsReceiver
 
-	constructor({ token, receiver = { type: 'dummy' } }: AppOptions = {}) {
+	constructor({ token, receiver }: AppOptions<Receiver> = {}) {
 		super()
 
 		this.#token = token
-		switch (receiver.type) {
+
+		const receiverConfig: ReceiverOptions = receiver || { type: 'dummy' }
+		switch (receiverConfig.type) {
 			case 'socket':
-				this.#receiver = new SocketEventsReceiver({ ...receiver, client: this })
+				this.#receiver = new SocketEventsReceiver({ ...receiverConfig, client: this })
 				break
 			case 'http':
-				this.#receiver = new HttpServerReceiver({ ...receiver, client: this })
+				this.#receiver = new HttpServerReceiver({ ...receiverConfig, client: this })
 				break
 			case 'fetch':
-				this.#receiver = new HttpFetchReceiver({ ...receiver, client: this })
+				this.#receiver = new HttpFetchReceiver({ ...receiverConfig, client: this })
 				break
 			case 'rtm':
 				if (typeof token === 'string' || !token) {
 					throw new Error('The RTM receiver must be used with xoxd/xoxc tokens')
 				}
-				this.#receiver = new RTMReceiver({ ...receiver, client: this, token })
+				this.#receiver = new RTMReceiver({ ...receiverConfig, client: this, token })
 				break
 			default:
 				this.#receiver = new DummyReceiver()
@@ -189,8 +203,8 @@ export class App extends AsyncEventEmitter<AppEventMap> {
 		await this.emit('home', obj)
 	}
 
-	get receiver() {
-		return this.#receiver
+	get receiver(): ReceiverMap[Receiver] {
+		return this.#receiver as any
 	}
 
 	/**

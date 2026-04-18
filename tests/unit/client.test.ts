@@ -26,7 +26,7 @@ import {
 } from '../fixtures'
 
 describe('App client', () => {
-	let app: App
+	let app: App<'dummy'>
 	let originalFetch: typeof fetch
 
 	beforeEach(() => {
