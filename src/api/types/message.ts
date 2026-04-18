@@ -110,7 +110,8 @@ export interface MessageChangedMessage extends MessageCommon {
 	subtype: 'message_changed'
 
 	hidden: true
-	message: NormalMessage // TODO is this correct?
+	message: Exclude<AnyMessage, { hidden: true }> // TODO is this correct?
+	previous_message?: Exclude<AnyMessage, { hidden: true }>
 }
 
 export interface MessageDeletedMessage extends MessageCommon {

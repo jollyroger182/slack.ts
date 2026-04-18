@@ -245,9 +245,10 @@ export type SlackAPIMethod = keyof SlackWebAPIMap
 export type SlackPaginatingAPIMethod = {
 	[K in SlackAPIMethod]: SlackWebAPIMap[K]['response'] extends CursorPaginationResponse ? K : never
 }[SlackAPIMethod]
-export type SlackAPIParams<Method extends SlackAPIMethod> = SlackWebAPIMap[Method]['params'] & {
-	token?: AnyToken
-}
+export type SlackAPIParams<Method extends SlackAPIMethod> =
+	(SlackWebAPIMap[Method]['params'] extends void ? {} : SlackWebAPIMap[Method]['params']) & {
+		token?: AnyToken
+	}
 export type SlackAPIResponse<Method extends SlackAPIMethod> =
 	| { ok: false; error: string }
 	| ({ ok: true } & SlackWebAPIMap[Method]['response'])

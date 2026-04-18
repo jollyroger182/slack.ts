@@ -24,6 +24,7 @@ import type { BlockSuggestionResponder, EventsReceiver } from './receivers/base'
 import { DummyReceiver } from './receivers/dummy'
 import { HttpFetchReceiver, type HttpFetchReceiverOptions } from './receivers/fetch'
 import { HttpServerReceiver, type HttpServerReceiverOptions } from './receivers/http'
+import { RTMReceiver, type RTMReceiverOptions } from './receivers/rtm'
 import { SocketEventsReceiver, type SocketEventsReceiverOptions } from './receivers/socket'
 import { Submission, type SubmissionInstance } from './resources'
 import { Action, type ActionInstance } from './resources/action'
@@ -48,6 +49,7 @@ type ReceiverOptions =
 	| ({
 			type: 'fetch'
 	  } & DistributiveOmit<HttpFetchReceiverOptions, 'client'>)
+	| ({ type: 'rtm' } & DistributiveOmit<RTMReceiverOptions, 'client' | 'token'>)
 	| {
 			type: 'dummy'
 			options?: never
@@ -97,6 +99,12 @@ export class App extends AsyncEventEmitter<AppEventMap> {
 				break
 			case 'fetch':
 				this.#receiver = new HttpFetchReceiver({ ...receiver, client: this })
+				break
+			case 'rtm':
+				if (typeof token === 'string' || !token) {
+					throw new Error('The RTM receiver must be used with xoxd/xoxc tokens')
+				}
+				this.#receiver = new RTMReceiver({ ...receiver, client: this, token })
 				break
 			default:
 				this.#receiver = new DummyReceiver()
