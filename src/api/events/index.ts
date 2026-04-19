@@ -134,6 +134,7 @@ export const SLACK_EVENT_TYPES = [
 	// 'manual_presence_change',
 	'member_joined_channel',
 	'member_left_channel',
+	'message',
 	'message_metadata_deleted',
 	'message_metadata_posted',
 	'message_metadata_updated',
