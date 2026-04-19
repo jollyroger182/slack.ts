@@ -1,15 +1,21 @@
 import {
 	actions,
+	alert,
 	App,
 	blocks,
 	button,
+	card,
 	checkboxes,
+	context,
 	datePicker,
 	datetimePicker,
+	divider,
 	emailInput,
 	fileInput,
+	header,
 	image,
 	input,
+	markdown,
 	mrkdwn,
 	option,
 	optionGroup,
@@ -36,6 +42,30 @@ app.on('action.show_modal', async (action) => {
 		title: { type: 'plain_text', text: 'modal' },
 		submit: { type: 'plain_text', text: 'submit' },
 		blocks: blocks(
+			header('header block'),
+			divider(),
+			context(
+				'*mrkdwn*',
+				plain('plain _text_'),
+				mrkdwn('*mrkdwn*'),
+				image('image').url('https://picsum.photos/32/32'),
+			),
+			card()
+				.hero(image('big image').url('https://picsum.photos/400/300'))
+				.icon(image('icon').url('https://picsum.photos/32/32'))
+				.title('title')
+				.subtitle('subtitle')
+				.body('some body text')
+				.actions(button('button 2').id('b'), button('button 3').id('c'))
+				.id('card'),
+
+			// alert
+			alert('default'),
+			alert('info').info(),
+			alert('warning').warning(),
+			alert('error').error(),
+			alert('success').success(),
+
 			// section
 			section(plain('plain text, no *mrkdwn*')),
 			section(mrkdwn('also *mrkdwn* _text_')),
@@ -147,5 +177,8 @@ app.on('autocomplete', async (event) => {
 await app.start()
 
 await app.channel(process.env.SLACK_CHANNEL!).send({
-	blocks: blocks(actions(button('show modal with all blocks').id('show_modal'))),
+	blocks: blocks(
+		markdown('actual __markdown__ *text* instead of ~~mrkdwn~~'),
+		actions(button('show modal with all blocks').id('show_modal')),
+	),
 })
