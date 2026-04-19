@@ -14,7 +14,7 @@ export class SlackWebAPIError extends SlackError {
 		public url: string,
 		public data?: unknown,
 	) {
-		super(`Fetch ${url} failed`)
+		super(`Fetch ${url} failed: ${JSON.stringify(data)}`)
 	}
 }
 
