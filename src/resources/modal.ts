@@ -1,11 +1,11 @@
-import type { KnownBlock } from '@slack/types'
+import type { AnyBlock } from '@slack/types'
 import type { ModalView } from '../api/types/view'
 import type { App } from '../client'
 import { SlackTimeoutError } from '../error'
 import { makeProxy } from '../utils'
 import { type SubmissionInstance } from './submission'
 
-export class Modal<Blocks extends KnownBlock[] = KnownBlock[]> {
+export class Modal<Blocks extends AnyBlock[] = AnyBlock[]> {
 	#data: ModalView<Blocks>
 
 	constructor(
@@ -25,10 +25,10 @@ export class Modal<Blocks extends KnownBlock[] = KnownBlock[]> {
 	}
 }
 
-export type ModalInstance<Blocks extends KnownBlock[] = KnownBlock[]> = Modal<Blocks> &
+export type ModalInstance<Blocks extends AnyBlock[] = AnyBlock[]> = Modal<Blocks> &
 	ModalView<Blocks>
 
-class ModalWait<Blocks extends KnownBlock[] = KnownBlock[]> {
+class ModalWait<Blocks extends AnyBlock[] = AnyBlock[]> {
 	private _timeout: number = 60000
 
 	constructor(

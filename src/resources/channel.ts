@@ -1,4 +1,4 @@
-import type { KnownBlock } from '@slack/types'
+import type { AnyBlock } from '@slack/types'
 import type { TimestampPaginationParams } from '../api/types/api'
 import type { Conversation } from '../api/types/conversation'
 import type { NormalMessage } from '../api/types/message'
@@ -61,7 +61,7 @@ abstract class ChannelMixin<T extends Conversation = Conversation> {
 	 * @param message The message payload to send, either a mrkdwn-formatted string or an object.
 	 * @returns The sent message
 	 */
-	async send<Blocks extends KnownBlock[] = KnownBlock[]>(
+	async send<Blocks extends AnyBlock[] = AnyBlock[]>(
 		message: DistributiveOmit<SendMessageWithoutFiles<Blocks>, 'channel'> | string,
 	): Promise<MessageInstance<NormalMessage<Blocks>, Blocks>>
 

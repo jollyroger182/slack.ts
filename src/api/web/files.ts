@@ -1,4 +1,4 @@
-import type { KnownBlock } from '@slack/types'
+import type { AnyBlock } from '@slack/types'
 import type { File } from '../types/file'
 
 interface CompleteUploadFile {
@@ -30,7 +30,7 @@ export interface FilesCompleteUploadExternalParams {
 	 * A JSON-based array of structured rich text blocks, presented as a URL-encoded string. If the
 	 * `initial_comment` field is provided, the `blocks` field is ignored
 	 */
-	blocks?: KnownBlock[]
+	blocks?: AnyBlock[]
 }
 
 export interface FilesCompleteUploadExternalResponse {

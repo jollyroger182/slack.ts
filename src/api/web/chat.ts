@@ -1,4 +1,4 @@
-import type { KnownBlock } from '@slack/types'
+import type { AnyBlock } from '@slack/types'
 import type { Attachment, MeMessageMessage, MessageMetadata, NormalMessage } from '../types/message'
 
 interface MarkdownMessage {
@@ -9,9 +9,9 @@ interface MarkdownMessage {
 
 type TextMessage = {
 	markdown_text?: never
-	blocks?: KnownBlock[]
+	blocks?: AnyBlock[]
 	text?: string
-} & ({ blocks: KnownBlock[] } | { text: string })
+} & ({ blocks: AnyBlock[] } | { text: string })
 
 export type ChatPostEphemeralParams = {
 	channel: string
@@ -152,7 +152,7 @@ export interface ChatStopStreamParams {
 	markdown_text?: string
 
 	/** A list of blocks that will be rendered at the bottom of the finalized message. */
-	blocks?: KnownBlock[]
+	blocks?: AnyBlock[]
 
 	/**
 	 * JSON object with event_type and event_payload fields, presented as a URL-encoded string.
@@ -167,7 +167,7 @@ export interface ChatStopStreamResponse {
 	message: NormalMessage
 }
 
-export type ChatUpdateParams<Blocks extends KnownBlock[] = KnownBlock[]> = {
+export type ChatUpdateParams<Blocks extends AnyBlock[] = AnyBlock[]> = {
 	/**
 	 * Channel containing the message to be updated. For direct messages, ensure that this value is a
 	 * DM ID (starts with `D`) instead of a User ID (starts with either `U` or `W`).
@@ -230,9 +230,7 @@ export type ChatUpdateParams<Blocks extends KnownBlock[] = KnownBlock[]> = {
 	/** Array of new file ids that will be sent with this message. */
 	file_ids?: string[]
 } & (
-	| (Blocks extends [KnownBlock, ...KnownBlock[]]
-			? { blocks: Blocks; markdown_text?: never }
-			: never)
+	| (Blocks extends [AnyBlock, ...AnyBlock[]] ? { blocks: Blocks; markdown_text?: never } : never)
 	| { text: string; markdown_text?: never }
 	| { blocks?: never; text?: never; markdown_text: string }
 )

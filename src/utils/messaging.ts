@@ -1,4 +1,4 @@
-import type { KnownBlock } from '@slack/types'
+import type { AnyBlock } from '@slack/types'
 import type { NormalMessage } from '../api/types/message'
 import type { ChatPostEphemeralParams, ChatPostMessageParams } from '../api/web/chat'
 import type { App } from '../client'
@@ -13,7 +13,7 @@ export type SendMessageFile = {
 	alt_txt?: string
 }
 
-export interface SendMessageWithFiles<Blocks extends KnownBlock[] = KnownBlock[]> {
+export interface SendMessageWithFiles<Blocks extends AnyBlock[] = AnyBlock[]> {
 	channel: string
 	files: SendMessageFile[]
 	thread_ts?: string
@@ -22,7 +22,7 @@ export interface SendMessageWithFiles<Blocks extends KnownBlock[] = KnownBlock[]
 	token?: AnyToken
 }
 
-export type SendMessageWithoutFiles<Blocks extends KnownBlock[] = KnownBlock[]> = {
+export type SendMessageWithoutFiles<Blocks extends AnyBlock[] = AnyBlock[]> = {
 	files?: never
 	blocks?: Blocks
 } & (
@@ -30,11 +30,11 @@ export type SendMessageWithoutFiles<Blocks extends KnownBlock[] = KnownBlock[]> 
 	| ({ ephemeral: true } & ChatPostEphemeralParams)
 )
 
-export type SendMessageParams<Blocks extends KnownBlock[] = KnownBlock[]> =
+export type SendMessageParams<Blocks extends AnyBlock[] = AnyBlock[]> =
 	| SendMessageWithFiles<Blocks>
 	| SendMessageWithoutFiles<Blocks>
 
-export async function sendMessage<Blocks extends KnownBlock[] = KnownBlock[]>(
+export async function sendMessage<Blocks extends AnyBlock[] = AnyBlock[]>(
 	client: App,
 	params: SendMessageParams<Blocks>,
 ) {

@@ -1,4 +1,4 @@
-import type { KnownBlock } from '@slack/types'
+import type { AnyBlock } from '@slack/types'
 import type { SlackAPIParams } from '../api'
 import type { StreamChunk } from '../api/web/chat'
 import type { App } from '../client'
@@ -29,7 +29,7 @@ export class Streamer {
 		return this.#chain
 	}
 
-	async stop<Blocks extends KnownBlock[] = KnownBlock[]>({ blocks }: { blocks?: Blocks } = {}) {
+	async stop<Blocks extends AnyBlock[] = AnyBlock[]>({ blocks }: { blocks?: Blocks } = {}) {
 		const { message } = await this.client.request('chat.stopStream', {
 			channel: this.channel,
 			ts: this.ts,

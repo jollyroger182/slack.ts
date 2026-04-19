@@ -1,4 +1,4 @@
-import type { KnownBlock } from '@slack/types'
+import type { AnyBlock } from '@slack/types'
 import type { BlockAction, BlockActionTypes } from '../api/interactive/block_actions'
 import type { TimestampPaginationParams } from '../api/types/api'
 import type { AnyMessage, NormalMessage } from '../api/types/message'
@@ -46,7 +46,7 @@ interface FetchRepliesParams extends Omit<TimestampPaginationParams, 'limit'> {
 
 abstract class MessageMixin<
 	Subtype extends AnyMessage = AnyMessage,
-	Blocks extends KnownBlock[] = KnownBlock[],
+	Blocks extends AnyBlock[] = AnyBlock[],
 > {
 	#channel: string
 	#ts: string
@@ -62,7 +62,7 @@ abstract class MessageMixin<
 
 	protected abstract _updateData<
 		Subtype extends AnyMessage = AnyMessage,
-		Blocks extends KnownBlock[] = KnownBlock[],
+		Blocks extends AnyBlock[] = AnyBlock[],
 	>(data: Subtype): MessageInstance<Subtype, Blocks>
 
 	/** The channel where this message was sent */
@@ -107,7 +107,7 @@ abstract class MessageMixin<
 	 * @param message The message payload to send, either a mrkdwn-formatted string or an object.
 	 * @returns The sent message
 	 */
-	async reply<Blocks extends KnownBlock[] = KnownBlock[]>(
+	async reply<Blocks extends AnyBlock[] = AnyBlock[]>(
 		message: DistributiveOmit<SendMessageWithoutFiles<Blocks>, 'channel' | 'thread_ts'> | string,
 	): Promise<MessageInstance<NormalMessage<Blocks>, Blocks>>
 
@@ -173,7 +173,7 @@ abstract class MessageMixin<
 		)
 	}
 
-	async edit<NewBlocks extends KnownBlock[] = Blocks>(
+	async edit<NewBlocks extends AnyBlock[] = Blocks>(
 		params: DistributiveOmit<ChatUpdateParams<NewBlocks>, 'channel' | 'ts'> & { token?: AnyToken },
 	) {
 		const { message } = await this.client.request('chat.update', {
@@ -231,14 +231,14 @@ abstract class MessageMixin<
 
 export class MessageRef<
 	Subtype extends AnyMessage = AnyMessage,
-	Blocks extends KnownBlock[] = KnownBlock[],
+	Blocks extends AnyBlock[] = AnyBlock[],
 >
 	extends MessageMixin<Subtype, Blocks>
 	implements PromiseLike<MessageInstance<Subtype>>
 {
 	protected override _updateData<
 		Subtype extends AnyMessage = AnyMessage,
-		Blocks extends KnownBlock[] = KnownBlock[],
+		Blocks extends AnyBlock[] = AnyBlock[],
 	>(data: Subtype): MessageInstance<Subtype, Blocks> {
 		return new Message(this.client, this._channelId, this.ts, data) as MessageInstance<
 			Subtype,
@@ -278,7 +278,7 @@ export class MessageRef<
 
 export class Message<
 	Subtype extends AnyMessage = AnyMessage,
-	Blocks extends KnownBlock[] = KnownBlock[],
+	Blocks extends AnyBlock[] = AnyBlock[],
 > extends MessageMixin<Subtype, Blocks> {
 	#data: Subtype
 
@@ -290,7 +290,7 @@ export class Message<
 
 	protected override _updateData<
 		Subtype extends AnyMessage = AnyMessage,
-		Blocks extends KnownBlock[] = KnownBlock[],
+		Blocks extends AnyBlock[] = AnyBlock[],
 	>(data: Subtype): MessageInstance<Subtype, Blocks> {
 		this.#data = data as any
 		return makeProxy(this, () => this.#data)
@@ -322,13 +322,10 @@ export class Message<
 
 export type MessageInstance<
 	Subtype extends AnyMessage = AnyMessage,
-	Blocks extends KnownBlock[] = KnownBlock[],
+	Blocks extends AnyBlock[] = AnyBlock[],
 > = Message<Subtype, Blocks> & Subtype
 
-class MessageWait<
-	Subtype extends AnyMessage = AnyMessage,
-	Blocks extends KnownBlock[] = KnownBlock[],
-> {
+class MessageWait<Subtype extends AnyMessage = AnyMessage, Blocks extends AnyBlock[] = AnyBlock[]> {
 	private _timeout = 60_0_000
 
 	constructor(
@@ -372,9 +369,9 @@ class MessageWait<
 	 * @returns The action that occurred that matches the specifiers.
 	 * @throws `SlackTimeoutError` if timed out before a matched event occurred
 	 */
-	async action<ActionIDs extends (ActionsToPrefixedID<ExtractActions<Blocks>> | ActionPredicate)[]>(
-		...specifiers: ActionIDs
-	) {
+	async action<
+		ActionIDs extends ((ActionsToPrefixedID<ExtractActions<Blocks>> & string) | ActionPredicate)[],
+	>(...specifiers: ActionIDs) {
 		return new Promise<
 			ExtractActionWaitReturnValue<ExtractString<ActionIDs[number]>, ExtractActions<Blocks>>
 		>((resolve, reject) => {
@@ -405,6 +402,7 @@ class MessageWait<
 			const subscriptions: string[] = []
 			for (const specifier of specifiers) {
 				if (typeof specifier === 'string') {
+					// const
 					this.client.on(`action.${specifier as string}`, callback)
 					subscriptions.push(`action.${specifier}`)
 

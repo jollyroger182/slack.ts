@@ -1,12 +1,6 @@
-import type {
-	ActionsBlock,
-	ContextActionsBlock,
-	InputBlock,
-	KnownBlock,
-	SectionBlock,
-} from '@slack/types'
+import type { AnyBlock } from '@slack/types'
 import type { StateValue } from '../../api/types/value'
-import type { DistributivePick } from '../../utils/typing'
+import type { DistributiveOmit } from '../../utils/typing'
 import type { OptionObjectBuilder } from '../objects/option'
 
 export type ExtractValues<Blocks extends { block_id?: string }[]> = {
@@ -30,72 +24,49 @@ export type ExtractValuesFromElement<Element extends { type: string; action_id?:
 		StateValue,
 		{ type: Elem['type'] }
 	> &
-		(Elem extends {
-			type: 'checkboxes' | 'multi_static_select'
-			options: infer Options extends unknown[]
-		}
-			? { selected_options: Options[number][] }
-			: {}) &
-		(Elem extends { type: 'static_select'; options: infer Options extends unknown[] }
-			? { selected_option: Options[number] }
-			: {}) &
-		(Elem extends {
-			type: 'static_select'
-			option_groups: { options: infer Options extends unknown[] }[]
-		}
-			? { selected_option: Options[number] }
-			: {}) &
-		(Elem extends {
-			type: 'multi_static_select'
-			option_groups: { options: infer Options extends unknown[] }[]
-		}
-			? { selected_options: Options[number][] }
-			: {})
+		DistributiveOmit<PickActionAndValueFields<Elem>, 'action_id'>
 }
 
-export type ExtractActions<Blocks extends KnownBlock[]> = {
+export type ExtractActions<Blocks extends AnyBlock[]> = {
 	[K in keyof Blocks]: ExtractBlockActions<Blocks[K]>
 }[number][number]
 
-export type ExtractBlockActions<Block extends KnownBlock> = PickActionFields<
-	(Block extends SectionBlock
-		? Extract<Block['accessory'], { action_id?: string }>[]
-		: Block extends InputBlock
-			? Extract<Block['element'], { action_id?: string }>[]
-			: Block extends ActionsBlock
-				? Extract<Block['elements'][number], { action_id?: string }>[]
-				: Block extends ContextActionsBlock
-					? Extract<Block['elements'][number], { action_id?: string }>[]
-					: [])[number]
+export type ExtractBlockActions<Block extends AnyBlock> = PickActionAndValueFields<
+	{
+		[K in keyof Block]:
+			| Extract<Block[K], { type: string; action_id?: string }>
+			| Extract<Block[K], { type: string; action_id?: string }[]>[number]
+	}[keyof Block]
 >[]
 
-type PickActionFields<Action extends { type: string; action_id?: string }> = Action extends unknown
-	? DistributivePick<Action, 'type' | 'action_id'> &
-			(Action extends {
-				type: 'checkboxes' | 'multi_static_select'
-				options: infer Options extends unknown[]
-			}
-				? { selected_options: Options[number][] }
-				: {}) &
-			(Action extends {
-				type: 'overflow' | 'static_select'
-				options: infer Options extends unknown[]
-			}
-				? { selected_option: Options[number] }
-				: {}) &
-			(Action extends {
-				type: 'static_select'
-				option_groups: { options: infer Options extends unknown[] }[]
-			}
-				? { selected_option: Options[number] }
-				: {}) &
-			(Action extends {
-				type: 'multi_static_select'
-				option_groups: { options: infer Options extends unknown[] }[]
-			}
-				? { selected_options: Options[number][] }
-				: {})
-	: never
+export type PickActionAndValueFields<Action extends { type: string; action_id?: string }> =
+	Action extends unknown
+		? Pick<Action, 'type' | 'action_id'> &
+				(Action extends {
+					type: 'checkboxes' | 'multi_static_select'
+					options: infer Options extends unknown[]
+				}
+					? { selected_options: Options[number][] }
+					: {}) &
+				(Action extends {
+					type: 'overflow' | 'static_select'
+					options: infer Options extends unknown[]
+				}
+					? { selected_option: Options[number] }
+					: {}) &
+				(Action extends {
+					type: 'static_select'
+					option_groups: { options: infer Options extends unknown[] }[]
+				}
+					? { selected_option: Options[number] }
+					: {}) &
+				(Action extends {
+					type: 'multi_static_select'
+					option_groups: { options: infer Options extends unknown[] }[]
+				}
+					? { selected_options: Options[number][] }
+					: {})
+		: never
 
 export type ActionsToPrefixedID<Action extends { type: string; action_id?: string }> =
 	Action extends { type: string; action_id: string }

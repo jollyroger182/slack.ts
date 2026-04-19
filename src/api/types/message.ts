@@ -1,4 +1,4 @@
-import type { KnownBlock } from '@slack/types'
+import type { AnyBlock } from '@slack/types'
 import type { File } from './file'
 
 // objects
@@ -9,7 +9,7 @@ export interface MessageMetadata {
 }
 
 export type Attachment = {
-	blocks?: KnownBlock[]
+	blocks?: AnyBlock[]
 	color?: 'good' | 'warning' | 'danger' | string
 	author_icon?: string
 	author_link?: string
@@ -26,7 +26,7 @@ export type Attachment = {
 	title?: string
 	title_link?: string
 	ts?: string
-} & ({ blocks: KnownBlock[] } | { fallback: string } | { text: string })
+} & ({ blocks: AnyBlock[] } | { fallback: string } | { text: string })
 
 export interface AttachmentField {
 	title?: string
@@ -56,7 +56,7 @@ interface MaybeAttachments {
 	attachments?: Attachment[]
 }
 
-interface MaybeBlocks<Blocks extends KnownBlock[] = KnownBlock[]> {
+interface MaybeBlocks<Blocks extends AnyBlock[] = AnyBlock[]> {
 	blocks?: Blocks
 }
 
@@ -72,7 +72,7 @@ interface MessageCommon {
 
 // message subtypes
 
-export interface NormalMessage<Blocks extends KnownBlock[] = KnownBlock[]>
+export interface NormalMessage<Blocks extends AnyBlock[] = AnyBlock[]>
 	extends MessageCommon, MaybeBot, MaybeAttachments, MaybeBlocks<Blocks> {
 	subtype?: never
 

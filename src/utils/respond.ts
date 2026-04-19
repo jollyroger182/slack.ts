@@ -1,4 +1,4 @@
-import type { KnownBlock } from '@slack/types'
+import type { AnyBlock } from '@slack/types'
 import { SlackError } from '../error'
 import type { App } from '../client'
 import type { ViewsOpenParams } from '../api/web/views'
@@ -68,5 +68,5 @@ export class Responder<HasResponseURL extends boolean = true> {
 export type MessageResponseParams = {
 	ephemeral?: boolean
 	text?: string
-	blocks?: KnownBlock[]
-} & ({ text: string } | { blocks: KnownBlock[] })
+	blocks?: AnyBlock[]
+} & ({ text: string } | { blocks: AnyBlock[] })
