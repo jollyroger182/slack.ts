@@ -1,8 +1,14 @@
 export { blocks } from './base'
 
 export { actions } from './actions'
+export { alert } from './alert'
+export { card } from './card'
+export { context } from './context'
 export { contextActions } from './context_actions'
+export { divider } from './divider'
+export { header } from './header'
 export { input } from './input'
+export { markdown } from './markdown'
 export { richText } from './rich_text'
 export { section } from './section'
 
