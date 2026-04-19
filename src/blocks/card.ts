@@ -34,18 +34,18 @@ export class CardBlockBuilder<
 	Actions extends CardBlockActionBuilder[] = [],
 	BlockID extends string = string,
 > extends BlockBuilder<TypedCardBlock<BlockID, Actions>, BlockID, Valid> {
-	private _heroImage?: ImageBuilder
+	private _heroImage?: ImageBuilder<true>
 	private _title?: TextObjectBuilder
 	private _body?: TextObjectBuilder
 	private _actions: CardBlockActionBuilder[] = []
-	private _icon?: ImageBuilder
+	private _icon?: ImageBuilder<true>
 	private _subtitle?: TextObjectBuilder
 
 	override id<BlockID extends string>(blockId: BlockID): CardBlockBuilder<Valid, Actions, BlockID> {
 		return this._id(blockId)
 	}
 
-	hero(heroImage: ImageBuilder) {
+	hero(heroImage: ImageBuilder<true>) {
 		this._heroImage = heroImage
 		return this as CardBlockBuilder<true, Actions, BlockID>
 	}
@@ -65,13 +65,18 @@ export class CardBlockBuilder<
 		return this as CardBlockBuilder<true, [...Actions, ...NewActions], BlockID>
 	}
 
-	icon(icon: ImageBuilder) {
+	icon(icon: ImageBuilder<true>) {
 		this._icon = icon
 		return this
 	}
 
 	subtitle(subtitle: string | TextObjectBuilder) {
 		this._subtitle = ensureIsTextObjectBuilder(subtitle)
+		return this
+	}
+
+	body(body: string | TextObjectBuilder) {
+		this._body = ensureIsTextObjectBuilder(body)
 		return this
 	}
 
