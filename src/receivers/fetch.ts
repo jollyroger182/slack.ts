@@ -51,9 +51,9 @@ export class HttpFetchReceiver
 {
 	#signingSecret: string
 	#client: App
-	#waitUntil?: (obj: Promise<unknown>) => unknown
+	#waitUntil: (obj: Promise<unknown>) => unknown
 
-	constructor({ signingSecret, client, waitUntil }: HttpFetchReceiverOptions) {
+	constructor({ signingSecret, client, waitUntil = () => {} }: HttpFetchReceiverOptions) {
 		super()
 		this.#signingSecret = signingSecret
 		this.#client = client
@@ -93,11 +93,11 @@ export class HttpFetchReceiver
 				})
 
 			case 'event':
-				this.#waitUntil?.(this.emit('event', payload.payload))
+				this.#waitUntil(this.emit('event', payload.payload))
 				return new Response(null, { status: 200 })
 
 			case 'block_actions':
-				this.#waitUntil?.(this.emit('block_actions', payload.payload))
+				this.#waitUntil(this.emit('block_actions', payload.payload))
 				return new Response(null, { status: 200 })
 
 			case 'block_suggestion':
@@ -110,11 +110,11 @@ export class HttpFetchReceiver
 				})
 
 			case 'view_submission':
-				this.#waitUntil?.(this.emit('view_submission', payload.payload))
+				this.#waitUntil(this.emit('view_submission', payload.payload))
 				return new Response(null, { status: 200 })
 
 			case 'slash_command':
-				this.#waitUntil?.(this.emit('slash_command', payload.payload))
+				this.#waitUntil(this.emit('slash_command', payload.payload))
 				return new Response(null, { status: 200 })
 
 			default:
