@@ -18,15 +18,18 @@
 	"types": "./dist/index.d.ts",
 	"exports": {
 		".": {
+			"bun": "./src/index.ts",
 			"types": "./dist/index.d.ts",
 			"import": "./dist/index.js"
 		},
 		"./rich": {
+			"bun": "./src/exports/rich.ts",
 			"types": "./dist/exports/rich.d.ts",
 			"import": "./dist/exports/rich.js"
 		}
 	},
 	"files": [
+		"src",
 		"dist",
 		"README.md",
 		"LICENSE"
