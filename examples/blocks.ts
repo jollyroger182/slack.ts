@@ -5,6 +5,7 @@ import {
 	blocks,
 	button,
 	card,
+	carousel,
 	checkboxes,
 	context,
 	datePicker,
@@ -179,6 +180,7 @@ await app.start()
 await app.channel(process.env.SLACK_CHANNEL!).send({
 	blocks: blocks(
 		markdown('actual __markdown__ *text* instead of ~~mrkdwn~~'),
+		carousel(card().title('some card'), card().title('some other card')),
 		actions(button('show modal with all blocks').id('show_modal')),
 	),
 })

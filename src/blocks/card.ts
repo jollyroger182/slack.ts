@@ -34,6 +34,8 @@ export class CardBlockBuilder<
 	Actions extends CardBlockActionBuilder[] = [],
 	BlockID extends string = string,
 > extends BlockBuilder<TypedCardBlock<BlockID, Actions>, BlockID, Valid> {
+	private _blockIsNotValid?: Valid
+
 	private _heroImage?: ImageBuilder<true>
 	private _title?: TextObjectBuilder
 	private _body?: TextObjectBuilder
