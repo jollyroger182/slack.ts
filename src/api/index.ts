@@ -1,3 +1,4 @@
+import type { SearchMessagesParams, SearchMessagesResponse, SearchAllParams, SearchAllResponse, SearchFilesParams, SearchFilesResponse } from './web/search'
 import type { SlackApiMap } from 'slack-undoc-client'
 
 import type { AnyToken } from '../utils'
@@ -91,6 +92,18 @@ import type {
 } from './web/views'
 
 interface SlackWebAPIMapInternal {
+	'search.files': {
+		params: SearchFilesParams
+		response: SearchFilesResponse
+	}
+	'search.all': {
+		params: SearchAllParams
+		response: SearchAllResponse
+	}
+	'search.messages': {
+		params: SearchMessagesParams
+		response: SearchMessagesResponse
+	}
 	'reactions.get': {
 		params: ReactionsGetParams
 		response: ReactionsGetResponse
