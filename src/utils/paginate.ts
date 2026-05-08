@@ -13,7 +13,7 @@ export async function* paginate<Method extends SlackPaginatingAPIMethod, T>(
 	converter: (
 		response: Extract<SlackAPIResponse<Method>, { ok: true }>,
 	) => Iterable<T> | AsyncIterable<T>,
-) {
+): AsyncGenerator<Awaited<T>> {
 	let remaining = params.limit ?? Infinity
 	let cursor: string | undefined
 	if (remaining <= 0) return

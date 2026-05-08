@@ -14,14 +14,27 @@ import { paginate } from '../utils/paginate'
 import type { DistributiveOmit } from '../utils/typing'
 import { Message, MessageRef, type MessageInstance } from './message'
 import { User, UserRef } from './user'
+import type { ConversationsMembersParams } from '../api/web/conversations'
 
-interface FetchMessagesParams extends Omit<TimestampPaginationParams, 'limit'> {
+interface FetchMessagesParams extends Omit<TimestampPaginationParams, 'cursor' | 'limit'> {
 	/**
 	 * How many messages to fetch in each API call. This will not affect the number of returned
 	 * messages.
 	 */
 	batch?: number
 
+	/**
+	 * How many messages to return in total.
+	 *
+	 * @default Infinity
+	 */
+	limit?: number
+}
+
+interface FetchMembersParams extends Omit<
+	ConversationsMembersParams,
+	'channel' | 'cursor' | 'limit'
+> {
 	/**
 	 * How many messages to return in total.
 	 *
@@ -105,6 +118,16 @@ abstract class ChannelMixin<T extends Conversation = Conversation> {
 				.values()
 				.map((m) => new Message(this.client, this.#id, m.ts, m) as MessageInstance),
 		)
+	}
+
+	async members(params: FetchMembersParams = {}): Promise<UserRef[]> {
+		return (
+			await Array.fromAsync(
+				paginate(this.client, 'conversations.members', { ...params, channel: this.#id }, (r) =>
+					r.members.values().map((m) => ({ user: new UserRef(this.client, m) })),
+				),
+			)
+		).map((u) => u.user)
 	}
 
 	async join(): Promise<ChannelInstance<T>> {

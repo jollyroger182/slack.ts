@@ -59,6 +59,8 @@ import type {
 	ConversationsOpenResponse,
 	ConversationsRepliesParams,
 	ConversationsRepliesResponse,
+	ConversationsMembersParams,
+	ConversationsMembersResponse,
 } from './web/conversations'
 import type {
 	FilesCompleteUploadExternalParams,
@@ -92,6 +94,10 @@ import type {
 } from './web/views'
 
 interface SlackWebAPIMapInternal {
+	'conversations.members': {
+		params: ConversationsMembersParams
+		response: ConversationsMembersResponse
+	}
 	'search.files': {
 		params: SearchFilesParams
 		response: SearchFilesResponse

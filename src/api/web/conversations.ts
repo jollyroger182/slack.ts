@@ -138,3 +138,12 @@ export interface ConversationsOpenResponse {
 	already_open: boolean
 	channel: { id: string } & Partial<IM>
 }
+
+export interface ConversationsMembersParams extends CursorPaginationParams {
+	/** ID of the conversation to retrieve members for */
+	channel: string
+}
+
+export interface ConversationsMembersResponse extends CursorPaginationResponse {
+	members: string[]
+}
