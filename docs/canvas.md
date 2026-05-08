@@ -13,6 +13,14 @@ This markdown file attempts to document the Slack canvas API.
 - `UWL9AACEeHP`: QUIP thread ID
 - `UWL9BAKSlxp`: QUIP document ID
 
+## Timeline of document creation
+
+- Init at client load (once)
+- `create-collab-document`
+- `load-data/editor/1`
+- `edit-document`
+- `fetch-latest`
+
 ## Init
 
 Called on client load.
@@ -1263,6 +1271,107 @@ Protobuf-decoded `request_binary` (for fetching after first edit):
 </details>
 
 ## Edit document
+
+Protobuf-decoded `request_binary` (right after document creation):
+
+```
+1 {
+  1: "temp:C:UWL2c72cad6fed24b9dbe27b5e84"
+  2: 0
+  3: 0
+  9: 11
+  11: 1
+  12 {
+    10 {
+      1: 12
+      3: "insert"
+    }
+  }
+  14: "insert"
+  19: 1
+  20: 2
+  21: "zzzzzz-orphaned-m"
+  25: 1
+  33: "9d92710cb9b5-0"
+  35: 0
+}
+1 {
+  1: "temp:C:UWLa779a4380290434789c933903"
+  2: 0
+  3: 0
+  8: "aaa:temp"
+  9: 64
+  10: 48
+  11: 0
+  12 {
+    58 {
+      1: "Untitled"
+    }
+  }
+  13: ""
+  16 {
+    4: 0
+    13: 1
+    30: 5
+    34: 1
+  }
+  19: 1
+  20: 2
+  21: "aaa:temp"
+  25: 1
+  29: 0
+  33: "9d92710cb9b5-0"
+  35: 0
+}
+1 {
+  1: "temp:C:UWL04b8dd9f23b14fd1895d38c4c"
+  2: 0
+  3: 0
+  8: "aab:temp"
+  9: 0
+  10: 0
+  11: 0
+  12 {
+    1 {
+      1: "Write something, or get a head start:"
+    }
+  }
+  13: ""
+  16 {
+    4: 0
+    13: 1
+    30: 5
+    34: 1
+  }
+  19: 1
+  20: 2
+  21: "aab:temp"
+  25: 1
+  29: 0
+  33: "9d92710cb9b5-0"
+  35: 0
+  38 {
+    1: "temp:C:UWL04b8dd9f23b14fd1895d38c4c"
+    2: 0
+    3: 0
+    5: "\205oJ\203,6\236n\000\307\001\001\n\235\222q\014\271\265\nr\251\247\001\336\031\201\033\262\014\232(\342\023u\177f\001\322_@|\3012\377\200\211>\255\201\353\367xQ%a\006\001\002\003\002\023\002#\006@\002V\002\014\001\004\002\004\021\004\023\007\025\020!\002#\0054\002B\005V\007W(\200\001\002\177\000\177\001\177(\177\374\370\301\317\006\177\000\177\007\000\002&\000\000\002&\001\000\003%\000\000\002~\000\002$\001~\007deleted\004text\000&(\000~(Y&\001\002&~\001\004&\001~\001\000%\026\1776Write something, or get a head start:\357\273\277(\000\000"
+    6: "de19811bb20c9a28e213757f6601d25f407cc132ff80893ead81ebf778512561"
+    8: "de19811bb20c9a28e213757f6601d25f407cc132ff80893ead81ebf778512561"
+    12: "de19811bb20c9a28e213757f6601d25f407cc132ff80893ead81ebf778512561"
+  }
+  39: 0
+}
+14 {
+  1: "rich_text"
+  2 {
+    1: "rich_text_section"
+    2 {
+      1: "text"
+      2: "Untitled"
+    }
+  }
+}
+```
 
 Request (adding text "abcde" to empty document):
 
