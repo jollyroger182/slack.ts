@@ -1,4 +1,4 @@
-import { App } from '../src'
+import { App } from 'slack.ts'
 
 const app = new App({
 	token: { cookie: process.env.SLACK_XOXD!, token: process.env.SLACK_XOXC! },

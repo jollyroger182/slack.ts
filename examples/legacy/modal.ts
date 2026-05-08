@@ -8,7 +8,7 @@ import {
 	overflow,
 	plainTextInput,
 	section,
-} from '../src'
+} from 'slack.ts'
 
 const app = new App({
 	token: process.env.SLACK_BOT_TOKEN!,
