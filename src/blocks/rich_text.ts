@@ -17,7 +17,7 @@ import type {
 	RichTextUsergroupMention,
 	RichTextUserMention,
 } from '@slack/types'
-import type { Channel, ChannelRef, User, UserRef } from '../resources'
+import type { Channel, ChannelRef, User } from '../resources'
 import { BlockBuilder, Builder } from './base'
 
 type TypedRichTextBlock<BlockID extends string> = RichTextBlock & { block_id: BlockID }
@@ -351,7 +351,7 @@ export class RichTextUserBuilder extends StyleableBuilder<RichTextUserMention> {
 	}
 }
 
-export function user(user: UserRef | User | string) {
+export function user(user: User | string) {
 	return new RichTextUserBuilder(typeof user === 'string' ? user : user.id)
 }
 

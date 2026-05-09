@@ -3,7 +3,7 @@ import type { App } from '../client'
 import { makeProxy } from '../utils'
 import { Responder } from '../utils/respond'
 import { ChannelRef } from './channel'
-import { UserRef } from './user'
+import { UserImpl, type User } from './user'
 
 export class SlashCommand {
 	#data: SlashCommandPayload
@@ -20,8 +20,8 @@ export class SlashCommand {
 		return new Responder(this.client, this.#data.response_url, this.#data.trigger_id)
 	}
 
-	get user(): UserRef {
-		return new UserRef(this.client, this.#data.user_id)
+	get user(): User {
+		return UserImpl.create(this.client, this.#data.user_id)
 	}
 
 	get channel(): ChannelRef {

@@ -13,7 +13,7 @@ import type {
 	UsersSelect,
 } from '@slack/types'
 import type { PlainTextOptionGroup } from '../../api/types/misc'
-import type { Channel, ChannelRef, User, UserRef } from '../../resources'
+import type { Channel, ChannelRef, User } from '../../resources'
 import type { Builder } from '../base'
 import { ConfirmBuilder, confirm as buildConfirm } from '../objects/confirm'
 import { OptionObjectBuilder } from '../objects/option'
@@ -184,7 +184,7 @@ export class SelectBuilder<ActionID extends string = string> extends BlockElemen
 		return this
 	}
 
-	default(...values: (string | UserRef | User | ChannelRef | Channel | OptionObjectBuilder)[]) {
+	default(...values: (string | User | ChannelRef | Channel | OptionObjectBuilder)[]) {
 		this._default = values.map((v) =>
 			typeof v === 'string' ? v : v instanceof OptionObjectBuilder ? v : v.id,
 		)
@@ -383,7 +383,7 @@ export interface UsersSelectBuilder<ActionID extends string = string>
 		BlockElementBuilder<InferBuiltType<'users', false, undefined, ActionID>, ActionID>,
 		SelectBuilderBase {
 	id<ActionID extends string>(actionId: ActionID): UsersSelectBuilder<ActionID>
-	default(user: User | UserRef | string): this
+	default(user: User | string): this
 }
 
 export interface MultiUsersSelectBuilder<ActionID extends string = string>
@@ -391,7 +391,7 @@ export interface MultiUsersSelectBuilder<ActionID extends string = string>
 		BlockElementBuilder<InferBuiltType<'users', true, undefined, ActionID>, ActionID>,
 		SelectBuilderBase {
 	id<ActionID extends string>(actionId: ActionID): MultiUsersSelectBuilder<ActionID>
-	default(...users: (User | UserRef | string)[]): this
+	default(...users: (User | string)[]): this
 }
 
 export interface ConversationsSelectBuilder<ActionID extends string = string>

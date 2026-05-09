@@ -18,7 +18,8 @@ import { startStreaming } from '../utils/streaming'
 import type { DistributiveOmit } from '../utils/typing'
 import type { ActionInstance } from './action'
 import { ChannelRef } from './channel'
-import { UserRef, type UserInstance } from './user'
+import { type User, UserImpl } from './user'
+import type { User as UserData } from '../api/types/user'
 
 interface FetchRepliesParams extends Omit<TimestampPaginationParams, 'limit'> {
 	/**
@@ -139,14 +140,22 @@ abstract class MessageMixin<
 	 * @returns The streaming message
 	 */
 	async stream(
-		user: UserInstance | { id: string; team_id: string },
+		user: User<UserData | undefined> | { id: string; team_id: string },
 		chunks?: (string | StreamChunk)[],
 	) {
+		let team_id: string
+		if (!(user instanceof UserImpl)) {
+			team_id = user.team_id
+		} else if (!user.raw) {
+			team_id = (await user.fetch()).team_id
+		} else {
+			team_id = (user as User<UserData>).team_id
+		}
 		return await startStreaming(this.client, {
 			channel: this.#channel,
 			thread_ts: this.#ts,
 			recipient_user_id: user.id,
-			recipient_team_id: user.team_id,
+			recipient_team_id: team_id,
 			chunks: chunks?.map<StreamChunk>((c) =>
 				typeof c === 'string' ? { type: 'markdown_text', text: c } : c,
 			),
@@ -311,8 +320,8 @@ export class Message<
 	 * channel join messages), this may not be the user you expect. Read the Slack documentation to
 	 * find out.
 	 */
-	get author(): undefined extends Subtype['user'] ? UserRef | undefined : UserRef {
-		return this.#data.user ? new UserRef(this.client, this.#data.user) : (undefined as any)
+	get author(): undefined extends Subtype['user'] ? User | undefined : User {
+		return this.#data.user ? UserImpl.create(this.client, this.#data.user) : (undefined as any)
 	}
 
 	protected override get _threadTs(): string | undefined {

@@ -13,14 +13,33 @@ import type { DistributiveOmit } from '../utils/typing'
 import { Channel, type ChannelInstance } from './channel'
 import { Message, type MessageInstance } from './message'
 
-class UserMixin {
+export class UserImpl {
+	#data: UserData | undefined
 	#id: string
 
 	constructor(
 		protected client: App,
 		id: string,
+		data?: UserData,
 	) {
 		this.#id = id
+		this.#data = data
+		return makeProxy(this, () => this.#data || {})
+	}
+
+	static create(client: App, id: string, data: UserData): User<UserData>
+	static create(client: App, id: string, data?: undefined): User<undefined>
+	static create(client: App, id: string, data?: UserData) {
+		return new UserImpl(client, id, data)
+	}
+
+	get raw(): UserData | undefined {
+		return this.#data
+	}
+
+	async fetch(): Promise<User<UserData>> {
+		const { user } = await this.client.request('users.info', { user: this.id })
+		return UserImpl.create(this.client, this.#id, user)
 	}
 
 	/** ID of the user */
@@ -70,32 +89,6 @@ class UserMixin {
 	}
 }
 
-export class UserRef extends UserMixin implements PromiseLike<UserInstance> {
-	then<TResult1 = UserInstance, TResult2 = never>(
-		onfulfilled?: ((value: UserInstance) => TResult1 | PromiseLike<TResult1>) | null | undefined,
-		onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | null | undefined,
-	): PromiseLike<TResult1 | TResult2> {
-		return this.#fetch().then(onfulfilled, onrejected)
-	}
-
-	async #fetch(): Promise<UserInstance> {
-		const data = await this.client.request('users.info', { user: this.id })
-		return new User(this.client, this.id, data.user) as UserInstance
-	}
-}
-
-export class User extends UserMixin {
-	#data: UserData
-
-	constructor(client: App, id: string, data: UserData) {
-		super(client, id)
-		this.#data = data
-		return makeProxy(this, () => this.#data)
-	}
-
-	get raw() {
-		return this.#data
-	}
-}
-
-export type UserInstance = User & UserData
+export type User<Data extends UserData | undefined = undefined> = Data extends any
+	? UserImpl & (Data extends undefined ? {} : Data & { readonly raw: Data })
+	: never

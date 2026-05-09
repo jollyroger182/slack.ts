@@ -18,6 +18,7 @@ import type { ViewSubmission } from './api/interactive/view_submission'
 import type { SlashCommandPayload } from './api/slash'
 import type { IM, MPIM, PrivateChannel, PublicChannel } from './api/types/conversation'
 import type { AnyMessage, NormalMessage } from './api/types/message'
+import type { User as UserData } from './api/types/user'
 import { BlockElementBuilder } from './blocks/elements/base'
 import { SlackTimeoutError, SlackWebAPIError, SlackWebAPIPlatformError } from './error'
 import type { BlockSuggestionResponder, EventsReceiver } from './receivers/base'
@@ -33,7 +34,7 @@ import { Channel, ChannelRef, type ChannelInstance } from './resources/channel'
 import { HomeOpened, type HomeOpenedInstance } from './resources/home_opened'
 import { Message, type MessageInstance } from './resources/message'
 import { SlashCommand, type SlashCommandInstance } from './resources/slash'
-import { User, UserRef, type UserInstance } from './resources/user'
+import { UserImpl, type User } from './resources/user'
 import { sleep, type AnyToken } from './utils'
 import { AsyncEventEmitter } from './utils/events'
 import { paginate } from './utils/paginate'
@@ -242,7 +243,7 @@ export class App<
 	 * @returns A user reference object
 	 */
 	user(id: string) {
-		return new UserRef(this, id)
+		return UserImpl.create(this, id)
 	}
 
 	/**
@@ -279,9 +280,9 @@ export class App<
 		)
 	}
 
-	async *users(): AsyncGenerator<UserInstance> {
+	async *users(): AsyncGenerator<User<UserData>> {
 		yield* paginate(this, 'users.list', {}, (r) =>
-			r.members.map((u) => new User(this, u.id, u) as UserInstance),
+			r.members.map((u) => UserImpl.create(this, u.id, u)),
 		)
 	}
 

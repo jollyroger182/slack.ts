@@ -1,7 +1,8 @@
 import type { AnyBlock } from '@slack/types'
 import type { StateValue } from '../../api/types/value'
-import type { DistributiveOmit } from '../../utils/typing'
+import type { DistributiveOmit, Equals } from '../../utils/typing'
 import type { OptionObjectBuilder } from '../objects/option'
+import type { BlockAction } from '../../api/interactive/block_actions'
 
 /**
  * Extract the `state.values` object type from the blocks type. Supports extracting options from
@@ -85,13 +86,16 @@ export type ExtractActions<Blocks extends AnyBlock[]> = {
  *
  * @typeParam Block - A single block type
  */
-export type ExtractBlockActions<Block extends AnyBlock> = PickActionAndValueFields<
-	{
-		[K in keyof Block]:
-			| Extract<Block[K], { type: string; action_id: string }>
-			| Extract<Block[K], { type: string; action_id?: string }[]>[number]
-	}[keyof Block] & {}
->
+export type ExtractBlockActions<Block extends AnyBlock> =
+	Equals<Block, AnyBlock> extends true
+		? BlockAction
+		: PickActionAndValueFields<
+				{
+					[K in keyof Block]:
+						| Extract<Block[K], { type: string; action_id: string }>
+						| Extract<Block[K], { type: string; action_id?: string }[]>[number]
+				}[keyof Block] & {}
+			>
 
 /**
  * Extract additional data fields present in action payloads and `state.values` from the block type.
@@ -140,7 +144,7 @@ export type PickActionAndValueFields<Action extends { type: string; action_id?: 
 export type ActionsToPrefixedID<Action extends { type: string; action_id?: string }> =
 	Action extends { type: string; action_id: string }
 		? `${Action['type']}.${Action['action_id']}` | Action['action_id']
-		: string
+		: string & {}
 
 export type ExtractOptionValues<Options extends OptionObjectBuilder[]> = {
 	[K in keyof Options]: Options[K] extends OptionObjectBuilder<infer Value> ? Value : never

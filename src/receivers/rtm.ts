@@ -2,7 +2,7 @@ import WebSocket from 'ws'
 import { SLACK_EVENT_TYPES, type AllEvents, type EventWrapper } from '../api/events'
 import type { App } from '../client'
 import { SlackError, SlackTimeoutError } from '../error'
-import type { User, UserRef } from '../resources'
+import type { User } from '../resources'
 import { AsyncEventEmitter } from '../utils/events'
 import type { EventsReceiver, ReceiverEventMap } from './base'
 
@@ -50,7 +50,7 @@ export class RTMReceiver
 		})
 	}
 
-	async subscribe(...users: (string | User | UserRef)[]) {
+	async subscribe(...users: (string | User)[]) {
 		if (this.#ws?.readyState !== WebSocket.OPEN) {
 			throw new SlackError('Connection is not open')
 		}
@@ -60,14 +60,14 @@ export class RTMReceiver
 
 	async presence(
 		timeout: number,
-		...users: (string | User | UserRef)[]
+		...users: (string | User)[]
 	): Promise<Record<string, 'away' | 'active'>>
 	async presence(
-		firstUser: string | User | UserRef,
-		...users: (string | User | UserRef)[]
+		firstUser: string | User,
+		...users: (string | User)[]
 	): Promise<Record<string, 'away' | 'active'>>
 
-	async presence(first: number | string | User | UserRef, ...users: (string | User | UserRef)[]) {
+	async presence(first: number | string | User, ...users: (string | User)[]) {
 		let timeout: number = 10000
 		if (typeof first === 'number') {
 			timeout = first

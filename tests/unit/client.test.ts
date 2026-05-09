@@ -9,14 +9,15 @@ import {
 	HttpServerReceiver,
 	SlackWebAPIPlatformError,
 	SocketEventsReceiver,
-	User,
+	UserImpl,
 	type ChannelInstance,
 	type SlackAPIResponse,
-	type UserInstance,
+	type User,
 } from 'slack.ts'
 import type { EventWrapper } from '../../src/api/events'
 import type { BlockActions } from '../../src/api/interactive/block_actions'
 import type { IM, PublicChannel } from '../../src/api/types/conversation'
+import type { User as UserData } from '../../src/api/types/user'
 import {
 	blockActions,
 	BUTTON_DATA,
@@ -153,13 +154,13 @@ describe('App client', () => {
 			has_more: false,
 		} satisfies SlackAPIResponse<'users.list'>)
 
-		const users: UserInstance[] = []
+		const users: User<UserData>[] = []
 		for await (const user of app.users()) {
 			users.push(user)
 		}
 
 		expect(requestSpy).toHaveBeenCalledWith('users.list', {})
-		expect(users[0]).toBeInstanceOf(User)
+		expect(users[0]).toBeInstanceOf(UserImpl)
 		expect(users[0]?.name).toBe(USER_DATA.name)
 	})
 

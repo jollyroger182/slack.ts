@@ -13,7 +13,7 @@ import {
 import { paginate } from '../utils/paginate'
 import type { DistributiveOmit } from '../utils/typing'
 import { Message, MessageRef, type MessageInstance } from './message'
-import { User, UserRef } from './user'
+import { UserImpl, type User } from './user'
 import type { ConversationsMembersParams } from '../api/web/conversations'
 
 interface FetchMessagesParams extends Omit<TimestampPaginationParams, 'cursor' | 'limit'> {
@@ -120,11 +120,11 @@ abstract class ChannelMixin<T extends Conversation = Conversation> {
 		)
 	}
 
-	async members(params: FetchMembersParams = {}): Promise<UserRef[]> {
+	async members(params: FetchMembersParams = {}): Promise<User<undefined>[]> {
 		return (
 			await Array.fromAsync(
 				paginate(this.client, 'conversations.members', { ...params, channel: this.#id }, (r) =>
-					r.members.values().map((m) => ({ user: new UserRef(this.client, m) })),
+					r.members.values().map((m) => ({ user: new UserImpl(this.client, m) })),
 				),
 			)
 		).map((u) => u.user)
@@ -142,7 +142,7 @@ abstract class ChannelMixin<T extends Conversation = Conversation> {
 		return !not_in_channel
 	}
 
-	async invite(...users: (User | UserRef | string)[]): Promise<ChannelInstance<T>> {
+	async invite(...users: (User | string)[]): Promise<ChannelInstance<T>> {
 		const { channel } = await this.client.request('conversations.invite', {
 			channel: this.#id,
 			users: users.map((u) => (typeof u === 'string' ? u : u.id)).join(','),
@@ -190,8 +190,8 @@ export class Channel<T extends Conversation = Conversation> extends ChannelMixin
 	}
 
 	/** A reference to the creator of this channel. Only available for non-DM channels. */
-	get creator(): undefined extends T['creator'] ? UserRef | undefined : UserRef {
-		return this.#data.creator ? new UserRef(this.client, this.#data.creator) : (undefined as any)
+	get creator(): undefined extends T['creator'] ? User | undefined : User {
+		return this.#data.creator ? new UserImpl(this.client, this.#data.creator) : (undefined as any)
 	}
 
 	get raw() {

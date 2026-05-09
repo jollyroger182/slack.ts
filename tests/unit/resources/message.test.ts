@@ -1,18 +1,17 @@
 import { beforeEach, describe, expect, it, spyOn } from 'bun:test'
-import type { NormalMessage } from '../../../src/api/types/message'
-import { App } from '../../../src/client'
-import { Message, MessageRef, type MessageInstance } from '../../../src/resources/message'
-import { blockActions, BUTTON_DATA, MESSAGE_DATA, normalMessage, USER_DATA } from '../../fixtures'
-import type { BlockActions } from '../../../src/api/interactive/block_actions'
 import {
 	Action,
 	blocks,
 	section,
 	SlackWebAPIPlatformError,
-	User,
+	UserImpl,
 	type SlackAPIResponse,
-	type UserInstance,
 } from 'slack.ts'
+import type { BlockActions } from '../../../src/api/interactive/block_actions'
+import type { NormalMessage } from '../../../src/api/types/message'
+import { App } from '../../../src/client'
+import { Message, MessageRef, type MessageInstance } from '../../../src/resources/message'
+import { blockActions, BUTTON_DATA, MESSAGE_DATA, normalMessage, USER_DATA } from '../../fixtures'
 
 describe('Message', () => {
 	let app: App<'dummy'>
@@ -155,7 +154,7 @@ describe('Message', () => {
 			ts: '123457.789',
 		} satisfies SlackAPIResponse<'chat.startStream'>)
 
-		const user = new User(app, 'U123', USER_DATA) as UserInstance
+		const user = UserImpl.create(app, 'U123', USER_DATA)
 		await message.stream(user)
 		expect(requestSpy).toBeCalledWith('chat.startStream', {
 			channel: 'C123',
