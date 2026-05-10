@@ -237,8 +237,8 @@ export class App<
 	 * @param id Channel ID
 	 * @returns A channel reference object
 	 */
-	channel(id: string) {
-		return ChannelImpl.create(this, id)
+	channel<T extends ConversationData = ConversationData>(id: string) {
+		return ChannelImpl.create<T>(this, id)
 	}
 
 	/**
