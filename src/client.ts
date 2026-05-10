@@ -16,7 +16,13 @@ import type {
 import type { BlockSuggestion } from './api/interactive/block_suggestion'
 import type { ViewSubmission } from './api/interactive/view_submission'
 import type { SlashCommandPayload } from './api/slash'
-import type { IM, MPIM, PrivateChannel, PublicChannel } from './api/types/conversation'
+import type {
+	Conversation,
+	IM,
+	MPIM,
+	PrivateChannel,
+	PublicChannel,
+} from './api/types/conversation'
 import type { AnyMessage, NormalMessage } from './api/types/message'
 import type { User as UserData } from './api/types/user'
 import { BlockElementBuilder } from './blocks/elements/base'
@@ -30,7 +36,7 @@ import { SocketEventsReceiver, type SocketEventsReceiverOptions } from './receiv
 import { SubmissionImpl, type Submission } from './resources'
 import { ActionImpl, type Action } from './resources/action'
 import { AutocompleteImpl, type Autocomplete } from './resources/autocomplete'
-import { Channel, ChannelRef, type ChannelInstance } from './resources/channel'
+import { ChannelImpl, type Channel } from './resources/channel'
 import { HomeOpenedImpl, type HomeOpened } from './resources/home_opened'
 import { Message, type MessageInstance } from './resources/message'
 import { SlashCommandImpl, type SlashCommand } from './resources/slash'
@@ -232,7 +238,7 @@ export class App<
 	 * @returns A channel reference object
 	 */
 	channel(id: string) {
-		return new ChannelRef(this, id)
+		return ChannelImpl.create(this, id)
 	}
 
 	/**
@@ -251,7 +257,7 @@ export class App<
 	 *
 	 * @returns An async generator that yields channel objects
 	 */
-	channels(): AsyncGenerator<ChannelInstance>
+	channels(): AsyncGenerator<Channel<Conversation, true>>
 
 	/**
 	 * Lists channels of the specified types.
@@ -261,22 +267,16 @@ export class App<
 	 */
 	channels<Types extends ('public_channel' | 'private_channel' | 'mpim' | 'im')[]>(
 		...types: Types
-	): AsyncGenerator<ChannelInstance<ChannelTypeMap[Types[number]]>>
+	): AsyncGenerator<Channel<ChannelTypeMap[Types[number]], true>>
 
 	async *channels<Types extends ('public_channel' | 'private_channel' | 'mpim' | 'im')[]>(
 		...types: Types
-	): AsyncGenerator<ChannelInstance<ChannelTypeMap[Types[number]]>> {
+	): AsyncGenerator<Channel<Conversation, true>> {
 		yield* paginate(
 			this,
 			'conversations.list',
 			{ types: types.join(',') || 'public_channel,private_channel,mpim,im' },
-			(r) =>
-				r.channels.map(
-					(c) =>
-						new Channel(this, c.id, c as ChannelTypeMap[Types[number]]) as ChannelInstance<
-							ChannelTypeMap[Types[number]]
-						>,
-				),
+			(r) => r.channels.map((c) => ChannelImpl.create(this, c.id, c)),
 		)
 	}
 

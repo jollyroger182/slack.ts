@@ -43,21 +43,58 @@ interface FetchMembersParams extends Omit<
 	limit?: number
 }
 
-abstract class ChannelMixin<T extends Conversation = Conversation> {
+export class ChannelImpl {
+	#data: Conversation | undefined
 	#id: string
 
 	constructor(
 		protected client: App,
 		id: string,
+		data?: Conversation,
 	) {
 		this.#id = id
+		this.#data = data
+		return makeProxy(this, () => this.#data || {})
 	}
 
-	protected abstract _updateData(data: T): ChannelInstance<T>
+	static create<T extends Conversation = Conversation>(
+		client: App,
+		id: string,
+		data: T,
+	): Channel<T, true>
+	static create<T extends Conversation = Conversation>(
+		client: App,
+		id: string,
+		data?: undefined,
+	): Channel<T>
+	static create(client: App, id: string, data?: Conversation) {
+		return new ChannelImpl(client, id, data)
+	}
+
+	get raw() {
+		return this.#data
+	}
+
+	async fetch<T extends Conversation = Conversation>(): Promise<Channel<T, true>> {
+		const data = await this.client.request('conversations.info', { channel: this.id })
+		return ChannelImpl.create(this.client, this.id, data.channel as T)
+	}
+
+	protected _updateData(data: Conversation) {
+		this.#data = data
+		return makeProxy(this, () => this.#data)
+	}
 
 	/** ID of the channel */
 	get id() {
 		return this.#id
+	}
+
+	/** A reference to the creator of this channel. Only available for non-DM channels. */
+	get creator(): User | undefined {
+		return (
+			this.#data?.creator ? UserImpl.create(this.client, this.#data.creator) : undefined
+		) as any
 	}
 
 	/**
@@ -130,9 +167,9 @@ abstract class ChannelMixin<T extends Conversation = Conversation> {
 		).map((u) => u.user)
 	}
 
-	async join(): Promise<ChannelInstance<T>> {
+	async join(): Promise<this> {
 		const { channel } = await this.client.request('conversations.join', { channel: this.#id })
-		return this._updateData(channel as T)
+		return this._updateData(channel)
 	}
 
 	async leave() {
@@ -142,62 +179,24 @@ abstract class ChannelMixin<T extends Conversation = Conversation> {
 		return !not_in_channel
 	}
 
-	async invite(...users: (User | string)[]): Promise<ChannelInstance<T>> {
+	async invite(...users: (User | string)[]): Promise<this> {
 		const { channel } = await this.client.request('conversations.invite', {
 			channel: this.#id,
 			users: users.map((u) => (typeof u === 'string' ? u : u.id)).join(','),
 		})
-		return this._updateData(channel as T)
+		return this._updateData(channel)
 	}
 }
 
-export class ChannelRef<T extends Conversation = Conversation>
-	extends ChannelMixin<T>
-	implements PromiseLike<ChannelInstance<T>>
-{
-	protected override _updateData(data: T): ChannelInstance<T> {
-		return new Channel(this.client, this.id, data) as ChannelInstance<T>
-	}
-
-	then<TResult1 = ChannelInstance<T>, TResult2 = never>(
-		onfulfilled?:
-			| ((value: ChannelInstance<T>) => TResult1 | PromiseLike<TResult1>)
-			| null
-			| undefined,
-		onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | null | undefined,
-	): PromiseLike<TResult1 | TResult2> {
-		return this.#fetch().then(onfulfilled, onrejected)
-	}
-
-	async #fetch(): Promise<ChannelInstance<T>> {
-		const data = await this.client.request('conversations.info', { channel: this.id })
-		return new Channel(this.client, this.id, data.channel as T) as ChannelInstance<T>
-	}
-}
-
-export class Channel<T extends Conversation = Conversation> extends ChannelMixin<T> {
-	#data: T
-
-	constructor(client: App, id: string, data: T) {
-		super(client, id)
-		this.#data = data
-		return makeProxy(this, () => this.#data)
-	}
-
-	protected override _updateData(data: T): ChannelInstance<T> {
-		this.#data = data
-		return makeProxy(this, () => this.#data)
-	}
-
-	/** A reference to the creator of this channel. Only available for non-DM channels. */
-	get creator(): undefined extends T['creator'] ? User | undefined : User {
-		return this.#data.creator ? new UserImpl(this.client, this.#data.creator) : (undefined as any)
-	}
-
-	get raw() {
-		return this.#data
-	}
-}
-
-export type ChannelInstance<T extends Conversation = Conversation> = Channel<T> &
-	DistributiveOmit<T, 'creator'>
+export type Channel<
+	T extends Conversation = Conversation,
+	Fetched extends boolean = false,
+> = T extends any
+	? ChannelImpl &
+			(Fetched extends true
+				? DistributiveOmit<T, 'creator'> & {
+						readonly raw: T
+						readonly creator: undefined extends (T & {})['creator'] ? User | undefined : User
+					}
+				: {})
+	: never

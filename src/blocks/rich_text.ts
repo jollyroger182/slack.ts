@@ -17,8 +17,9 @@ import type {
 	RichTextUsergroupMention,
 	RichTextUserMention,
 } from '@slack/types'
-import type { Channel, ChannelRef, User } from '../resources'
+import type { Channel, User } from '../resources'
 import { BlockBuilder, Builder } from './base'
+import type { Conversation } from '../api/types/conversation'
 
 type TypedRichTextBlock<BlockID extends string> = RichTextBlock & { block_id: BlockID }
 
@@ -238,7 +239,7 @@ export class RichTextChannelBuilder extends StyleableBuilder<RichTextChannelMent
 	}
 }
 
-export function channel(channel: ChannelRef | Channel | string) {
+export function channel(channel: Channel<Conversation, boolean> | string) {
 	return new RichTextChannelBuilder(typeof channel === 'string' ? channel : channel.id)
 }
 

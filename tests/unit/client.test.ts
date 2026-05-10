@@ -3,20 +3,20 @@ import {
 	ActionImpl,
 	App,
 	button,
-	Channel,
+	ChannelImpl,
 	DummyReceiver,
 	HttpFetchReceiver,
 	HttpServerReceiver,
 	SlackWebAPIPlatformError,
 	SocketEventsReceiver,
 	UserImpl,
-	type ChannelInstance,
+	type Channel,
 	type SlackAPIResponse,
 	type User,
 } from 'slack.ts'
 import type { EventWrapper } from '../../src/api/events'
 import type { BlockActions } from '../../src/api/interactive/block_actions'
-import type { IM, PublicChannel } from '../../src/api/types/conversation'
+import type { Conversation, IM, PublicChannel } from '../../src/api/types/conversation'
 import type { User as UserData } from '../../src/api/types/user'
 import {
 	blockActions,
@@ -117,7 +117,7 @@ describe('App client', () => {
 			has_more: false,
 		} satisfies SlackAPIResponse<'conversations.list'>)
 
-		const channels: ChannelInstance[] = []
+		const channels: Channel<Conversation, true>[] = []
 		for await (const channel of app.channels()) {
 			channels.push(channel)
 		}
@@ -125,7 +125,7 @@ describe('App client', () => {
 		expect(requestSpy).toHaveBeenCalledWith('conversations.list', {
 			types: 'public_channel,private_channel,mpim,im',
 		})
-		expect(channels[0]).toBeInstanceOf(Channel)
+		expect(channels[0]).toBeInstanceOf(ChannelImpl)
 		expect(channels[0]?.name).toBe(PUBLIC_CHANNEL_DATA.name)
 	})
 
@@ -136,7 +136,7 @@ describe('App client', () => {
 			has_more: false,
 		} satisfies SlackAPIResponse<'conversations.list'>)
 
-		const channels: ChannelInstance<PublicChannel | IM>[] = []
+		const channels: Channel<PublicChannel | IM>[] = []
 		for await (const channel of app.channels('public_channel', 'im')) {
 			channels.push(channel)
 		}

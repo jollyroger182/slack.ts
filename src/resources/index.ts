@@ -1,6 +1,6 @@
 export { ActionImpl, type Action } from './action'
 export { AutocompleteImpl, type Autocomplete } from './autocomplete'
-export { Channel, ChannelRef, type ChannelInstance } from './channel'
+export { ChannelImpl, type Channel } from './channel'
 export { HomeOpenedImpl, type HomeOpened } from './home_opened'
 export { Message, MessageRef, type MessageInstance } from './message'
 export { ModalImpl, type Modal } from './modal'

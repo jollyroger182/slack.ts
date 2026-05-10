@@ -17,7 +17,7 @@ import { paginate } from '../utils/paginate'
 import { startStreaming } from '../utils/streaming'
 import type { DistributiveOmit } from '../utils/typing'
 import type { Action } from './action'
-import { ChannelRef } from './channel'
+import { ChannelImpl } from './channel'
 import { type User, UserImpl } from './user'
 import type { User as UserData } from '../api/types/user'
 
@@ -68,7 +68,7 @@ abstract class MessageMixin<
 
 	/** The channel where this message was sent */
 	get channel() {
-		return new ChannelRef(this.client, this.#channel)
+		return ChannelImpl.create(this.client, this.#channel)
 	}
 
 	protected get _channelId() {

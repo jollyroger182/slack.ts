@@ -2,7 +2,7 @@ import type { SlashCommandPayload } from '../api/slash'
 import type { App } from '../client'
 import { makeProxy } from '../utils'
 import { Responder } from '../utils/respond'
-import { ChannelRef } from './channel'
+import { ChannelImpl } from './channel'
 import { UserImpl, type User } from './user'
 
 export class SlashCommandImpl {
@@ -28,8 +28,8 @@ export class SlashCommandImpl {
 		return UserImpl.create(this.client, this.#data.user_id)
 	}
 
-	get channel(): ChannelRef {
-		return new ChannelRef(this.client, this.#data.channel_id)
+	get channel() {
+		return ChannelImpl.create(this.client, this.#data.channel_id)
 	}
 }
 

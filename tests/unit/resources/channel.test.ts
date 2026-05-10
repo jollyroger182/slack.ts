@@ -2,16 +2,16 @@ import { beforeEach, describe, expect, it, spyOn } from 'bun:test'
 import { Message, MessageRef, type MessageInstance, type SlackAPIResponse } from 'slack.ts'
 import type { PublicChannel } from '../../../src/api/types/conversation'
 import { App } from '../../../src/client'
-import { Channel, ChannelRef, type ChannelInstance } from '../../../src/resources/channel'
+import { ChannelImpl, type Channel } from '../../../src/resources/channel'
 import { PUBLIC_CHANNEL_DATA as DATA } from '../../fixtures'
 
 describe('Channel', () => {
 	let app: App
-	let channel: ChannelInstance<PublicChannel>
+	let channel: Channel<PublicChannel, true>
 
 	beforeEach(() => {
 		app = new App({ token: 'xoxb-test-token' })
-		channel = new Channel(app, DATA.id, DATA) as ChannelInstance<PublicChannel>
+		channel = ChannelImpl.create(app, DATA.id, DATA)
 	})
 
 	it('provides id property', () => {
@@ -95,7 +95,7 @@ describe('Channel', () => {
 		const joinedChannel = await channel.join()
 
 		expect(requestSpy).toHaveBeenCalledWith('conversations.join', { channel: 'C123' })
-		expect(joinedChannel).toBeInstanceOf(Channel)
+		expect(joinedChannel).toBeInstanceOf(ChannelImpl)
 		expect(joinedChannel.name).toBe(DATA.name)
 	})
 
@@ -122,18 +122,18 @@ describe('Channel', () => {
 			channel: 'C123',
 			users: 'U123,U456',
 		})
-		expect(invitedChannel).toBeInstanceOf(Channel)
+		expect(invitedChannel).toBeInstanceOf(ChannelImpl)
 		expect(invitedChannel.name).toBe(DATA.name)
 	})
 })
 
-describe('ChannelRef', () => {
+describe('Channel<Fetched=false>', () => {
 	let app: App
-	let ref: ChannelRef<PublicChannel>
+	let ref: Channel<PublicChannel>
 
 	beforeEach(() => {
 		app = new App({ token: 'xoxb-test-token' })
-		ref = new ChannelRef(app, DATA.id)
+		ref = ChannelImpl.create(app, DATA.id)
 	})
 
 	it('can fetch channel details', async () => {
@@ -142,10 +142,10 @@ describe('ChannelRef', () => {
 			channel: DATA,
 		} satisfies SlackAPIResponse<'conversations.info'>)
 
-		const channel = await ref
+		const channel = await ref.fetch()
 		expect(requestSpy).toBeCalledTimes(1)
 		expect(requestSpy).toBeCalledWith('conversations.info', { channel: 'C123' })
-		expect(channel).toBeInstanceOf(Channel)
+		expect(channel).toBeInstanceOf(ChannelImpl)
 		expect(channel.id).toBe('C123')
 		expect(channel.raw).toEqual(DATA)
 		expect(channel.name).toBe(DATA.name)

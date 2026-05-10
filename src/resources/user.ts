@@ -10,7 +10,7 @@ import {
 	type SendMessageWithoutFiles,
 } from '../utils/messaging'
 import type { DistributiveOmit } from '../utils/typing'
-import { Channel, type ChannelInstance } from './channel'
+import { ChannelImpl } from './channel'
 import { Message, type MessageInstance } from './message'
 
 export class UserImpl {
@@ -85,7 +85,7 @@ export class UserImpl {
 			return_im: true,
 			users: this.#id,
 		})
-		return new Channel(this.client, channel.id, channel as IM) as ChannelInstance<IM>
+		return ChannelImpl.create(this.client, channel.id, channel as IM)
 	}
 }
 
