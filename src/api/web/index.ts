@@ -2,6 +2,7 @@ import type { SlackApiMap } from 'slack-undoc-client'
 import type { AnyToken } from '../../utils'
 import type { CursorPaginationResponse } from '../types/api'
 
+import type { EmojiListParams, EmojiListResponse } from './emoji'
 import type {
 	AppsConnectionsOpenParams,
 	AppsConnectionsOpenResponse,
@@ -60,6 +61,8 @@ import type {
 	ConversationsOpenResponse,
 	ConversationsRepliesParams,
 	ConversationsRepliesResponse,
+	ConversationsArchiveParams,
+	ConversationsArchiveResponse,
 } from './conversations'
 import type {
 	FilesCompleteUploadExternalParams,
@@ -101,6 +104,14 @@ import type {
 } from './views'
 
 interface SlackWebAPIMapInternal {
+	'conversations.archive': {
+		params: ConversationsArchiveParams
+		response: ConversationsArchiveResponse
+	}
+	'emoji.list': {
+		params: EmojiListParams
+		response: EmojiListResponse
+	}
 	'conversations.members': {
 		params: ConversationsMembersParams
 		response: ConversationsMembersResponse

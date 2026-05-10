@@ -147,3 +147,10 @@ export interface ConversationsMembersParams extends CursorPaginationParams {
 export interface ConversationsMembersResponse extends CursorPaginationResponse {
 	members: string[]
 }
+
+export interface ConversationsArchiveParams {
+	/** ID of conversation to archive */
+	channel: string
+}
+
+export interface ConversationsArchiveResponse {}

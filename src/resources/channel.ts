@@ -43,8 +43,18 @@ interface FetchMembersParams extends Omit<
 	limit?: number
 }
 
+function transformData(client: App, data: ConversationData | undefined) {
+	if (!data) return {}
+	const transformed: any = { ...data }
+	if (data.creator) {
+		transformed.creator = client.user(data.creator)
+	}
+	return transformed
+}
+
 export class ChannelImpl {
 	#data: ConversationData | undefined
+	#wrappedData: any
 	#id: string
 
 	constructor(
@@ -54,7 +64,8 @@ export class ChannelImpl {
 	) {
 		this.#id = id
 		this.#data = data
-		return makeProxy(this, () => this.#data || {})
+		this.#wrappedData = transformData(client, this.#data)
+		return makeProxy(this, () => this.#wrappedData)
 	}
 
 	static create<T extends ConversationData = ConversationData>(
@@ -82,19 +93,13 @@ export class ChannelImpl {
 
 	protected _updateData(data: ConversationData) {
 		this.#data = data
-		return makeProxy(this, () => this.#data)
+		this.#wrappedData = transformData(this.client, this.#data)
+		return makeProxy(this, () => this.#wrappedData)
 	}
 
 	/** ID of the channel */
 	get id() {
 		return this.#id
-	}
-
-	/** A reference to the creator of this channel. Only available for non-DM channels. */
-	get creator(): User | undefined {
-		return (
-			this.#data?.creator ? UserImpl.create(this.client, this.#data.creator) : undefined
-		) as any
 	}
 
 	/**
@@ -172,6 +177,11 @@ export class ChannelImpl {
 		return this._updateData(channel)
 	}
 
+	/**
+	 * Leaves the conversation.
+	 *
+	 * @returns Whether the calling user was in the channel before the request
+	 */
 	async leave() {
 		const { not_in_channel } = await this.client.request('conversations.leave', {
 			channel: this.#id,
@@ -186,6 +196,10 @@ export class ChannelImpl {
 		})
 		return this._updateData(channel)
 	}
+
+	async archive() {
+		await this.client.request('conversations.archive', { channel: this.#id })
+	}
 }
 
 export type Channel<
@@ -196,7 +210,7 @@ export type Channel<
 			(Fetched extends true
 				? DistributiveOmit<T, 'creator'> & {
 						readonly raw: T
-						readonly creator: undefined extends (T & {})['creator'] ? User | undefined : User
+						readonly creator: T extends { creator: string } ? User : User | undefined
 					}
 				: {})
 	: never

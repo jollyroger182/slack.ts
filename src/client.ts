@@ -282,6 +282,11 @@ export class App<
 		)
 	}
 
+	async emoji(): Promise<Record<string, string>> {
+		const { emoji } = await this.request('emoji.list', {})
+		return emoji
+	}
+
 	async request<Method extends SlackAPIMethod>(
 		method: Method,
 		params: SlackAPIParams<Method>,
