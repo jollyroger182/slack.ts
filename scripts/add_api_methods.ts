@@ -1,6 +1,6 @@
 import { appendFile } from 'fs/promises'
 
-const indexFile = 'src/api/index.ts'
+const indexFile = 'src/api/web/index.ts'
 
 while (true) {
 	const name = prompt('Name:')!
@@ -18,20 +18,21 @@ while (true) {
 	)
 
 	let indexText = await Bun.file(indexFile).text()
-	if (indexText.includes(` } from './web/${segment}'`)) {
+	if (indexText.includes(` } from './${segment}'`)) {
 		indexText = indexText.replace(
-			` } from './web/${segment}'`,
-			`, ${classPrefix}Params, ${classPrefix}Response } from './web/${segment}'`,
+			` } from './${segment}'`,
+			`, ${classPrefix}Params, ${classPrefix}Response } from './${segment}'`,
 		)
-	} else if (indexText.includes(`} from './web/${segment}'`)) {
+	} else if (indexText.includes(`} from './${segment}'`)) {
 		indexText = indexText.replace(
-			`} from './web/${segment}'`,
-			`\t${classPrefix}Params,\n\t${classPrefix}Response,\n} from './web/${segment}'`,
+			`} from './${segment}'`,
+			`\t${classPrefix}Params,\n\t${classPrefix}Response,\n} from './${segment}'`,
 		)
 	} else {
-		indexText =
-			`import type { ${classPrefix}Params, ${classPrefix}Response } from './web/${segment}'\n` +
-			indexText
+		indexText = indexText.replace(
+			'\n\n',
+			`\n\nimport type { ${classPrefix}Params, ${classPrefix}Response } from './${segment}'\n`,
+		)
 	}
 	indexText = indexText.replace(
 		'interface SlackWebAPIMapInternal {',
