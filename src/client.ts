@@ -45,6 +45,7 @@ import { sleep, type AnyToken } from './utils'
 import { AsyncEventEmitter } from './utils/events'
 import { paginate } from './utils/paginate'
 import type { DistributiveOmit, DistributivePick } from './utils/typing'
+import { EventImpl, type Event } from './resources/event'
 
 type ReceiverOptions =
 	| ({
@@ -141,13 +142,8 @@ export class App<
 	}
 
 	async #onEvent(event: EventWrapper) {
-		await Promise.all([
-			this.emit('event', event),
-			this.emit(`event:${event.event.type}`, {
-				payload: event.event as any,
-				event: event as any,
-			}),
-		])
+		const obj = EventImpl.create(this, event)
+		await Promise.all([this.emit('event', obj), this.emit(`event:${event.event.type}`, obj as any)])
 	}
 
 	async #onBlockActions(event: BlockActionsData) {
@@ -356,7 +352,7 @@ export class App<
 }
 
 type AppEventMap = {
-	event: [EventWrapper]
+	event: [Event]
 	actions: [BlockActionsData]
 	action: [Action]
 	submit: [Submission]
@@ -366,7 +362,7 @@ type AppEventMap = {
 	autocomplete: [Autocomplete]
 	home: [HomeOpened]
 } & {
-	[K in EventTypes as `event:${K}`]: [{ payload: EventMap[K]; event: EventWrapper<EventMap[K]> }]
+	[K in EventTypes as `event:${K}`]: [Event<EventMap[K]>]
 } & {
 	[K in ActionTypes as `action:${K}`]: [Action<ActionMap[K]>]
 } & {
