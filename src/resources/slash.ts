@@ -20,6 +20,10 @@ export class SlashCommandImpl {
 		return new SlashCommandImpl(client, data) as SlashCommand
 	}
 
+	get raw() {
+		return this.#data
+	}
+
 	get respond(): Responder<true> {
 		return new Responder(this.client, this.#data.response_url, this.#data.trigger_id)
 	}

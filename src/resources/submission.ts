@@ -19,6 +19,10 @@ export class SubmissionImpl<Blocks extends AnyBlock[] = AnyBlock[]> {
 		return new SubmissionImpl(client, data) as Submission<Blocks>
 	}
 
+	get raw() {
+		return this.#data
+	}
+
 	get respond(): Responder {
 		return new Responder(this.client, this.#data.response_urls[0], this.#data.trigger_id)
 	}
