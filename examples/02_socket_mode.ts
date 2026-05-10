@@ -3,10 +3,6 @@ import { App } from 'slack.ts'
 const SLACK_BOT_TOKEN = process.env.SLACK_BOT_TOKEN!
 const SLACK_APP_TOKEN = process.env.SLACK_APP_TOKEN!
 
-/**
- * The `App` class is the main entrypoint of a `slack.ts` project, whether you just need to use the
- * web API or also need to receive events.
- */
 const app = new App({
 	token: SLACK_BOT_TOKEN,
 	/**
