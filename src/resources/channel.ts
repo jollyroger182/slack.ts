@@ -2,6 +2,7 @@ import type { AnyBlock } from '@slack/types'
 import type { TimestampPaginationParams } from '../api/types/api'
 import type { ConversationData } from '../api/types/conversation'
 import type { NormalMessageData } from '../api/types/message'
+import type { ConversationsMembersParams } from '../api/web/conversations'
 import type { App } from '../client'
 import { makeProxy } from '../utils'
 import {
@@ -13,8 +14,7 @@ import {
 import { paginate } from '../utils/paginate'
 import type { DistributiveOmit } from '../utils/typing'
 import { Message, MessageRef, type MessageInstance } from './message'
-import { UserImpl, type User } from './user'
-import type { ConversationsMembersParams } from '../api/web/conversations'
+import { type User } from './user'
 
 interface FetchMessagesParams extends Omit<TimestampPaginationParams, 'cursor' | 'limit'> {
 	/**
@@ -36,7 +36,13 @@ interface FetchMembersParams extends Omit<
 	'channel' | 'cursor' | 'limit'
 > {
 	/**
-	 * How many messages to return in total.
+	 * How many members to fetch in each API call. This will not affect the number of returned
+	 * members.
+	 */
+	batch?: number
+
+	/**
+	 * How many members to return in total.
 	 *
 	 * @default Infinity
 	 */
@@ -162,14 +168,10 @@ export class ChannelImpl {
 		)
 	}
 
-	async members(params: FetchMembersParams = {}): Promise<User<undefined>[]> {
-		return (
-			await Array.fromAsync(
-				paginate(this.client, 'conversations.members', { ...params, channel: this.#id }, (r) =>
-					r.members.values().map((m) => ({ user: new UserImpl(this.client, m) })),
-				),
-			)
-		).map((u) => u.user)
+	async *members(params: FetchMembersParams = {}): AsyncGenerator<User<undefined>> {
+		yield* paginate(this.client, 'conversations.members', { ...params, channel: this.#id }, (r) =>
+			r.members.values().map((m) => this.client.user(m)),
+		)
 	}
 
 	async join(): Promise<this> {
