@@ -1,5 +1,7 @@
 # The (in)complete guide to `slack.ts`
 
+> Note: This guide may be outdated! It has not been revised for the newest changes in the library. Use at your own risk! For more up-to-date examples, see the [examples directory](/examples).
+
 `slack.ts` is a TypeScript-first Slack API library that ~~has~~ will have full feature parity with `@slack/bolt`, Slack's official library. It aims to be fluent, rigorously typed (even blocks and `action_id`s), and intuitive.
 
 To navigate this guide, use the Table of Contents to jump to the section you're interested in.
