@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, spyOn } from 'bun:test'
-import { App, Modal, SlackError, type SlackAPIResponse } from 'slack.ts'
+import { App, ModalImpl, SlackError, type SlackAPIResponse } from 'slack.ts'
 import { Responder } from '../../../src/utils/respond'
 import { MODAL_VIEW_DATA } from '../../fixtures'
 
@@ -89,7 +89,7 @@ describe('Responder', () => {
 			blocks: MODAL_VIEW_DATA.blocks,
 		})
 
-		expect(modal).toBeInstanceOf(Modal)
+		expect(modal).toBeInstanceOf(ModalImpl)
 		expect(modal.raw).toEqual(MODAL_VIEW_DATA as any)
 		expect(modal.callback_id).toBe(MODAL_VIEW_DATA.callback_id)
 		expect(requestSpy).toBeCalledTimes(1)

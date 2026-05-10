@@ -3,9 +3,9 @@ import type { ModalView } from '../api/types/view'
 import type { App } from '../client'
 import { SlackTimeoutError } from '../error'
 import { makeProxy } from '../utils'
-import { type SubmissionInstance } from './submission'
+import { type Submission } from './submission'
 
-export class Modal<Blocks extends AnyBlock[] = AnyBlock[]> {
+export class ModalImpl<Blocks extends AnyBlock[] = AnyBlock[]> {
 	#data: ModalView<Blocks>
 
 	constructor(
@@ -16,24 +16,27 @@ export class Modal<Blocks extends AnyBlock[] = AnyBlock[]> {
 		return makeProxy(this, () => this.#data)
 	}
 
+	static create<Blocks extends AnyBlock[] = AnyBlock[]>(client: App, data: ModalView<Blocks>) {
+		return new ModalImpl(client, data) as Modal<Blocks>
+	}
+
 	get raw() {
 		return this.#data
 	}
 
 	get wait() {
-		return new ModalWait(this.client, makeProxy(this, () => this.#data) as ModalInstance<Blocks>)
+		return new ModalWait(this.client, this)
 	}
 }
 
-export type ModalInstance<Blocks extends AnyBlock[] = AnyBlock[]> = Modal<Blocks> &
-	ModalView<Blocks>
+export type Modal<Blocks extends AnyBlock[] = AnyBlock[]> = ModalImpl<Blocks> & ModalView<Blocks>
 
 class ModalWait<Blocks extends AnyBlock[] = AnyBlock[]> {
 	private _timeout: number = 60000
 
 	constructor(
 		private client: App,
-		private modal: ModalInstance<Blocks>,
+		private modal: ModalImpl<Blocks>,
 	) {}
 
 	timeout(timeout: number) {
@@ -42,20 +45,20 @@ class ModalWait<Blocks extends AnyBlock[] = AnyBlock[]> {
 	}
 
 	async submit() {
-		return new Promise<SubmissionInstance<Blocks>>((resolve, reject) => {
+		return new Promise<Submission<Blocks>>((resolve, reject) => {
 			const cleanup = () => {
 				this.client.off(key, callback)
 				if (timeout) clearTimeout(timeout)
 			}
 
-			const callback = (event: SubmissionInstance) => {
-				if (event.view.id === this.modal.id) {
+			const callback = (event: Submission) => {
+				if (event.view.id === this.modal.raw.id) {
 					cleanup()
-					resolve(event as SubmissionInstance<Blocks>)
+					resolve(event as Submission<Blocks>)
 				}
 			}
 
-			const key = `submit.${this.modal.callback_id}` as const
+			const key = `submit.${this.modal.raw.callback_id}` as const
 			this.client.on(key, callback)
 
 			const timeout =

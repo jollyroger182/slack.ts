@@ -1,14 +1,14 @@
 import { beforeEach, describe, expect, it, spyOn } from 'bun:test'
-import { App, HomeOpened, type HomeOpenedInstance, type SlackAPIResponse } from 'slack.ts'
+import { App, HomeOpenedImpl, type HomeOpened, type SlackAPIResponse } from 'slack.ts'
 import { HOME_OPENED_DATA, HOME_VIEW_DATA } from '../../fixtures'
 
 describe('HomeOpened', () => {
 	let app: App
-	let homeOpened: HomeOpenedInstance
+	let homeOpened: HomeOpened
 
 	beforeEach(() => {
 		app = new App({ token: 'xoxb-test-token' })
-		homeOpened = new HomeOpened(app, HOME_OPENED_DATA) as HomeOpenedInstance
+		homeOpened = HomeOpenedImpl.create(app, HOME_OPENED_DATA)
 	})
 
 	it('has raw property', () => {

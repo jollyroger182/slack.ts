@@ -4,7 +4,7 @@ import type { App } from '../client'
 import { makeProxy } from '../utils'
 import { Responder } from '../utils/respond'
 
-export class Submission<Blocks extends AnyBlock[] = AnyBlock[]> {
+export class SubmissionImpl<Blocks extends AnyBlock[] = AnyBlock[]> {
 	#data: ViewSubmission<Blocks>
 
 	constructor(
@@ -13,6 +13,10 @@ export class Submission<Blocks extends AnyBlock[] = AnyBlock[]> {
 	) {
 		this.#data = data
 		return makeProxy(this, () => this.#data)
+	}
+
+	static create<Blocks extends AnyBlock[] = AnyBlock[]>(client: App, data: ViewSubmission<Blocks>) {
+		return new SubmissionImpl(client, data) as Submission<Blocks>
 	}
 
 	get respond(): Responder {
@@ -24,5 +28,5 @@ export class Submission<Blocks extends AnyBlock[] = AnyBlock[]> {
 	}
 }
 
-export type SubmissionInstance<Blocks extends AnyBlock[] = AnyBlock[]> = Submission<Blocks> &
+export type Submission<Blocks extends AnyBlock[] = AnyBlock[]> = SubmissionImpl<Blocks> &
 	ViewSubmission<Blocks>

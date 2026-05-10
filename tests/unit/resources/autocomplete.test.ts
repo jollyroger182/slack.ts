@@ -1,19 +1,19 @@
 import { beforeEach, describe, expect, it, mock } from 'bun:test'
-import { App, Autocomplete, option, optionGroup, type AutocompleteInstance } from 'slack.ts'
+import { App, AutocompleteImpl, option, optionGroup, type Autocomplete } from 'slack.ts'
 import type { BlockSuggestionResponder } from '../../../src/receivers/base'
 import { BLOCK_SUGGESTION_DATA } from '../../fixtures'
 
 describe('Autocomplete', () => {
 	let app: App<'dummy'>
-	let autocomplete: AutocompleteInstance
+	let autocomplete: Autocomplete
 
 	let responder: BlockSuggestionResponder | undefined
 
 	beforeEach(() => {
 		app = new App({ token: 'xoxb-test-token' })
-		autocomplete = new Autocomplete(app, BLOCK_SUGGESTION_DATA, async (...args) =>
+		autocomplete = AutocompleteImpl.create(app, BLOCK_SUGGESTION_DATA, async (...args) =>
 			responder?.(...args),
-		) as AutocompleteInstance
+		)
 		responder = undefined
 	})
 

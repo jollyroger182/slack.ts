@@ -5,7 +5,7 @@ import { Responder } from '../utils/respond'
 import { ChannelRef } from './channel'
 import { UserImpl, type User } from './user'
 
-export class SlashCommand {
+export class SlashCommandImpl {
 	#data: SlashCommandPayload
 
 	constructor(
@@ -14,6 +14,10 @@ export class SlashCommand {
 	) {
 		this.#data = data
 		return makeProxy(this, () => this.#data)
+	}
+
+	static create(client: App, data: SlashCommandPayload) {
+		return new SlashCommandImpl(client, data) as SlashCommand
 	}
 
 	get respond(): Responder<true> {
@@ -29,4 +33,4 @@ export class SlashCommand {
 	}
 }
 
-export type SlashCommandInstance = SlashCommand & SlashCommandPayload
+export type SlashCommand = SlashCommandImpl & SlashCommandPayload

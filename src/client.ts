@@ -27,13 +27,13 @@ import { HttpFetchReceiver, type HttpFetchReceiverOptions } from './receivers/fe
 import { HttpServerReceiver, type HttpServerReceiverOptions } from './receivers/http'
 import { RTMReceiver, type RTMReceiverOptions } from './receivers/rtm'
 import { SocketEventsReceiver, type SocketEventsReceiverOptions } from './receivers/socket'
-import { Submission, type SubmissionInstance } from './resources'
+import { SubmissionImpl, type Submission } from './resources'
 import { ActionImpl, type Action } from './resources/action'
-import { Autocomplete, type AutocompleteInstance } from './resources/autocomplete'
+import { AutocompleteImpl, type Autocomplete } from './resources/autocomplete'
 import { Channel, ChannelRef, type ChannelInstance } from './resources/channel'
-import { HomeOpened, type HomeOpenedInstance } from './resources/home_opened'
+import { HomeOpenedImpl, type HomeOpened } from './resources/home_opened'
 import { Message, type MessageInstance } from './resources/message'
-import { SlashCommand, type SlashCommandInstance } from './resources/slash'
+import { SlashCommandImpl, type SlashCommand } from './resources/slash'
 import { UserImpl, type User } from './resources/user'
 import { sleep, type AnyToken } from './utils'
 import { AsyncEventEmitter } from './utils/events'
@@ -161,7 +161,7 @@ export class App<
 	}
 
 	async #onBlockSuggestion(event: BlockSuggestion, responder: BlockSuggestionResponder) {
-		const obj = new Autocomplete(this, event, responder) as AutocompleteInstance
+		const obj = AutocompleteImpl.create(this, event, responder)
 		await Promise.all([
 			this.emit('autocomplete', obj),
 			this.emit(`autocomplete.${event.action_id}`, obj),
@@ -169,7 +169,7 @@ export class App<
 	}
 
 	async #onViewSubmission(event: ViewSubmission) {
-		const obj = new Submission(this, event) as SubmissionInstance
+		const obj = SubmissionImpl.create(this, event)
 		await Promise.all([
 			this.emit('submit', obj),
 			this.emit(`submit.${event.view.callback_id}`, obj),
@@ -177,7 +177,7 @@ export class App<
 	}
 
 	async #onSlashCommand(event: SlashCommandPayload) {
-		const command = new SlashCommand(this, event) as SlashCommandInstance
+		const command = SlashCommandImpl.create(this, event)
 		await Promise.all([
 			this.emit('slash', command),
 			this.emit(`/${event.command.substring(1)}`, command),
@@ -200,7 +200,7 @@ export class App<
 	}
 
 	async #onAppHomeOpened({ payload }: { payload: AppHomeOpenedEvent }) {
-		const obj = new HomeOpened(this, payload) as HomeOpenedInstance
+		const obj = HomeOpenedImpl.create(this, payload)
 		await this.emit('home', obj)
 	}
 
@@ -359,12 +359,12 @@ type AppEventMap = {
 	event: [EventWrapper]
 	actions: [BlockActions]
 	action: [Action]
-	submit: [SubmissionInstance]
+	submit: [Submission]
 	message: [MessageInstance]
 	'message:normal': [MessageInstance<NormalMessage>]
-	slash: [SlashCommandInstance]
-	autocomplete: [AutocompleteInstance]
-	home: [HomeOpenedInstance]
+	slash: [SlashCommand]
+	autocomplete: [Autocomplete]
+	home: [HomeOpened]
 } & {
 	[K in AllEventTypes as `event:${K}`]: [
 		{ payload: SlackEventMap[K]; event: EventWrapper<SlackEventMap[K]> },
@@ -376,7 +376,7 @@ type AppEventMap = {
 } & {
 	[K in BlockActionTypes as `action:${K}.${string}`]: [Action<BlockActionMap[K]>]
 } & {
-	[K in `submit.${string}`]: [SubmissionInstance]
+	[K in `submit.${string}`]: [Submission]
 } & {
 	[K in `message#${string}`]: [MessageInstance]
 } & {
@@ -388,7 +388,7 @@ type AppEventMap = {
 } & {
 	[K in `message:normal#${string}`]: [MessageInstance<NormalMessage>]
 } & {
-	[K in `/${string}`]: [SlashCommandInstance]
+	[K in `/${string}`]: [SlashCommand]
 } & {
 	[K in `autocomplete.${string}`]: [Autocomplete]
 }

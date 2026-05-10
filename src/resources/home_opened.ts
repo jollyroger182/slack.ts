@@ -3,7 +3,7 @@ import type { AppHomeOpenedEvent } from '../api/events'
 import type { App } from '../client'
 import { makeProxy } from '../utils'
 
-export class HomeOpened {
+export class HomeOpenedImpl {
 	#data: AppHomeOpenedEvent
 
 	constructor(
@@ -12,6 +12,10 @@ export class HomeOpened {
 	) {
 		this.#data = data
 		return makeProxy(this, () => this.#data)
+	}
+
+	static create(client: App, data: AppHomeOpenedEvent) {
+		return new HomeOpenedImpl(client, data) as HomeOpened
 	}
 
 	get raw() {
@@ -23,4 +27,4 @@ export class HomeOpened {
 	}
 }
 
-export type HomeOpenedInstance = HomeOpened & AppHomeOpenedEvent
+export type HomeOpened = HomeOpenedImpl & AppHomeOpenedEvent
