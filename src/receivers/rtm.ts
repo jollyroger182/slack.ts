@@ -127,6 +127,7 @@ export class RTMReceiver
 		let url: URL
 		if (this.#reconnectUrl) {
 			url = new URL(this.#reconnectUrl)
+			this.#reconnectUrl = undefined
 		} else {
 			const { primary_websocket_url } = await this.#client.request('client.getWebSocketURL', {})
 			url = new URL(primary_websocket_url)
@@ -142,7 +143,7 @@ export class RTMReceiver
 				this.#ws?.addEventListener('error', this.#onError.bind(this))
 				resolve()
 			})
-			this.#ws.once('error', (error) => reject(error))
+			this.#ws.on('error', (error) => reject(error))
 
 			if (!this.#pingInterval) {
 				this.#pingInterval = setInterval(this.#sendPing.bind(this), 44000)

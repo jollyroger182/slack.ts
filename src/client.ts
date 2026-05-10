@@ -125,7 +125,7 @@ interface ChannelsManager {
 	 * @param isPrivate Whether the channel should be private (defaults to public)
 	 * @returns A newly created channel
 	 */
-	create(name: string, isPrivate?: boolean): Promise<Channel<PrivateChannelData>>
+	create(name: string, isPrivate?: boolean): Promise<Channel<PublicChannelData>>
 }
 
 export class App<
