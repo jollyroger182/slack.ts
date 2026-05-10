@@ -25,6 +25,7 @@ import {
 	PUBLIC_CHANNEL_DATA,
 	USER_DATA,
 } from '../fixtures'
+import { EventImpl, type Event } from '../../src/resources/event'
 
 describe('App client', () => {
 	let app: App<'dummy'>
@@ -225,14 +226,15 @@ describe('App client', () => {
 	})
 
 	it('emits events on app', async () => {
-		let eventFired: EventWrapper | undefined
+		let eventFired: Event | undefined
 		app.on('event', (event) => {
 			eventFired = event
 		})
 
 		await app.receiver.emit('event', MESSAGE_EVENT)
 
-		expect(eventFired).toEqual(MESSAGE_EVENT)
+		expect(eventFired).toBeInstanceOf(EventImpl)
+		expect(eventFired!.raw).toEqual(MESSAGE_EVENT as any)
 	})
 
 	it('can create multiple apps independently', () => {
