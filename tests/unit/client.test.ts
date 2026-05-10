@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, spyOn } from 'bun:test'
 import {
-	Action,
+	ActionImpl,
 	App,
 	button,
 	Channel,
@@ -80,7 +80,7 @@ describe('App client', () => {
 		setTimeout(() => app.receiver.emit('block_actions', payload), 0)
 
 		const action = await app.wait.timeout(10).action(btn)
-		expect(action).toBeInstanceOf(Action)
+		expect(action).toBeInstanceOf(ActionImpl)
 		expect(action.raw).toEqual(BUTTON_DATA)
 		expect(action.action_id).toBe('test_button')
 	})

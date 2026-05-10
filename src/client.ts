@@ -28,7 +28,7 @@ import { HttpServerReceiver, type HttpServerReceiverOptions } from './receivers/
 import { RTMReceiver, type RTMReceiverOptions } from './receivers/rtm'
 import { SocketEventsReceiver, type SocketEventsReceiverOptions } from './receivers/socket'
 import { Submission, type SubmissionInstance } from './resources'
-import { Action, type ActionInstance } from './resources/action'
+import { ActionImpl, type Action } from './resources/action'
 import { Autocomplete, type AutocompleteInstance } from './resources/autocomplete'
 import { Channel, ChannelRef, type ChannelInstance } from './resources/channel'
 import { HomeOpened, type HomeOpenedInstance } from './resources/home_opened'
@@ -148,7 +148,7 @@ export class App<
 		await Promise.all(
 			[this.emit('actions', event)].concat(
 				event.actions.flatMap((action) => {
-					const obj = new Action(this, action, event) as ActionInstance
+					const obj = ActionImpl.create(this, action, event)
 					return [
 						this.emit(`action`, obj),
 						this.emit(`action:${action.type}`, obj as any),
@@ -358,7 +358,7 @@ export class App<
 type AppEventMap = {
 	event: [EventWrapper]
 	actions: [BlockActions]
-	action: [ActionInstance]
+	action: [Action]
 	submit: [SubmissionInstance]
 	message: [MessageInstance]
 	'message:normal': [MessageInstance<NormalMessage>]
@@ -370,11 +370,11 @@ type AppEventMap = {
 		{ payload: SlackEventMap[K]; event: EventWrapper<SlackEventMap[K]> },
 	]
 } & {
-	[K in BlockActionTypes as `action:${K}`]: [ActionInstance<BlockActionMap[K]>]
+	[K in BlockActionTypes as `action:${K}`]: [Action<BlockActionMap[K]>]
 } & {
-	[K in `action.${string}`]: [ActionInstance]
+	[K in `action.${string}`]: [Action]
 } & {
-	[K in BlockActionTypes as `action:${K}.${string}`]: [ActionInstance<BlockActionMap[K]>]
+	[K in BlockActionTypes as `action:${K}.${string}`]: [Action<BlockActionMap[K]>]
 } & {
 	[K in `submit.${string}`]: [SubmissionInstance]
 } & {
@@ -418,7 +418,7 @@ class AppWait {
 			| BlockElementBuilder<{ type: BlockActionTypes; action_id: string }>
 			| { type: BlockActionTypes; action_id: string }
 		)[],
-	>(...actions: Actions): Promise<ActionInstance<ExtractAction<Actions[number]>>> {
+	>(...actions: Actions): Promise<Action<ExtractAction<Actions[number]>>> {
 		const objs = actions.map((a) => (a instanceof BlockElementBuilder ? a.build() : a))
 
 		return new Promise((resolve, reject) => {
@@ -431,7 +431,7 @@ class AppWait {
 				}
 			}
 
-			const callback = (action: ActionInstance) => {
+			const callback = (action: Action) => {
 				cleanup()
 				resolve(action)
 			}

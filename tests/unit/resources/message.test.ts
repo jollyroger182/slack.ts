@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, spyOn } from 'bun:test'
 import {
-	Action,
+	ActionImpl,
 	blocks,
 	section,
 	SlackWebAPIPlatformError,
@@ -37,7 +37,7 @@ describe('Message', () => {
 			setTimeout(() => app.receiver.emit('block_actions', payload), 0)
 
 			const action = await message.wait.timeout(10).action('test_button')
-			expect(action).toBeInstanceOf(Action)
+			expect(action).toBeInstanceOf(ActionImpl)
 			expect(action.raw).toEqual(BUTTON_DATA)
 			expect(action.action_id).toBe('test_button')
 		})

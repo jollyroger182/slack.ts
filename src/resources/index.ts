@@ -1,4 +1,4 @@
-export { Action, type ActionInstance } from './action'
+export { ActionImpl, type Action } from './action'
 export { Autocomplete, type AutocompleteInstance } from './autocomplete'
 export { Channel, ChannelRef, type ChannelInstance } from './channel'
 export { HomeOpened, type HomeOpenedInstance } from './home_opened'

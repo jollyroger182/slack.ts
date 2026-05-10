@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, spyOn } from 'bun:test'
-import { Action, App, type ActionInstance } from 'slack.ts'
+import { ActionImpl, App, type Action } from 'slack.ts'
 import type { ButtonAction } from '../../../src/api/interactive/block_actions'
 import { blockActionsEx, BUTTON_DATA } from '../../fixtures'
 
@@ -7,12 +7,12 @@ const EVENT_DATA = blockActionsEx({ response_url: 'http://localhost:3003/respond
 
 describe('Action', () => {
 	let app: App
-	let action: ActionInstance<ButtonAction>
+	let action: Action<ButtonAction>
 	let originalFetch: typeof fetch
 
 	beforeEach(() => {
 		app = new App({ token: 'xoxb-test-token' })
-		action = new Action(app, BUTTON_DATA, EVENT_DATA) as ActionInstance<ButtonAction>
+		action = ActionImpl.create(app, BUTTON_DATA, EVENT_DATA)
 		originalFetch = globalThis.fetch
 	})
 

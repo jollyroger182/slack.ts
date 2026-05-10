@@ -3,7 +3,7 @@ import type { App } from '../client'
 import { makeProxy } from '../utils'
 import { Responder } from '../utils/respond'
 
-export class Action<Type extends BlockAction = BlockAction> {
+export class ActionImpl<Type extends BlockAction = BlockAction> {
 	#data: Type
 	#event: BlockActions
 
@@ -15,6 +15,14 @@ export class Action<Type extends BlockAction = BlockAction> {
 		this.#data = action
 		this.#event = event
 		return makeProxy(this, () => this.#data)
+	}
+
+	static create<Type extends BlockAction = BlockAction>(
+		client: App,
+		action: Type,
+		event: BlockActions,
+	) {
+		return new ActionImpl(client, action, event) as Action<Type>
 	}
 
 	get event() {
@@ -35,4 +43,4 @@ export class Action<Type extends BlockAction = BlockAction> {
 	}
 }
 
-export type ActionInstance<Type extends BlockAction = BlockAction> = Action<Type> & Type
+export type Action<Type extends BlockAction = BlockAction> = ActionImpl<Type> & Type

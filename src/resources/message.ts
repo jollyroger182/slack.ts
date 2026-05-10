@@ -16,7 +16,7 @@ import {
 import { paginate } from '../utils/paginate'
 import { startStreaming } from '../utils/streaming'
 import type { DistributiveOmit } from '../utils/typing'
-import type { ActionInstance } from './action'
+import type { Action } from './action'
 import { ChannelRef } from './channel'
 import { type User, UserImpl } from './user'
 import type { User as UserData } from '../api/types/user'
@@ -395,7 +395,7 @@ class MessageWait<Subtype extends AnyMessage = AnyMessage, Blocks extends AnyBlo
 				}
 			}
 
-			const callback = async (action: ActionInstance) => {
+			const callback = async (action: Action) => {
 				const { event } = action
 				if (
 					(event.container.type === 'message' || event.container.type === 'message_attachment') &&
@@ -444,9 +444,9 @@ class MessageWait<Subtype extends AnyMessage = AnyMessage, Blocks extends AnyBlo
 	}
 }
 
-type ActionPredicate = (action: ActionInstance) => boolean | Promise<boolean>
+type ActionPredicate = (action: Action) => boolean | Promise<boolean>
 
-type DistributeAction<T extends BlockAction> = T extends any ? ActionInstance<T> : never
+type DistributeAction<T extends BlockAction> = T extends any ? Action<T> : never
 
 type ExtractActionWaitReturnValue<
 	ActionID extends string,
