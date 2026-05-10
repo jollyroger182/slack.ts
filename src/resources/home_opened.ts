@@ -1,4 +1,4 @@
-import type { SlackAPIParams } from '../api'
+import type { SlackAPIParams } from '../api/web'
 import type { AppHomeOpenedEvent } from '../api/events'
 import type { App } from '../client'
 import { makeProxy } from '../utils'

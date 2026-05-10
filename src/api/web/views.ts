@@ -1,10 +1,10 @@
 import type { DistributivePick, NotNull } from '../../utils/typing'
-import type { HomeView, ModalView } from '../types/view'
+import type { HomeViewData, ModalViewData } from '../types/view'
 
 export type ViewsOpenParams = {
 	view: Partial<
 		DistributivePick<
-			{ [K in keyof ModalView]: NotNull<ModalView[K]> },
+			{ [K in keyof ModalViewData]: NotNull<ModalViewData[K]> },
 			| 'close'
 			| 'submit'
 			| 'private_metadata'
@@ -14,14 +14,14 @@ export type ViewsOpenParams = {
 			| 'external_id'
 		>
 	> &
-		DistributivePick<ModalView, 'type' | 'title' | 'blocks'>
+		DistributivePick<ModalViewData, 'type' | 'title' | 'blocks'>
 } & (
 	| { trigger_id: string; interactivity_pointer?: never }
 	| { trigger_id?: never; interactivity_pointer: string }
 )
 
 export interface ViewsOpenResponse {
-	view: ModalView
+	view: ModalViewData
 }
 
 export interface ViewsPublishParams {
@@ -29,13 +29,15 @@ export interface ViewsPublishParams {
 	user_id: string
 
 	/** A [view payload](https://docs.slack.dev/reference/views). */
-	view: Partial<DistributivePick<HomeView, 'private_metadata' | 'callback_id' | 'external_id'>> &
-		DistributivePick<HomeView, 'type' | 'blocks'>
+	view: Partial<
+		DistributivePick<HomeViewData, 'private_metadata' | 'callback_id' | 'external_id'>
+	> &
+		DistributivePick<HomeViewData, 'type' | 'blocks'>
 
 	/** A string that represents view state to protect against possible race conditions. */
 	hash?: string
 }
 
 export interface ViewsPublishResponse {
-	view: HomeView
+	view: HomeViewData
 }

@@ -1,5 +1,5 @@
 import type { AnyBlock } from '@slack/types'
-import type { NormalMessage } from '../api/types/message'
+import type { NormalMessageData } from '../api/types/message'
 import type { ChatPostEphemeralParams, ChatPostMessageParams } from '../api/web/chat'
 import type { App } from '../client'
 import { SlackError } from '../error'
@@ -62,7 +62,7 @@ export async function sendMessage<Blocks extends AnyBlock[] = AnyBlock[]>(
 		return {
 			channel: message.channel,
 			ts: message.ts,
-			message: message.message as NormalMessage<Blocks>,
+			message: message.message as NormalMessageData<Blocks>,
 		}
 	}
 }

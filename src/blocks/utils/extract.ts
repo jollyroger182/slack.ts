@@ -2,7 +2,7 @@ import type { AnyBlock } from '@slack/types'
 import type { StateValue } from '../../api/types/value'
 import type { DistributiveOmit, Equals } from '../../utils/typing'
 import type { OptionObjectBuilder } from '../objects/option'
-import type { BlockAction } from '../../api/interactive/block_actions'
+import type { ActionData } from '../../api/interactive/block_actions'
 
 /**
  * Extract the `state.values` object type from the blocks type. Supports extracting options from
@@ -88,7 +88,7 @@ export type ExtractActions<Blocks extends AnyBlock[]> = {
  */
 export type ExtractBlockActions<Block extends AnyBlock> =
 	Equals<Block, AnyBlock> extends true
-		? BlockAction
+		? ActionData
 		: PickActionAndValueFields<
 				{
 					[K in keyof Block]:

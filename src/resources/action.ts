@@ -1,26 +1,26 @@
-import type { BlockAction, BlockActions } from '../api/interactive/block_actions'
+import type { ActionData, BlockActionsData } from '../api/interactive/block_actions'
 import type { App } from '../client'
 import { makeProxy } from '../utils'
 import { Responder } from '../utils/respond'
 
-export class ActionImpl<Type extends BlockAction = BlockAction> {
+export class ActionImpl<Type extends ActionData = ActionData> {
 	#data: Type
-	#event: BlockActions
+	#event: BlockActionsData
 
 	constructor(
 		protected client: App,
 		action: Type,
-		event: BlockActions,
+		event: BlockActionsData,
 	) {
 		this.#data = action
 		this.#event = event
 		return makeProxy(this, () => this.#data)
 	}
 
-	static create<Type extends BlockAction = BlockAction>(
+	static create<Type extends ActionData = ActionData>(
 		client: App,
 		action: Type,
-		event: BlockActions,
+		event: BlockActionsData,
 	) {
 		return new ActionImpl(client, action, event) as Action<Type>
 	}
@@ -43,4 +43,4 @@ export class ActionImpl<Type extends BlockAction = BlockAction> {
 	}
 }
 
-export type Action<Type extends BlockAction = BlockAction> = ActionImpl<Type> & Type
+export type Action<Type extends ActionData = ActionData> = ActionImpl<Type> & Type

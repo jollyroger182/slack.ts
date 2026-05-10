@@ -1,7 +1,7 @@
+export * from './api'
+export * from './blocks'
 export * from './client'
 export * from './error'
-export * from './blocks'
-export * from './api'
 export * from './receivers'
 export * from './resources'
 

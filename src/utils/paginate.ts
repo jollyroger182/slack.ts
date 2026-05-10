@@ -1,4 +1,4 @@
-import type { SlackAPIParams, SlackAPIResponse, SlackPaginatingAPIMethod } from '../api'
+import type { SlackAPIParams, SlackAPIResponse, SlackPaginatingAPIMethod } from '../api/web'
 import type { CursorPaginationResponse } from '../api/types/api'
 import type { App } from '../client'
 import type { DistributiveOmit } from './typing'

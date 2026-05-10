@@ -1,17 +1,17 @@
 import { createHmac, timingSafeEqual } from 'crypto'
-import type { AllEvents, EventWrapper } from '../api/events'
-import type { BlockActions } from '../api/interactive/block_actions'
+import type { EventData, EventWrapper } from '../api/events'
+import type { BlockActionsData } from '../api/interactive/block_actions'
 import type { ViewSubmission } from '../api/interactive/view_submission'
-import type { SlashCommandPayload } from '../api/slash'
-import type { BlockSuggestion } from '../api/interactive/block_suggestion'
+import type { SlashCommandData } from '../api/slash'
+import type { BlockSuggestionData } from '../api/interactive/block_suggestion'
 
 export type SlackHttpPayload =
 	| { type: 'url_verification'; challenge: string }
-	| { type: 'event'; payload: EventWrapper<AllEvents> }
-	| { type: 'block_actions'; payload: BlockActions }
-	| { type: 'block_suggestion'; payload: BlockSuggestion }
+	| { type: 'event'; payload: EventWrapper<EventData> }
+	| { type: 'block_actions'; payload: BlockActionsData }
+	| { type: 'block_suggestion'; payload: BlockSuggestionData }
 	| { type: 'view_submission'; payload: ViewSubmission }
-	| { type: 'slash_command'; payload: SlashCommandPayload }
+	| { type: 'slash_command'; payload: SlashCommandData }
 
 /**
  * Parses and validates a Slack HTTP request.
@@ -102,21 +102,21 @@ function detectSlackPayload(body: unknown): SlackHttpPayload {
 	if (obj.type === 'event_callback' && obj.event) {
 		return {
 			type: 'event',
-			payload: body as EventWrapper<AllEvents>,
+			payload: body as EventWrapper<EventData>,
 		}
 	}
 
 	if (obj.type === 'block_actions' && Array.isArray(obj.actions)) {
 		return {
 			type: 'block_actions',
-			payload: body as BlockActions,
+			payload: body as BlockActionsData,
 		}
 	}
 
 	if (obj.type === 'block_suggestion') {
 		return {
 			type: 'block_suggestion',
-			payload: body as BlockSuggestion,
+			payload: body as BlockSuggestionData,
 		}
 	}
 
@@ -130,7 +130,7 @@ function detectSlackPayload(body: unknown): SlackHttpPayload {
 	if (typeof obj.command === 'string' && typeof obj.text === 'string' && obj.trigger_id) {
 		return {
 			type: 'slash_command',
-			payload: body as SlashCommandPayload,
+			payload: body as SlashCommandData,
 		}
 	}
 

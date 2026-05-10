@@ -1,5 +1,5 @@
 import type { CursorPaginationParams, CursorPaginationResponse } from '../types/api'
-import type { User, UserProfile } from '../types/user'
+import type { UserData, UserProfileData } from '../types/user'
 
 export interface UsersInfoParams {
 	/** User to get info on */
@@ -10,7 +10,7 @@ export interface UsersInfoParams {
 }
 
 export interface UsersInfoResponse {
-	user: User
+	user: UserData
 }
 
 interface ProfileUpdate {
@@ -40,7 +40,7 @@ export type UsersProfileSetParams = {} & (
 )
 
 export interface UsersProfileSetResponse {
-	profile: UserProfile
+	profile: UserProfileData
 }
 
 export interface UsersListParams extends CursorPaginationParams {
@@ -56,6 +56,6 @@ export interface UsersListParams extends CursorPaginationParams {
 }
 
 export interface UsersListResponse extends CursorPaginationResponse {
-	members: User[]
+	members: UserData[]
 	cache_ts: number
 }

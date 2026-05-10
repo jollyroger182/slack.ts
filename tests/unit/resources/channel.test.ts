@@ -1,13 +1,13 @@
 import { beforeEach, describe, expect, it, spyOn } from 'bun:test'
 import { Message, MessageRef, type MessageInstance, type SlackAPIResponse } from 'slack.ts'
-import type { PublicChannel } from '../../../src/api/types/conversation'
+import type { PublicChannelData } from '../../../src/api/types/conversation'
 import { App } from '../../../src/client'
 import { ChannelImpl, type Channel } from '../../../src/resources/channel'
 import { PUBLIC_CHANNEL_DATA as DATA } from '../../fixtures'
 
 describe('Channel', () => {
 	let app: App
-	let channel: Channel<PublicChannel, true>
+	let channel: Channel<PublicChannelData, true>
 
 	beforeEach(() => {
 		app = new App({ token: 'xoxb-test-token' })
@@ -129,7 +129,7 @@ describe('Channel', () => {
 
 describe('Channel<Fetched=false>', () => {
 	let app: App
-	let ref: Channel<PublicChannel>
+	let ref: Channel<PublicChannelData>
 
 	beforeEach(() => {
 		app = new App({ token: 'xoxb-test-token' })

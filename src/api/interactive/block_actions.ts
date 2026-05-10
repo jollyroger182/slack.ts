@@ -2,18 +2,18 @@ import type { ConfirmationDialog, PlainTextElement, PlainTextOption } from '@sla
 import type { IconButtonIcon } from '../../blocks/elements/icon_button'
 import type { AnyMessage } from '../types/message'
 import type { StateValue } from '../types/value'
-import type { AnyView } from '../types/view'
+import type { AnyViewData } from '../types/view'
 import type { InteractionCommon } from './common'
 
-export interface BlockActions extends InteractionCommon {
+export interface BlockActionsData extends InteractionCommon {
 	type: 'block_actions'
-	container: BlockActionContainer
+	container: ActionContainer
 	channel?: { id: string; name: string }
 	message?: AnyMessage
-	view?: AnyView
+	view?: AnyViewData
 	state?: { values: Record<string, Record<string, StateValue>> }
 	response_url?: string
-	actions: BlockAction[]
+	actions: ActionData[]
 }
 
 interface MessageAttachmentContainer {
@@ -37,7 +37,7 @@ interface MessageContainer {
 	is_ephemeral: boolean
 }
 
-export type BlockActionContainer = MessageAttachmentContainer | ViewContainer | MessageContainer
+export type ActionContainer = MessageAttachmentContainer | ViewContainer | MessageContainer
 
 interface ActionCommon {
 	block_id: string
@@ -170,7 +170,7 @@ export interface UsersSelectAction extends ActionCommon {
 	confirm?: ConfirmationDialog
 }
 
-export type BlockAction =
+export type ActionData =
 	| ButtonAction
 	| ChannelsSelectAction
 	| CheckboxesAction
@@ -186,8 +186,8 @@ export type BlockAction =
 	| RadioAction
 	| StaticSelectAction
 
-export type BlockActionTypes = BlockAction['type']
+export type ActionTypes = ActionData['type']
 
-export type BlockActionMap = {
-	[K in BlockActionTypes]: Extract<BlockAction, { type: K }>
+export type ActionMap = {
+	[K in ActionTypes]: Extract<ActionData, { type: K }>
 }

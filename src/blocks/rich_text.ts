@@ -19,7 +19,7 @@ import type {
 } from '@slack/types'
 import type { Channel, User } from '../resources'
 import { BlockBuilder, Builder } from './base'
-import type { Conversation } from '../api/types/conversation'
+import type { ConversationData } from '../api/types/conversation'
 
 type TypedRichTextBlock<BlockID extends string> = RichTextBlock & { block_id: BlockID }
 
@@ -239,7 +239,7 @@ export class RichTextChannelBuilder extends StyleableBuilder<RichTextChannelMent
 	}
 }
 
-export function channel(channel: Channel<Conversation, boolean> | string) {
+export function channel(channel: Channel<ConversationData, boolean> | string) {
 	return new RichTextChannelBuilder(typeof channel === 'string' ? channel : channel.id)
 }
 

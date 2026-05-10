@@ -12,7 +12,7 @@ import type {
 	StaticSelect,
 	UsersSelect,
 } from '@slack/types'
-import type { PlainTextOptionGroup } from '../../api/types/misc'
+import type { PlainTextOptionGroupData } from '../../api/types/misc'
 import type { Channel, User } from '../../resources'
 import type { Builder } from '../base'
 import { ConfirmBuilder, confirm as buildConfirm } from '../objects/confirm'
@@ -20,7 +20,7 @@ import { OptionObjectBuilder } from '../objects/option'
 import { OptionGroupBuilder } from '../objects/option_group'
 import { ensureIsTextObjectBuilder, type TextObjectBuilder } from '../objects/text'
 import { BlockElementBuilder } from './base'
-import type { Conversation } from '../../api/types/conversation'
+import type { ConversationData } from '../../api/types/conversation'
 
 type SelectType = 'static' | 'external' | 'users' | 'conversations' | 'channels' | undefined
 
@@ -185,7 +185,7 @@ export class SelectBuilder<ActionID extends string = string> extends BlockElemen
 		return this
 	}
 
-	default(...values: (string | User | Channel<Conversation, boolean> | OptionObjectBuilder)[]) {
+	default(...values: (string | User | Channel<ConversationData, boolean> | OptionObjectBuilder)[]) {
 		this._default = values.map((v) =>
 			typeof v === 'string' ? v : v instanceof OptionObjectBuilder ? v : v.id,
 		)
@@ -280,7 +280,7 @@ export class SelectBuilder<ActionID extends string = string> extends BlockElemen
 			throw new Error('One of options and option_groups is required for static select menus')
 		}
 
-		let optionGroups: PlainTextOptionGroup[] | undefined
+		let optionGroups: PlainTextOptionGroupData[] | undefined
 		let options: PlainTextOption[] | undefined
 		let allOptions: PlainTextOption[]
 		if (this._options.options) {
@@ -400,7 +400,7 @@ export interface ConversationsSelectBuilder<ActionID extends string = string>
 		BlockElementBuilder<InferBuiltType<'conversations', false, undefined, ActionID>, ActionID>,
 		SelectBuilderBase {
 	id<ActionID extends string>(actionId: ActionID): ConversationsSelectBuilder<ActionID>
-	default(conversation: Channel<Conversation, boolean> | string): this
+	default(conversation: Channel<ConversationData, boolean> | string): this
 }
 
 export interface MultiConversationsSelectBuilder<ActionID extends string = string>
@@ -408,7 +408,7 @@ export interface MultiConversationsSelectBuilder<ActionID extends string = strin
 		BlockElementBuilder<InferBuiltType<'conversations', true, undefined, ActionID>, ActionID>,
 		SelectBuilderBase {
 	id<ActionID extends string>(actionId: ActionID): MultiConversationsSelectBuilder<ActionID>
-	default(...conversations: (Channel<Conversation, boolean> | string)[]): this
+	default(...conversations: (Channel<ConversationData, boolean> | string)[]): this
 }
 
 export interface ChannelsSelectBuilder<ActionID extends string = string>
@@ -416,7 +416,7 @@ export interface ChannelsSelectBuilder<ActionID extends string = string>
 		BlockElementBuilder<InferBuiltType<'channels', false, undefined, ActionID>, ActionID>,
 		SelectBuilderBase {
 	id<ActionID extends string>(actionId: ActionID): ChannelsSelectBuilder<ActionID>
-	default(channel: Channel<Conversation, boolean> | string): this
+	default(channel: Channel<ConversationData, boolean> | string): this
 }
 
 export interface MultiChannelsSelectBuilder<ActionID extends string = string>
@@ -424,7 +424,7 @@ export interface MultiChannelsSelectBuilder<ActionID extends string = string>
 		BlockElementBuilder<InferBuiltType<'channels', true, undefined, ActionID>, ActionID>,
 		SelectBuilderBase {
 	id<ActionID extends string>(actionId: ActionID): MultiChannelsSelectBuilder<ActionID>
-	default(...channels: (Channel<Conversation, boolean> | string)[]): this
+	default(...channels: (Channel<ConversationData, boolean> | string)[]): this
 }
 
 interface ExternalSelectBuilderBase extends SelectBuilderBase {

@@ -1,4 +1,4 @@
-import type { BlockSuggestion } from '../api/interactive/block_suggestion'
+import type { BlockSuggestionData } from '../api/interactive/block_suggestion'
 import { OptionObjectBuilder } from '../blocks/objects/option'
 import type { OptionGroupBuilder } from '../blocks/objects/option_group'
 import type { App } from '../client'
@@ -6,18 +6,18 @@ import type { BlockSuggestionResponder } from '../receivers/base'
 import { makeProxy } from '../utils'
 
 export class AutocompleteImpl {
-	#data: BlockSuggestion
+	#data: BlockSuggestionData
 
 	constructor(
 		protected client: App,
-		event: BlockSuggestion,
+		event: BlockSuggestionData,
 		private responder: BlockSuggestionResponder,
 	) {
 		this.#data = event
 		return makeProxy(this, () => this.#data)
 	}
 
-	static create(client: App, event: BlockSuggestion, responder: BlockSuggestionResponder) {
+	static create(client: App, event: BlockSuggestionData, responder: BlockSuggestionResponder) {
 		return new AutocompleteImpl(client, event, responder) as Autocomplete
 	}
 
@@ -40,4 +40,4 @@ export class AutocompleteImpl {
 	}
 }
 
-export type Autocomplete = AutocompleteImpl & BlockSuggestion
+export type Autocomplete = AutocompleteImpl & BlockSuggestionData

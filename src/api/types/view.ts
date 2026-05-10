@@ -5,7 +5,7 @@ import type { ExtractValues } from '../../blocks/utils/extract'
 // ...
 // i don't know what to think about this.
 
-export interface BaseView<Blocks extends AnyBlock[] = AnyBlock[]> {
+export interface BaseViewData<Blocks extends AnyBlock[] = AnyBlock[]> {
 	id: string
 	team_id: string
 	title: PlainTextElement
@@ -26,12 +26,16 @@ export interface BaseView<Blocks extends AnyBlock[] = AnyBlock[]> {
 	bot_id: string
 }
 
-export interface ModalView<Blocks extends AnyBlock[] = AnyBlock[]> extends BaseView<Blocks> {
+export interface ModalViewData<
+	Blocks extends AnyBlock[] = AnyBlock[],
+> extends BaseViewData<Blocks> {
 	type: 'modal'
 }
 
-export interface HomeView<Blocks extends AnyBlock[] = AnyBlock[]> extends BaseView<Blocks> {
+export interface HomeViewData<Blocks extends AnyBlock[] = AnyBlock[]> extends BaseViewData<Blocks> {
 	type: 'home'
 }
 
-export type AnyView<Blocks extends AnyBlock[] = AnyBlock[]> = ModalView<Blocks> | HomeView<Blocks>
+export type AnyViewData<Blocks extends AnyBlock[] = AnyBlock[]> =
+	| ModalViewData<Blocks>
+	| HomeViewData<Blocks>

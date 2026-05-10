@@ -1,5 +1,5 @@
 import type { AnyBlock } from '@slack/types'
-import type { File } from './file'
+import type { FileData } from './file'
 
 // objects
 
@@ -8,14 +8,14 @@ export interface MessageMetadata {
 	event_payload?: unknown
 }
 
-export type Attachment = {
+export type AttachmentData = {
 	blocks?: AnyBlock[]
 	color?: 'good' | 'warning' | 'danger' | string
 	author_icon?: string
 	author_link?: string
 	author_name?: string
 	fallback?: string
-	fields?: AttachmentField[]
+	fields?: AttachmentFieldData[]
 	footer?: string
 	footer_icon?: string
 	image_url?: string
@@ -28,13 +28,13 @@ export type Attachment = {
 	ts?: string
 } & ({ blocks: AnyBlock[] } | { fallback: string } | { text: string })
 
-export interface AttachmentField {
+export interface AttachmentFieldData {
 	title?: string
 	value?: string
 	short?: boolean
 }
 
-export interface BotProfile {
+export interface BotProfileData {
 	id: string
 	app_id: string
 	name: string
@@ -49,11 +49,11 @@ export interface BotProfile {
 interface MaybeBot {
 	bot_id?: string
 	app_id?: string
-	bot_profile?: BotProfile
+	bot_profile?: BotProfileData
 }
 
 interface MaybeAttachments {
-	attachments?: Attachment[]
+	attachments?: AttachmentData[]
 }
 
 interface MaybeBlocks<Blocks extends AnyBlock[] = AnyBlock[]> {
@@ -72,7 +72,7 @@ interface MessageCommon {
 
 // message subtypes
 
-export interface NormalMessage<Blocks extends AnyBlock[] = AnyBlock[]>
+export interface NormalMessageData<Blocks extends AnyBlock[] = AnyBlock[]>
 	extends MessageCommon, MaybeBot, MaybeAttachments, MaybeBlocks<Blocks> {
 	subtype?: never
 
@@ -81,17 +81,17 @@ export interface NormalMessage<Blocks extends AnyBlock[] = AnyBlock[]>
 	edited?: { user: string; ts: string }
 	client_msg_id?: string
 	parent_user_id?: string
-	files?: File[]
+	files?: FileData[]
 	streaming_state?: 'in_progress' | 'completed'
 }
 
-export interface BotMessageMessage extends MessageCommon, MaybeAttachments, MaybeBlocks {
+export interface BotMessageData extends MessageCommon, MaybeAttachments, MaybeBlocks {
 	subtype: 'bot_message'
 
 	bot_id: string
 }
 
-export interface ChannelJoinMessage extends MessageCommon {
+export interface ChannelJoinMessageData extends MessageCommon {
 	subtype: 'channel_join'
 
 	user: string
@@ -99,14 +99,14 @@ export interface ChannelJoinMessage extends MessageCommon {
 	inviter?: string
 }
 
-export interface MeMessageMessage extends MessageCommon {
+export interface MeMessageData extends MessageCommon {
 	subtype: 'me_message'
 
 	user: string
 	text: string
 }
 
-export interface MessageChangedMessage extends MessageCommon {
+export interface MessageChangedData extends MessageCommon {
 	subtype: 'message_changed'
 
 	hidden: true
@@ -114,7 +114,7 @@ export interface MessageChangedMessage extends MessageCommon {
 	previous_message?: Exclude<AnyMessage, { hidden: true }>
 }
 
-export interface MessageDeletedMessage extends MessageCommon {
+export interface MessageDeletedData extends MessageCommon {
 	subtype: 'message_deleted'
 
 	hidden: true
@@ -123,9 +123,9 @@ export interface MessageDeletedMessage extends MessageCommon {
 }
 
 export type AnyMessage =
-	| NormalMessage
-	| BotMessageMessage
-	| ChannelJoinMessage
-	| MeMessageMessage
-	| MessageChangedMessage
-	| MessageDeletedMessage
+	| NormalMessageData
+	| BotMessageData
+	| ChannelJoinMessageData
+	| MeMessageData
+	| MessageChangedData
+	| MessageDeletedData

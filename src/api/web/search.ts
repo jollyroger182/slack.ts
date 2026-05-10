@@ -1,8 +1,8 @@
 import type { DistributivePick } from '../../utils/typing'
-import type { Conversation } from '../types/conversation'
-import type { File } from '../types/file'
-import type { NormalMessage } from '../types/message'
-import type { User } from '../types/user'
+import type { ConversationData } from '../types/conversation'
+import type { FileData } from '../types/file'
+import type { NormalMessageData } from '../types/message'
+import type { UserData } from '../types/user'
 
 export interface SearchParamsCommon {
 	/**
@@ -62,11 +62,11 @@ export interface SearchResults<T> {
 	total: number
 }
 
-export type MessageSearchResult = NormalMessage & {
+export type MessageSearchResult = NormalMessageData & {
 	iid: string
 	username: string
 	channel: DistributivePick<
-		Conversation,
+		ConversationData,
 		| 'id'
 		| 'is_channel'
 		| 'is_group'
@@ -84,12 +84,12 @@ export type MessageSearchResult = NormalMessage & {
 }
 
 export type UserSearchResult = Pick<
-	User,
+	UserData,
 	'id' | 'name' | 'is_restricted' | 'is_ultra_restricted'
 > & {
 	enterprise_user?: { teams: string[]; enterprise_id: string }
 	profile: Pick<
-		User['profile'],
+		UserData['profile'],
 		'avatar_hash' | 'image_72' | 'first_name' | 'real_name' | 'display_name' | 'team'
 	>
 }
@@ -109,7 +109,7 @@ export interface SearchAllParams extends SearchParamsCommon {}
 export interface SearchAllResponse {
 	query: string
 	messages: SearchResults<MessageSearchResult>
-	files: SearchResults<File>
+	files: SearchResults<FileData>
 	posts: { matches: []; total: 0 }
 }
 
@@ -117,7 +117,7 @@ export interface SearchFilesParams extends SearchParamsCommon {}
 
 export interface SearchFilesResponse {
 	query: string
-	files: SearchResults<File>
+	files: SearchResults<FileData>
 	channels: Record<never, never>
 	groups: Record<never, never>
 	ims: Record<never, never>

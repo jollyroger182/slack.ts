@@ -1,9 +1,9 @@
 import type { AnyBlock } from '@slack/types'
-import type { SlackAPIParams } from '../api'
+import type { SlackAPIParams } from '../api/web'
 import type { StreamChunk } from '../api/web/chat'
 import type { App } from '../client'
 import { Message, type MessageInstance } from '../resources'
-import type { NormalMessage } from '../api/types/message'
+import type { NormalMessageData } from '../api/types/message'
 
 export async function startStreaming(client: App, params: SlackAPIParams<'chat.startStream'>) {
 	const { channel, ts } = await client.request('chat.startStream', params)
@@ -39,8 +39,8 @@ export class Streamer {
 			this.client,
 			this.channel,
 			this.ts,
-			message as NormalMessage<Blocks>,
-		) as MessageInstance<NormalMessage<Blocks>, Blocks>
+			message as NormalMessageData<Blocks>,
+		) as MessageInstance<NormalMessageData<Blocks>, Blocks>
 	}
 
 	async sync() {

@@ -1,9 +1,9 @@
-import type { PlainTextOptionGroup } from '../../api/types/misc'
+import type { PlainTextOptionGroupData } from '../../api/types/misc'
 import { Builder } from '../base'
 import type { OptionObjectBuilder } from './option'
 import { ensureIsTextObjectBuilder, type TextObjectBuilder } from './text'
 
-type TypedOptionGroup<Options extends OptionObjectBuilder[]> = PlainTextOptionGroup & {
+type TypedOptionGroup<Options extends OptionObjectBuilder[]> = PlainTextOptionGroupData & {
 	options: { [K in keyof Options]: Options[K] extends Builder<infer Output> ? Output : never }
 }
 

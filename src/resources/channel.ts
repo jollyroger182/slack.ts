@@ -1,7 +1,7 @@
 import type { AnyBlock } from '@slack/types'
 import type { TimestampPaginationParams } from '../api/types/api'
-import type { Conversation } from '../api/types/conversation'
-import type { NormalMessage } from '../api/types/message'
+import type { ConversationData } from '../api/types/conversation'
+import type { NormalMessageData } from '../api/types/message'
 import type { App } from '../client'
 import { makeProxy } from '../utils'
 import {
@@ -44,30 +44,30 @@ interface FetchMembersParams extends Omit<
 }
 
 export class ChannelImpl {
-	#data: Conversation | undefined
+	#data: ConversationData | undefined
 	#id: string
 
 	constructor(
 		protected client: App,
 		id: string,
-		data?: Conversation,
+		data?: ConversationData,
 	) {
 		this.#id = id
 		this.#data = data
 		return makeProxy(this, () => this.#data || {})
 	}
 
-	static create<T extends Conversation = Conversation>(
+	static create<T extends ConversationData = ConversationData>(
 		client: App,
 		id: string,
 		data: T,
 	): Channel<T, true>
-	static create<T extends Conversation = Conversation>(
+	static create<T extends ConversationData = ConversationData>(
 		client: App,
 		id: string,
 		data?: undefined,
 	): Channel<T>
-	static create(client: App, id: string, data?: Conversation) {
+	static create(client: App, id: string, data?: ConversationData) {
 		return new ChannelImpl(client, id, data)
 	}
 
@@ -75,12 +75,12 @@ export class ChannelImpl {
 		return this.#data
 	}
 
-	async fetch<T extends Conversation = Conversation>(): Promise<Channel<T, true>> {
+	async fetch<T extends ConversationData = ConversationData>(): Promise<Channel<T, true>> {
 		const data = await this.client.request('conversations.info', { channel: this.id })
 		return ChannelImpl.create(this.client, this.id, data.channel as T)
 	}
 
-	protected _updateData(data: Conversation) {
+	protected _updateData(data: ConversationData) {
 		this.#data = data
 		return makeProxy(this, () => this.#data)
 	}
@@ -113,7 +113,7 @@ export class ChannelImpl {
 	 */
 	async send<Blocks extends AnyBlock[] = AnyBlock[]>(
 		message: DistributiveOmit<SendMessageWithoutFiles<Blocks>, 'channel'> | string,
-	): Promise<MessageInstance<NormalMessage<Blocks>, Blocks>>
+	): Promise<MessageInstance<NormalMessageData<Blocks>, Blocks>>
 
 	async send(message: DistributiveOmit<SendMessageParams, 'channel'> | string) {
 		if (typeof message === 'string') {
@@ -126,7 +126,7 @@ export class ChannelImpl {
 				this.#id,
 				data.ts,
 				data.message,
-			) as MessageInstance<NormalMessage>
+			) as MessageInstance<NormalMessageData>
 		}
 	}
 
@@ -189,7 +189,7 @@ export class ChannelImpl {
 }
 
 export type Channel<
-	T extends Conversation = Conversation,
+	T extends ConversationData = ConversationData,
 	Fetched extends boolean = false,
 > = T extends any
 	? ChannelImpl &

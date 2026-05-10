@@ -6,9 +6,9 @@ import type {
 } from '@slack/types'
 import type { DistributiveOmit } from '../../utils/typing'
 import type { AnyMessage } from '../types/message'
-import type { HomeView } from '../types/view'
+import type { HomeViewData } from '../types/view'
 
-export interface EventWrapper<T extends AllEvents = AllEvents> {
+export interface EventWrapper<T extends EventData = EventData> {
 	type: 'event_callback'
 	token: string
 	team_id: string
@@ -23,14 +23,14 @@ export interface EventWrapper<T extends AllEvents = AllEvents> {
 	context_enterprise_id: string | null
 }
 
-export type AllEventTypes = AllEvents['type']
+export type EventTypes = EventData['type']
 
-export type SlackEventMap = {
-	[K in AllEventTypes]: Extract<AllEvents, { type: K }>
+export type EventMap = {
+	[K in EventTypes]: Extract<EventData, { type: K }>
 }
 
 export interface AppHomeOpenedEvent extends SlackAppHomeOpenedEvent {
-	view?: HomeView
+	view?: HomeViewData
 }
 
 export type AppMentionEvent = {
@@ -64,10 +64,10 @@ type OverrideEvents =
 	| ReactionAddedEvent
 	| ReactionRemovedEvent
 
-export type AllEvents = Exclude<SlackEvent, { type: OverrideEvents['type'] }> | OverrideEvents
+export type EventData = Exclude<SlackEvent, { type: OverrideEvents['type'] }> | OverrideEvents
 
 // commented out types are RTM only event types
-export const SLACK_EVENT_TYPES = [
+export const EVENT_TYPES = [
 	// 'accounts_changed',
 	'app_deleted',
 	'app_home_opened',
@@ -176,4 +176,4 @@ export const SLACK_EVENT_TYPES = [
 	// 'user_connection',
 	'user_huddle_changed',
 	// 'user_typing',
-] satisfies AllEvents['type'][]
+] satisfies EventData['type'][]

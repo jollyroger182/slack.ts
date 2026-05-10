@@ -1,6 +1,6 @@
-import type { IM } from '../api/types/conversation'
-import type { NormalMessage } from '../api/types/message'
-import type { User as UserData } from '../api/types/user'
+import type { IMData } from '../api/types/conversation'
+import type { NormalMessageData } from '../api/types/message'
+import type { UserData as UserData } from '../api/types/user'
 import type { App } from '../client'
 import { makeProxy } from '../utils'
 import {
@@ -63,7 +63,7 @@ export class UserImpl {
 	 */
 	async send(
 		message: DistributiveOmit<SendMessageWithoutFiles, 'channel'> | string,
-	): Promise<MessageInstance<NormalMessage>>
+	): Promise<MessageInstance<NormalMessageData>>
 
 	async send(message: DistributiveOmit<SendMessageParams, 'channel'> | string) {
 		if (typeof message === 'string') {
@@ -76,7 +76,7 @@ export class UserImpl {
 				this.#id,
 				data.ts,
 				data.message,
-			) as MessageInstance<NormalMessage>
+			) as MessageInstance<NormalMessageData>
 		}
 	}
 
@@ -85,7 +85,7 @@ export class UserImpl {
 			return_im: true,
 			users: this.#id,
 		})
-		return ChannelImpl.create(this.client, channel.id, channel as IM)
+		return ChannelImpl.create(this.client, channel.id, channel as IMData)
 	}
 }
 

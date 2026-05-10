@@ -1,11 +1,11 @@
 import WebSocket from 'ws'
 import type { EventWrapper } from '../api/events'
-import type { BlockActions } from '../api/interactive/block_actions'
-import type { SlashCommandPayload } from '../api/slash'
+import type { BlockActionsData } from '../api/interactive/block_actions'
+import type { SlashCommandData } from '../api/slash'
 import type { App } from '../client'
 import { AsyncEventEmitter } from '../utils/events'
 import type { EventsReceiver, ReceiverEventMap } from './base'
-import type { BlockSuggestion } from '../api/interactive/block_suggestion'
+import type { BlockSuggestionData } from '../api/interactive/block_suggestion'
 
 export interface SocketEventsReceiverOptions {
 	appToken: string
@@ -124,13 +124,13 @@ interface SocketEventPayload extends SocketPayloadWrapper {
 
 interface SocketInteractivePayload extends SocketPayloadWrapper {
 	type: 'interactive'
-	payload: BlockActions | BlockSuggestion
+	payload: BlockActionsData | BlockSuggestionData
 	accepts_response_payload: false
 }
 
 interface SocketSlashCommandPayload extends SocketPayloadWrapper {
 	type: 'slash_commands'
-	payload: SlashCommandPayload
+	payload: SlashCommandData
 	accepts_response_payload: true
 }
 

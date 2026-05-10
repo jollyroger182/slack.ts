@@ -1,4 +1,4 @@
-export interface File {
+export interface FileData {
 	id: string
 	created: number
 	timestamp: number

@@ -1,4 +1,4 @@
-export interface User {
+export interface UserData {
 	id: string
 	team_id: string
 	name: string
@@ -8,7 +8,7 @@ export interface User {
 	tz: string
 	tz_label: string
 	tz_offset: number
-	profile: UserProfile
+	profile: UserProfileData
 	is_admin: boolean
 	is_owner: boolean
 	is_primary_owner: boolean
@@ -20,7 +20,7 @@ export interface User {
 	has_2fa?: boolean
 }
 
-export interface UserProfile {
+export interface UserProfileData {
 	real_name: string
 	display_name?: string
 	avatar_hash?: string

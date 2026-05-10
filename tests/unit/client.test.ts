@@ -15,9 +15,9 @@ import {
 	type User,
 } from 'slack.ts'
 import type { EventWrapper } from '../../src/api/events'
-import type { BlockActions } from '../../src/api/interactive/block_actions'
-import type { Conversation, IM, PublicChannel } from '../../src/api/types/conversation'
-import type { User as UserData } from '../../src/api/types/user'
+import type { BlockActionsData } from '../../src/api/interactive/block_actions'
+import type { ConversationData, IMData, PublicChannelData } from '../../src/api/types/conversation'
+import type { UserData as UserData } from '../../src/api/types/user'
 import {
 	blockActions,
 	BUTTON_DATA,
@@ -76,7 +76,7 @@ describe('App client', () => {
 
 	it('can wait for actions', async () => {
 		const btn = button('press me').id('test_button')
-		const payload: BlockActions = blockActions(BUTTON_DATA)
+		const payload: BlockActionsData = blockActions(BUTTON_DATA)
 		setTimeout(() => app.receiver.emit('block_actions', payload), 0)
 
 		const action = await app.wait.timeout(10).action(btn)
@@ -94,7 +94,7 @@ describe('App client', () => {
 
 	it('wait with timeout 0 disables timeout', async () => {
 		const btn = button('press me').id('test_button')
-		const payload: BlockActions = blockActions(BUTTON_DATA)
+		const payload: BlockActionsData = blockActions(BUTTON_DATA)
 		setTimeout(() => app.receiver.emit('block_actions', payload), 10)
 
 		await app.wait.timeout(0).action(btn)
@@ -117,7 +117,7 @@ describe('App client', () => {
 			has_more: false,
 		} satisfies SlackAPIResponse<'conversations.list'>)
 
-		const channels: Channel<Conversation, true>[] = []
+		const channels: Channel<ConversationData, true>[] = []
 		for await (const channel of app.channels()) {
 			channels.push(channel)
 		}
@@ -136,7 +136,7 @@ describe('App client', () => {
 			has_more: false,
 		} satisfies SlackAPIResponse<'conversations.list'>)
 
-		const channels: Channel<PublicChannel | IM>[] = []
+		const channels: Channel<PublicChannelData | IMData>[] = []
 		for await (const channel of app.channels('public_channel', 'im')) {
 			channels.push(channel)
 		}

@@ -1,4 +1,4 @@
-import type { SlashCommandPayload } from '../api/slash'
+import type { SlashCommandData } from '../api/slash'
 import type { App } from '../client'
 import { makeProxy } from '../utils'
 import { Responder } from '../utils/respond'
@@ -6,17 +6,17 @@ import { ChannelImpl } from './channel'
 import { UserImpl, type User } from './user'
 
 export class SlashCommandImpl {
-	#data: SlashCommandPayload
+	#data: SlashCommandData
 
 	constructor(
 		private client: App,
-		data: SlashCommandPayload,
+		data: SlashCommandData,
 	) {
 		this.#data = data
 		return makeProxy(this, () => this.#data)
 	}
 
-	static create(client: App, data: SlashCommandPayload) {
+	static create(client: App, data: SlashCommandData) {
 		return new SlashCommandImpl(client, data) as SlashCommand
 	}
 
@@ -33,4 +33,4 @@ export class SlashCommandImpl {
 	}
 }
 
-export type SlashCommand = SlashCommandImpl & SlashCommandPayload
+export type SlashCommand = SlashCommandImpl & SlashCommandData

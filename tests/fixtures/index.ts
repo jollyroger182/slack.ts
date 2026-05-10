@@ -1,17 +1,17 @@
 import type { AppHomeOpenedEvent, EventWrapper } from '../../src/api/events'
 import type {
-	BlockAction,
-	BlockActions,
+	ActionData,
+	BlockActionsData,
 	ButtonAction,
 } from '../../src/api/interactive/block_actions'
-import type { BlockSuggestion } from '../../src/api/interactive/block_suggestion'
+import type { BlockSuggestionData } from '../../src/api/interactive/block_suggestion'
 import type { InteractionCommon } from '../../src/api/interactive/common'
-import type { PublicChannel } from '../../src/api/types/conversation'
-import type { NormalMessage } from '../../src/api/types/message'
-import type { User } from '../../src/api/types/user'
-import type { HomeView, ModalView } from '../../src/api/types/view'
+import type { PublicChannelData } from '../../src/api/types/conversation'
+import type { NormalMessageData } from '../../src/api/types/message'
+import type { UserData } from '../../src/api/types/user'
+import type { HomeViewData, ModalViewData } from '../../src/api/types/view'
 
-export const PUBLIC_CHANNEL_DATA: PublicChannel = {
+export const PUBLIC_CHANNEL_DATA: PublicChannelData = {
 	id: 'C123',
 	name: 'general',
 	is_channel: true,
@@ -39,7 +39,7 @@ export const PUBLIC_CHANNEL_DATA: PublicChannel = {
 	context_team_id: 'T123',
 }
 
-export const MESSAGE_DATA: NormalMessage = {
+export const MESSAGE_DATA: NormalMessageData = {
 	type: 'message',
 	user: 'U123',
 	text: 'Hello world',
@@ -47,7 +47,7 @@ export const MESSAGE_DATA: NormalMessage = {
 	team: 'T123',
 }
 
-export function normalMessage(overrides?: Partial<NormalMessage>) {
+export function normalMessage(overrides?: Partial<NormalMessageData>) {
 	return { ...MESSAGE_DATA, ...overrides }
 }
 
@@ -116,7 +116,7 @@ export const USER_DATA = {
 	updated: 1234567890,
 	is_app_user: false,
 	has_2fa: true,
-} satisfies User
+} satisfies UserData
 
 export const BUTTON_DATA = {
 	type: 'button',
@@ -139,7 +139,7 @@ const INTERACTION_COMMON = {
 	trigger_id: '123456abc',
 } satisfies InteractionCommon
 
-export function blockActions(...actions: BlockAction[]): BlockActions {
+export function blockActions(...actions: ActionData[]): BlockActionsData {
 	return {
 		...INTERACTION_COMMON,
 		type: 'block_actions',
@@ -161,9 +161,9 @@ export function blockActions(...actions: BlockAction[]): BlockActions {
 }
 
 export function blockActionsEx(
-	overrides: Partial<BlockActions>,
-	...actions: BlockAction[]
-): BlockActions {
+	overrides: Partial<BlockActionsData>,
+	...actions: ActionData[]
+): BlockActionsData {
 	return { ...blockActions(...actions), ...overrides }
 }
 
@@ -193,7 +193,7 @@ export const MODAL_VIEW_DATA = {
 	submit: null,
 	title: { type: 'plain_text', text: 'Modal title', emoji: true },
 	bot_id: 'B123',
-} as const satisfies ModalView
+} as const satisfies ModalViewData
 
 export const HOME_VIEW_DATA = {
 	type: 'home',
@@ -221,7 +221,7 @@ export const HOME_VIEW_DATA = {
 	submit: null,
 	title: { type: 'plain_text', text: 'Home view', emoji: true },
 	bot_id: 'B123',
-} as const satisfies HomeView
+} as const satisfies HomeViewData
 
 export const BLOCK_SUGGESTION_DATA = {
 	...INTERACTION_COMMON,
@@ -242,7 +242,7 @@ export const BLOCK_SUGGESTION_DATA = {
 	block_id: 'block123',
 	action_id: 'menu123',
 	value: 'abc',
-} as const satisfies BlockSuggestion
+} as const satisfies BlockSuggestionData
 
 export const HOME_OPENED_DATA = {
 	type: 'app_home_opened',

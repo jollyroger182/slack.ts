@@ -4,7 +4,7 @@ import type { App } from '../client'
 import type { ViewsOpenParams } from '../api/web/views'
 import { ModalImpl, type Modal } from '../resources/modal'
 import { randomUUID } from 'crypto'
-import type { ModalView } from '../api/types/view'
+import type { ModalViewData } from '../api/types/view'
 
 export class Responder<HasResponseURL extends boolean = true> {
 	constructor(
@@ -48,7 +48,7 @@ export class Responder<HasResponseURL extends boolean = true> {
 	async modal<View extends ViewsOpenParams['view']>(view: View) {
 		if (!view.callback_id) view.callback_id = randomUUID()
 		const resp = await this.client.request('views.open', { view, trigger_id: this.trigger_id })
-		return ModalImpl.create(this.client, resp.view as ModalView<View['blocks']>)
+		return ModalImpl.create(this.client, resp.view as ModalViewData<View['blocks']>)
 	}
 
 	async #send(payload: any) {

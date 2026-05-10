@@ -1,5 +1,5 @@
 import type { PlainTextOption } from '@slack/types'
-import type { File } from './file'
+import type { FileData } from './file'
 
 export interface ChannelsSelectValue {
 	type: 'channels_select'
@@ -33,7 +33,7 @@ export interface EmailInputValue {
 
 export interface FileInputValue {
 	type: 'file_input'
-	files: File[]
+	files: FileData[]
 }
 
 export interface MultiStaticSelectValue {

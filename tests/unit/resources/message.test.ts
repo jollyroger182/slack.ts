@@ -7,19 +7,24 @@ import {
 	UserImpl,
 	type SlackAPIResponse,
 } from 'slack.ts'
-import type { BlockActions } from '../../../src/api/interactive/block_actions'
-import type { NormalMessage } from '../../../src/api/types/message'
+import type { BlockActionsData } from '../../../src/api/interactive/block_actions'
+import type { NormalMessageData } from '../../../src/api/types/message'
 import { App } from '../../../src/client'
 import { Message, MessageRef, type MessageInstance } from '../../../src/resources/message'
 import { blockActions, BUTTON_DATA, MESSAGE_DATA, normalMessage, USER_DATA } from '../../fixtures'
 
 describe('Message', () => {
 	let app: App<'dummy'>
-	let message: MessageInstance<NormalMessage>
+	let message: MessageInstance<NormalMessageData>
 
 	beforeEach(() => {
 		app = new App({ token: 'xoxb-test-token' })
-		message = new Message(app, 'C123', '123456.789', MESSAGE_DATA) as MessageInstance<NormalMessage>
+		message = new Message(
+			app,
+			'C123',
+			'123456.789',
+			MESSAGE_DATA,
+		) as MessageInstance<NormalMessageData>
 	})
 
 	it('provides channel property', () => {
@@ -33,7 +38,7 @@ describe('Message', () => {
 
 	describe('wait', () => {
 		it('can wait for actions with action_id', async () => {
-			const payload: BlockActions = blockActions(BUTTON_DATA)
+			const payload: BlockActionsData = blockActions(BUTTON_DATA)
 			setTimeout(() => app.receiver.emit('block_actions', payload), 0)
 
 			const action = await message.wait.timeout(10).action('test_button')
@@ -51,7 +56,7 @@ describe('Message', () => {
 		})
 
 		it('wait with timeout 0 disables timeout', async () => {
-			const payload: BlockActions = blockActions(BUTTON_DATA)
+			const payload: BlockActionsData = blockActions(BUTTON_DATA)
 			setTimeout(() => app.receiver.emit('block_actions', payload), 10)
 
 			await message.wait.timeout(0).action('test_button')
@@ -358,7 +363,7 @@ describe('Message', () => {
 
 describe('MessageRef', () => {
 	let app: App
-	let ref: MessageRef<NormalMessage>
+	let ref: MessageRef<NormalMessageData>
 
 	beforeEach(() => {
 		app = new App({ token: 'xoxb-test-token' })

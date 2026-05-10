@@ -3,7 +3,7 @@ import type {
 	CursorPaginationResponse,
 	TimestampPaginationParams,
 } from '../types/api'
-import type { Conversation, IM } from '../types/conversation'
+import type { ConversationData, IMData } from '../types/conversation'
 import type { AnyMessage } from '../types/message'
 
 export interface ConversationsHistoryParams
@@ -42,7 +42,7 @@ export interface ConversationsInfoParams {
 }
 
 export interface ConversationsInfoResponse {
-	channel: Conversation
+	channel: ConversationData
 }
 
 export interface ConversationsListParams extends CursorPaginationParams {
@@ -66,7 +66,7 @@ export interface ConversationsListParams extends CursorPaginationParams {
 }
 
 export interface ConversationsListResponse extends CursorPaginationResponse {
-	channels: Conversation[]
+	channels: ConversationData[]
 }
 
 export interface ConversationsRepliesParams
@@ -96,7 +96,7 @@ export interface ConversationsJoinParams {
 }
 
 export interface ConversationsJoinResponse {
-	channel: Conversation
+	channel: ConversationData
 }
 
 export interface ConversationsLeaveParams {
@@ -125,7 +125,7 @@ export interface ConversationsInviteParams {
 }
 
 export interface ConversationsInviteResponse {
-	channel: Conversation
+	channel: ConversationData
 }
 
 export type ConversationsOpenParams = {
@@ -136,7 +136,7 @@ export type ConversationsOpenParams = {
 export interface ConversationsOpenResponse {
 	no_op: boolean
 	already_open: boolean
-	channel: { id: string } & Partial<IM>
+	channel: { id: string } & Partial<IMData>
 }
 
 export interface ConversationsMembersParams extends CursorPaginationParams {

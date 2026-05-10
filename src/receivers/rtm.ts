@@ -1,5 +1,5 @@
 import WebSocket from 'ws'
-import { SLACK_EVENT_TYPES, type AllEvents, type EventWrapper } from '../api/events'
+import { EVENT_TYPES, type EventData, type EventWrapper } from '../api/events'
 import type { App } from '../client'
 import { SlackError, SlackTimeoutError } from '../error'
 import type { User } from '../resources'
@@ -204,8 +204,8 @@ export class RTMReceiver
 	}
 }
 
-function isSlackEvent(event: { type: string }): event is AllEvents {
-	return (SLACK_EVENT_TYPES as readonly string[]).includes(event.type)
+function isSlackEvent(event: { type: string }): event is EventData {
+	return (EVENT_TYPES as readonly string[]).includes(event.type)
 }
 
 export interface BotAddedEvent {
@@ -352,7 +352,7 @@ export type RTMEvent =
 	// | TeamProfileDeleteEvent
 	// | TeamProfileReorderEvent
 	| UserTypingEvent
-	| Extract<AllEvents, { type: (typeof SLACK_RTM_API_EVENTS)[number] }>
+	| Extract<EventData, { type: (typeof SLACK_RTM_API_EVENTS)[number] }>
 // not planned
 // | ExternalOrgMigrationFinishedEvent
 // | ExternalOrgMigrationStartedEvent
@@ -360,7 +360,7 @@ export type RTMEvent =
 // | GroupMarkedEvent
 
 export type RTMEventEmitterMap = {
-	[K in Exclude<RTMEvent, AllEvents> as K['type']]: [K]
+	[K in Exclude<RTMEvent, EventData> as K['type']]: [K]
 }
 
 export const SLACK_RTM_API_EVENTS = [
@@ -438,7 +438,7 @@ export const SLACK_RTM_API_EVENTS = [
 	'user_huddle_changed',
 ] as const
 
-function makeEventWrapper<Event extends AllEvents>(event: Event): EventWrapper<Event> {
+function makeEventWrapper<Event extends EventData>(event: Event): EventWrapper<Event> {
 	return {
 		type: 'event_callback',
 		token: '',

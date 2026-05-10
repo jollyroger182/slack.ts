@@ -56,25 +56,25 @@ interface NonIMCommon extends ConversationCommon {
 	is_moved?: number
 }
 
-export interface PublicChannel extends NonIMCommon {
+export interface PublicChannelData extends NonIMCommon {
 	is_channel: true
 	is_private: false
 	previous_names?: string[]
 }
 
-export interface PrivateChannel extends NonIMCommon {
+export interface PrivateChannelData extends NonIMCommon {
 	is_channel: true
 	is_private: true
 	is_mpim: false
 }
 
-export interface MPIM extends NonIMCommon {
+export interface MPIMData extends NonIMCommon {
 	is_channel: true
 	is_private: true
 	is_mpim: true
 }
 
-export interface IM extends ConversationCommon {
+export interface IMData extends ConversationCommon {
 	is_im: true
 	user: string
 	priority: number
@@ -83,7 +83,7 @@ export interface IM extends ConversationCommon {
 	latest?: unknown // TODO: message type
 }
 
-export type Conversation = PublicChannel | PrivateChannel | MPIM | IM
+export type ConversationData = PublicChannelData | PrivateChannelData | MPIMData | IMData
 
 interface Purpose {
 	value: string

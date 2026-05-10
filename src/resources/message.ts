@@ -1,7 +1,7 @@
 import type { AnyBlock } from '@slack/types'
-import type { BlockAction, BlockActionTypes } from '../api/interactive/block_actions'
+import type { ActionData, ActionTypes } from '../api/interactive/block_actions'
 import type { TimestampPaginationParams } from '../api/types/api'
-import type { AnyMessage, NormalMessage } from '../api/types/message'
+import type { AnyMessage, NormalMessageData } from '../api/types/message'
 import type { ChatUpdateParams, StreamChunk } from '../api/web/chat'
 import type { ActionsToPrefixedID, ExtractActions } from '../blocks/utils/extract'
 import type { App } from '../client'
@@ -19,7 +19,7 @@ import type { DistributiveOmit } from '../utils/typing'
 import type { Action } from './action'
 import { ChannelImpl } from './channel'
 import { type User, UserImpl } from './user'
-import type { User as UserData } from '../api/types/user'
+import type { UserData as UserData } from '../api/types/user'
 
 interface FetchRepliesParams extends Omit<TimestampPaginationParams, 'limit'> {
 	/**
@@ -110,7 +110,7 @@ abstract class MessageMixin<
 	 */
 	async reply<Blocks extends AnyBlock[] = AnyBlock[]>(
 		message: DistributiveOmit<SendMessageWithoutFiles<Blocks>, 'channel' | 'thread_ts'> | string,
-	): Promise<MessageInstance<NormalMessage<Blocks>, Blocks>>
+	): Promise<MessageInstance<NormalMessageData<Blocks>, Blocks>>
 
 	async reply(message: DistributiveOmit<SendMessageParams, 'channel' | 'thread_ts'> | string) {
 		if (typeof message === 'string') {
@@ -127,7 +127,7 @@ abstract class MessageMixin<
 				this.#channel,
 				data.ts,
 				data.message,
-			) as MessageInstance<NormalMessage>
+			) as MessageInstance<NormalMessageData>
 		}
 	}
 
@@ -306,7 +306,7 @@ export class Message<
 	}
 
 	/** @returns Whether this message is a normal message (subtype is undefined) */
-	isNormal(): this is MessageInstance<NormalMessage> {
+	isNormal(): this is MessageInstance<NormalMessageData> {
 		return !this.#data.subtype
 	}
 
@@ -419,7 +419,7 @@ class MessageWait<Subtype extends AnyMessage = AnyMessage, Blocks extends AnyBlo
 					if (index >= 0) {
 						const type = specifier.substring(0, index)
 						const actionId = specifier.substring(index + 1)
-						this.client.on(`action:${type as BlockActionTypes}.${actionId}`, callback)
+						this.client.on(`action:${type as ActionTypes}.${actionId}`, callback)
 						subscriptions.push(`action:${type}.${actionId}`)
 					}
 				} else {
@@ -446,7 +446,7 @@ class MessageWait<Subtype extends AnyMessage = AnyMessage, Blocks extends AnyBlo
 
 type ActionPredicate = (action: Action) => boolean | Promise<boolean>
 
-type DistributeAction<T extends BlockAction> = T extends any ? Action<T> : never
+type DistributeAction<T extends ActionData> = T extends any ? Action<T> : never
 
 type ExtractActionWaitReturnValue<
 	ActionID extends string,
@@ -457,11 +457,11 @@ type ExtractWaitActionType<
 	Specifier extends string,
 	Action extends { type: string; action_id?: string },
 > = {
-	[K in Specifier]: BlockAction & Action & ExtractTypeAndActionID<Specifier>
+	[K in Specifier]: ActionData & Action & ExtractTypeAndActionID<Specifier>
 }[Specifier]
 
 type ExtractTypeAndActionID<T extends string> =
-	T extends `${infer Type extends BlockActionTypes}.${infer ActionID}`
+	T extends `${infer Type extends ActionTypes}.${infer ActionID}`
 		? { type: Type; action_id: ActionID }
 		: { action_id: T }
 

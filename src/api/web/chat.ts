@@ -1,5 +1,10 @@
 import type { AnyBlock } from '@slack/types'
-import type { Attachment, MeMessageMessage, MessageMetadata, NormalMessage } from '../types/message'
+import type {
+	AttachmentData,
+	MeMessageData,
+	MessageMetadata,
+	NormalMessageData,
+} from '../types/message'
 
 interface MarkdownMessage {
 	markdown_text: string
@@ -16,7 +21,7 @@ type TextMessage = {
 export type ChatPostEphemeralParams = {
 	channel: string
 	user: string
-	attachments?: Attachment[]
+	attachments?: AttachmentData[]
 	icon_emoji?: string
 	icon_url?: string
 	link_names?: boolean
@@ -31,7 +36,7 @@ export interface ChatPostEphemeralResponse {
 
 export type ChatPostMessageParams = {
 	channel: string
-	attachments?: Attachment[]
+	attachments?: AttachmentData[]
 	icon_emoji?: string
 	icon_url?: string
 	link_names?: boolean
@@ -48,7 +53,7 @@ export type ChatPostMessageParams = {
 export interface ChatPostMessageResponse {
 	channel: string
 	ts: string
-	message: NormalMessage
+	message: NormalMessageData
 }
 
 export type StreamChunk =
@@ -164,7 +169,7 @@ export interface ChatStopStreamParams {
 export interface ChatStopStreamResponse {
 	channel: string
 	ts: string
-	message: NormalMessage
+	message: NormalMessageData
 }
 
 export type ChatUpdateParams<Blocks extends AnyBlock[] = AnyBlock[]> = {
@@ -188,7 +193,7 @@ export type ChatUpdateParams<Blocks extends AnyBlock[] = AnyBlock[]> = {
 	blocks?: Blocks
 
 	/** A JSON-based array of structured attachments. */
-	attachments?: Attachment[]
+	attachments?: AttachmentData[]
 
 	/**
 	 * Accepts message text formatted in markdown. This argument should not be used in conjunction
@@ -197,7 +202,7 @@ export type ChatUpdateParams<Blocks extends AnyBlock[] = AnyBlock[]> = {
 	markdown_text?: string
 
 	/** A JSON-based array of structured attachments. */
-	unfurled_attachments?: Attachment[]
+	unfurled_attachments?: AttachmentData[]
 
 	/**
 	 * JSON object with event_type and event_payload fields, presented as a URL-encoded string. If you
@@ -239,5 +244,5 @@ export interface ChatUpdateResponse {
 	channel: string
 	ts: string
 	text: string
-	message: NormalMessage | MeMessageMessage
+	message: NormalMessageData | MeMessageData
 }

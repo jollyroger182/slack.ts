@@ -1,5 +1,5 @@
 import type { CursorPaginationParams } from '../types/api'
-import type { File } from '../types/file'
+import type { FileData } from '../types/file'
 import type { AnyMessage } from '../types/message'
 
 export interface ReactionsAddParams {
@@ -71,11 +71,11 @@ export type ReactionItem =
 	| {
 			type: 'file_comment'
 			comment: unknown // TODO
-			file: File
+			file: FileData
 	  }
 	| {
 			type: 'file'
-			file: File
+			file: FileData
 	  }
 
 export interface ReactionsListResponse {

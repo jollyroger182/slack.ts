@@ -1,22 +1,22 @@
 import type { AnyBlock } from '@slack/types'
-import type { ModalView } from '../api/types/view'
+import type { ModalViewData } from '../api/types/view'
 import type { App } from '../client'
 import { SlackTimeoutError } from '../error'
 import { makeProxy } from '../utils'
 import { type Submission } from './submission'
 
 export class ModalImpl<Blocks extends AnyBlock[] = AnyBlock[]> {
-	#data: ModalView<Blocks>
+	#data: ModalViewData<Blocks>
 
 	constructor(
 		protected client: App,
-		data: ModalView<Blocks>,
+		data: ModalViewData<Blocks>,
 	) {
 		this.#data = data
 		return makeProxy(this, () => this.#data)
 	}
 
-	static create<Blocks extends AnyBlock[] = AnyBlock[]>(client: App, data: ModalView<Blocks>) {
+	static create<Blocks extends AnyBlock[] = AnyBlock[]>(client: App, data: ModalViewData<Blocks>) {
 		return new ModalImpl(client, data) as Modal<Blocks>
 	}
 
@@ -29,7 +29,8 @@ export class ModalImpl<Blocks extends AnyBlock[] = AnyBlock[]> {
 	}
 }
 
-export type Modal<Blocks extends AnyBlock[] = AnyBlock[]> = ModalImpl<Blocks> & ModalView<Blocks>
+export type Modal<Blocks extends AnyBlock[] = AnyBlock[]> = ModalImpl<Blocks> &
+	ModalViewData<Blocks>
 
 class ModalWait<Blocks extends AnyBlock[] = AnyBlock[]> {
 	private _timeout: number = 60000

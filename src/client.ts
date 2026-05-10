@@ -1,30 +1,30 @@
-import { type SlackAPIMethod, type SlackAPIParams, type SlackAPIResponse } from './api'
+import { type SlackAPIMethod, type SlackAPIParams, type SlackAPIResponse } from './api/web'
 import type {
-	AllEvents,
-	AllEventTypes,
+	EventData,
+	EventTypes,
 	AppHomeOpenedEvent,
 	EventWrapper,
 	MessageEvent,
-	SlackEventMap,
+	EventMap,
 } from './api/events'
 import type {
-	BlockAction,
-	BlockActionMap,
-	BlockActions,
-	BlockActionTypes,
+	ActionData,
+	ActionMap,
+	BlockActionsData,
+	ActionTypes,
 } from './api/interactive/block_actions'
-import type { BlockSuggestion } from './api/interactive/block_suggestion'
+import type { BlockSuggestionData } from './api/interactive/block_suggestion'
 import type { ViewSubmission } from './api/interactive/view_submission'
-import type { SlashCommandPayload } from './api/slash'
+import type { SlashCommandData } from './api/slash'
 import type {
-	Conversation,
-	IM,
-	MPIM,
-	PrivateChannel,
-	PublicChannel,
+	ConversationData,
+	IMData,
+	MPIMData,
+	PrivateChannelData,
+	PublicChannelData,
 } from './api/types/conversation'
-import type { AnyMessage, NormalMessage } from './api/types/message'
-import type { User as UserData } from './api/types/user'
+import type { AnyMessage, NormalMessageData } from './api/types/message'
+import type { UserData as UserData } from './api/types/user'
 import { BlockElementBuilder } from './blocks/elements/base'
 import { SlackTimeoutError, SlackWebAPIError, SlackWebAPIPlatformError } from './error'
 import type { BlockSuggestionResponder, EventsReceiver } from './receivers/base'
@@ -82,19 +82,19 @@ export type MessageCallbackData = {
 }
 export type MessageCallback = (data: MessageCallbackData) => unknown
 
-export type EventCallbackData<Event extends AllEvents> = {
+export type EventCallbackData<Event extends EventData> = {
 	client: App
 	event: EventWrapper<Event>
 }
-export type EventCallback<Event extends AllEvents> = (data: EventCallbackData<Event>) => unknown
+export type EventCallback<Event extends EventData> = (data: EventCallbackData<Event>) => unknown
 
-export type BlockActionCallback<Type extends BlockAction> = (data: Action<Type>) => unknown
+export type BlockActionCallback<Type extends ActionData> = (data: Action<Type>) => unknown
 
 type ChannelTypeMap = {
-	public_channel: PublicChannel
-	private_channel: PrivateChannel
-	mpim: MPIM
-	im: IM
+	public_channel: PublicChannelData
+	private_channel: PrivateChannelData
+	mpim: MPIMData
+	im: IMData
 }
 
 export class App<
@@ -150,7 +150,7 @@ export class App<
 		])
 	}
 
-	async #onBlockActions(event: BlockActions) {
+	async #onBlockActions(event: BlockActionsData) {
 		await Promise.all(
 			[this.emit('actions', event)].concat(
 				event.actions.flatMap((action) => {
@@ -166,7 +166,7 @@ export class App<
 		)
 	}
 
-	async #onBlockSuggestion(event: BlockSuggestion, responder: BlockSuggestionResponder) {
+	async #onBlockSuggestion(event: BlockSuggestionData, responder: BlockSuggestionResponder) {
 		const obj = AutocompleteImpl.create(this, event, responder)
 		await Promise.all([
 			this.emit('autocomplete', obj),
@@ -182,7 +182,7 @@ export class App<
 		])
 	}
 
-	async #onSlashCommand(event: SlashCommandPayload) {
+	async #onSlashCommand(event: SlashCommandData) {
 		const command = SlashCommandImpl.create(this, event)
 		await Promise.all([
 			this.emit('slash', command),
@@ -257,7 +257,7 @@ export class App<
 	 *
 	 * @returns An async generator that yields channel objects
 	 */
-	channels(): AsyncGenerator<Channel<Conversation, true>>
+	channels(): AsyncGenerator<Channel<ConversationData, true>>
 
 	/**
 	 * Lists channels of the specified types.
@@ -271,7 +271,7 @@ export class App<
 
 	async *channels<Types extends ('public_channel' | 'private_channel' | 'mpim' | 'im')[]>(
 		...types: Types
-	): AsyncGenerator<Channel<Conversation, true>> {
+	): AsyncGenerator<Channel<ConversationData, true>> {
 		yield* paginate(
 			this,
 			'conversations.list',
@@ -357,24 +357,22 @@ export class App<
 
 type AppEventMap = {
 	event: [EventWrapper]
-	actions: [BlockActions]
+	actions: [BlockActionsData]
 	action: [Action]
 	submit: [Submission]
 	message: [MessageInstance]
-	'message:normal': [MessageInstance<NormalMessage>]
+	'message:normal': [MessageInstance<NormalMessageData>]
 	slash: [SlashCommand]
 	autocomplete: [Autocomplete]
 	home: [HomeOpened]
 } & {
-	[K in AllEventTypes as `event:${K}`]: [
-		{ payload: SlackEventMap[K]; event: EventWrapper<SlackEventMap[K]> },
-	]
+	[K in EventTypes as `event:${K}`]: [{ payload: EventMap[K]; event: EventWrapper<EventMap[K]> }]
 } & {
-	[K in BlockActionTypes as `action:${K}`]: [Action<BlockActionMap[K]>]
+	[K in ActionTypes as `action:${K}`]: [Action<ActionMap[K]>]
 } & {
 	[K in `action.${string}`]: [Action]
 } & {
-	[K in BlockActionTypes as `action:${K}.${string}`]: [Action<BlockActionMap[K]>]
+	[K in ActionTypes as `action:${K}.${string}`]: [Action<ActionMap[K]>]
 } & {
 	[K in `submit.${string}`]: [Submission]
 } & {
@@ -386,7 +384,7 @@ type AppEventMap = {
 		MessageInstance<K>,
 	]
 } & {
-	[K in `message:normal#${string}`]: [MessageInstance<NormalMessage>]
+	[K in `message:normal#${string}`]: [MessageInstance<NormalMessageData>]
 } & {
 	[K in `/${string}`]: [SlashCommand]
 } & {
@@ -415,8 +413,8 @@ class AppWait {
 
 	async action<
 		Actions extends (
-			| BlockElementBuilder<{ type: BlockActionTypes; action_id: string }>
-			| { type: BlockActionTypes; action_id: string }
+			| BlockElementBuilder<{ type: ActionTypes; action_id: string }>
+			| { type: ActionTypes; action_id: string }
 		)[],
 	>(...actions: Actions): Promise<Action<ExtractAction<Actions[number]>>> {
 		const objs = actions.map((a) => (a instanceof BlockElementBuilder ? a.build() : a))
@@ -436,7 +434,7 @@ class AppWait {
 				resolve(action)
 			}
 
-			const subscriptions: `action:${BlockActionTypes}.${string}`[] = []
+			const subscriptions: `action:${ActionTypes}.${string}`[] = []
 			for (const obj of objs) {
 				const key = `action:${obj.type}.${obj.action_id}` as const
 				this.client.on(key, callback)
@@ -457,7 +455,7 @@ type ExtractAction<
 	Action extends
 		| BlockElementBuilder<{ type: string; action_id: string }>
 		| { type: string; action_id: string },
-> = BlockAction &
+> = ActionData &
 	DistributivePick<
 		Action extends BlockElementBuilder<infer Output> ? Output : Action,
 		'type' | 'action_id'

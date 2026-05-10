@@ -1,4 +1,4 @@
-export interface SlashCommandPayload {
+export interface SlashCommandData {
 	token: string
 	team_id: string
 	team_domain: string
