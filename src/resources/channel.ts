@@ -200,6 +200,13 @@ export class ChannelImpl {
 	async archive() {
 		await this.client.request('conversations.archive', { channel: this.#id })
 	}
+
+	async close() {
+		const { already_closed } = await this.client.request('conversations.close', {
+			channel: this.#id,
+		})
+		return !already_closed
+	}
 }
 
 export type Channel<

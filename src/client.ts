@@ -98,6 +98,36 @@ type ChannelTypeMap = {
 	im: IMData
 }
 
+interface ChannelsManager {
+	/**
+	 * Lists channels of any type.
+	 *
+	 * @returns An async generator that yields channel objects
+	 */
+	(): AsyncGenerator<Channel<ConversationData, true>>
+
+	/**
+	 * Lists channels of the specified types.
+	 *
+	 * @param types Channel types to list (public_channel, private_channel, mpim, im)
+	 * @returns An async generator that yields channel objects
+	 */
+	<Types extends ('public_channel' | 'private_channel' | 'mpim' | 'im')[]>(
+		...types: Types
+	): AsyncGenerator<Channel<ChannelTypeMap[Types[number]], true>>
+
+	create(name: string, isPrivate: true): Promise<Channel<PrivateChannelData>>
+
+	/**
+	 * Creates a new channel.
+	 *
+	 * @param name Name of the channel
+	 * @param isPrivate Whether the channel should be private (defaults to public)
+	 * @returns A newly created channel
+	 */
+	create(name: string, isPrivate?: boolean): Promise<Channel<PrivateChannelData>>
+}
+
 export class App<
 	Receiver extends ReceiverOptions['type'] = ReceiverOptions['type'],
 > extends AsyncEventEmitter<AppEventMap> {
@@ -248,32 +278,28 @@ export class App<
 		return UserImpl.create(this, id)
 	}
 
-	/**
-	 * Lists channels of any type.
-	 *
-	 * @returns An async generator that yields channel objects
-	 */
-	channels(): AsyncGenerator<Channel<ConversationData, true>>
+	get channels(): ChannelsManager {
+		const client = this
 
-	/**
-	 * Lists channels of the specified types.
-	 *
-	 * @param types Channel types to list (public_channel, private_channel, mpim, im)
-	 * @returns An async generator that yields channel objects
-	 */
-	channels<Types extends ('public_channel' | 'private_channel' | 'mpim' | 'im')[]>(
-		...types: Types
-	): AsyncGenerator<Channel<ChannelTypeMap[Types[number]], true>>
+		const channels = async function* (
+			...types: string[]
+		): AsyncGenerator<Channel<ConversationData, true>> {
+			yield* paginate(
+				client,
+				'conversations.list',
+				{ types: types.join(',') || 'public_channel,private_channel,mpim,im' },
+				(r) => r.channels.map((c) => ChannelImpl.create(client, c.id, c)),
+			)
+		}
+		channels.create = async (name: string, isPrivate?: boolean) => {
+			const { channel } = await client.request('conversations.create', {
+				name,
+				is_private: isPrivate ?? false,
+			})
+			return ChannelImpl.create(client, channel.id, channel)
+		}
 
-	async *channels<Types extends ('public_channel' | 'private_channel' | 'mpim' | 'im')[]>(
-		...types: Types
-	): AsyncGenerator<Channel<ConversationData, true>> {
-		yield* paginate(
-			this,
-			'conversations.list',
-			{ types: types.join(',') || 'public_channel,private_channel,mpim,im' },
-			(r) => r.channels.map((c) => ChannelImpl.create(this, c.id, c)),
-		)
+		return channels
 	}
 
 	async *users(): AsyncGenerator<User<UserData>> {

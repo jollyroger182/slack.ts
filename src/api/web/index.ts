@@ -63,6 +63,10 @@ import type {
 	ConversationsRepliesResponse,
 	ConversationsArchiveParams,
 	ConversationsArchiveResponse,
+	ConversationsCloseParams,
+	ConversationsCloseResponse,
+	ConversationsCreateParams,
+	ConversationsCreateResponse,
 } from './conversations'
 import type {
 	FilesCompleteUploadExternalParams,
@@ -104,6 +108,14 @@ import type {
 } from './views'
 
 interface SlackWebAPIMapInternal {
+	'conversations.create': {
+		params: ConversationsCreateParams
+		response: ConversationsCreateResponse
+	}
+	'conversations.close': {
+		params: ConversationsCloseParams
+		response: ConversationsCloseResponse
+	}
 	'conversations.archive': {
 		params: ConversationsArchiveParams
 		response: ConversationsArchiveResponse

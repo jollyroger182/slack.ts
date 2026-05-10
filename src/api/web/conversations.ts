@@ -3,7 +3,12 @@ import type {
 	CursorPaginationResponse,
 	TimestampPaginationParams,
 } from '../types/api'
-import type { ConversationData, IMData } from '../types/conversation'
+import type {
+	ConversationData,
+	IMData,
+	PrivateChannelData,
+	PublicChannelData,
+} from '../types/conversation'
 import type { AnyMessage } from '../types/message'
 
 export interface ConversationsHistoryParams
@@ -154,3 +159,30 @@ export interface ConversationsArchiveParams {
 }
 
 export interface ConversationsArchiveResponse {}
+
+export interface ConversationsCloseParams {
+	/** Conversation to close. */
+	channel: string
+}
+
+export interface ConversationsCloseResponse {
+	no_op?: boolean
+	already_closed?: boolean
+}
+
+export interface ConversationsCreateParams {
+	/**
+	 * Name of the public or private channel to create
+	 *
+	 * @example `mychannel`
+	 */
+	name: string
+	/** Create a private channel instead of a public one */
+	is_private?: boolean
+	/** Encoded team id to create the channel in, required if org token is used */
+	team_id?: string
+}
+
+export interface ConversationsCreateResponse {
+	channel: PublicChannelData | PrivateChannelData
+}
