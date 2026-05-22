@@ -139,7 +139,10 @@ export class App<
 	constructor({ token, receiver }: AppOptions<Receiver> = {}) {
 		super()
 
-		this.#token = token
+		this.#token =
+			token && typeof token !== 'string' && /[+/]/.test(token.cookie)
+				? { ...token, cookie: encodeURIComponent(token.cookie) }
+				: token
 
 		const receiverConfig: ReceiverOptions = receiver || { type: 'dummy' }
 		switch (receiverConfig.type) {
