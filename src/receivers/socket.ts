@@ -19,6 +19,7 @@ export class SocketEventsReceiver
 	#appToken: string
 	public client: App
 	#ws?: WebSocket
+	#shouldConnect: boolean = false
 
 	constructor({ appToken, client }: SocketEventsReceiverOptions) {
 		super()
@@ -27,12 +28,17 @@ export class SocketEventsReceiver
 	}
 
 	async start() {
+		this.#shouldConnect = true
 		return this._connect()
 	}
 
 	async stop() {
+		this.#shouldConnect = false
 		return new Promise<void>((resolve, reject) => {
 			if (this.#ws) {
+				if (this.#ws.readyState === WebSocket.CLOSED) {
+					return resolve()
+				}
 				this.#ws.once('close', () => resolve())
 				this.#ws.once('error', (error) => reject(error))
 				this.#ws.close()
@@ -44,6 +50,8 @@ export class SocketEventsReceiver
 	}
 
 	private async _connect() {
+		if (!this.#shouldConnect) return
+
 		const { url } = await this.client.request('apps.connections.open', { token: this.#appToken })
 
 		return new Promise<void>((resolve, reject) => {
@@ -53,7 +61,10 @@ export class SocketEventsReceiver
 			this.#ws.addEventListener('close', this.#onClose.bind(this))
 			this.#ws.addEventListener('error', this.#onError.bind(this))
 			this.#ws.once('open', () => resolve())
-			this.#ws.once('error', (error) => reject(error))
+			this.#ws.once('error', (error) => {
+				this.#onError(error)
+				reject(error)
+			})
 		})
 	}
 
@@ -62,7 +73,6 @@ export class SocketEventsReceiver
 	}
 
 	#onMessage(event: WebSocket.MessageEvent) {
-		console.debug('[socket-mode] message received')
 		if (typeof event.data === 'string') {
 			try {
 				const data = JSON.parse(event.data) as AnySocketPayload
@@ -100,7 +110,7 @@ export class SocketEventsReceiver
 		this._connect()
 	}
 
-	#onError(event: WebSocket.ErrorEvent) {
+	#onError(event: { message: string }) {
 		console.debug('[socket-mode] websocket error', event.message)
 		this.#ws?.close()
 		this._connect()
