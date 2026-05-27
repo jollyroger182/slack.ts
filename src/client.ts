@@ -33,7 +33,7 @@ import { HttpFetchReceiver, type HttpFetchReceiverOptions } from './receivers/fe
 import { HttpServerReceiver, type HttpServerReceiverOptions } from './receivers/http'
 import { RTMReceiver, type RTMReceiverOptions } from './receivers/rtm'
 import { SocketEventsReceiver, type SocketEventsReceiverOptions } from './receivers/socket'
-import { SubmissionImpl, type Submission } from './resources'
+import { SubmissionImpl, UnfurlImpl, type Submission, type Unfurl } from './resources'
 import { ActionImpl, type Action } from './resources/action'
 import { AutocompleteImpl, type Autocomplete } from './resources/autocomplete'
 import { ChannelImpl, type Channel } from './resources/channel'
@@ -46,7 +46,7 @@ import { AsyncEventEmitter } from './utils/events'
 import { paginate } from './utils/paginate'
 import type { DistributiveOmit, DistributivePick } from './utils/typing'
 import { EventImpl, type Event } from './resources/event'
-import type { AnyBlock } from '@slack/types'
+import type { AnyBlock, LinkSharedEvent } from '@slack/types'
 
 type ReceiverOptions =
 	| ({
@@ -170,6 +170,7 @@ export class App<
 
 		this.on('event:message', this.#onMessage.bind(this))
 		this.on('event:app_home_opened', this.#onAppHomeOpened.bind(this))
+		this.on('event:link_shared', this.#onLinkShared.bind(this))
 	}
 
 	async #onEvent(event: EventWrapper) {
@@ -230,6 +231,11 @@ export class App<
 	async #onAppHomeOpened({ payload }: { payload: AppHomeOpenedEvent }) {
 		const obj = HomeOpenedImpl.create(this, payload)
 		await this.emit('home', obj)
+	}
+
+	async #onLinkShared({ payload }: { payload: LinkSharedEvent }) {
+		const obj = UnfurlImpl.create(this, payload)
+		await this.emit('unfurl', obj)
 	}
 
 	get receiver(): ReceiverMap[Receiver] {
@@ -388,6 +394,7 @@ type AppEventMap = {
 	slash: [SlashCommand]
 	autocomplete: [Autocomplete]
 	home: [HomeOpened]
+	unfurl: [Unfurl]
 } & {
 	[K in EventTypes as `event:${K}`]: [Event<EventMap[K]>]
 } & {
