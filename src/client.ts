@@ -259,8 +259,8 @@ export class App<
 	}
 
 	/**
-	 * Gets a channel reference object. You can use this object to call API methods, or `await` it to
-	 * fetch channel details.
+	 * Gets a channel reference object. You can use this object to call API methods, or call `fetch`
+	 * to fetch channel details.
 	 *
 	 * @param id Channel ID
 	 * @returns A channel reference object
@@ -270,7 +270,7 @@ export class App<
 	}
 
 	/**
-	 * Gets a user reference object. You can use this object to call API methods, or `await` it to
+	 * Gets a user reference object. You can use this object to call API methods, or call `fetch` to
 	 * fetch user details.
 	 *
 	 * @param id User ID
@@ -304,12 +304,24 @@ export class App<
 		return channels
 	}
 
+	/**
+	 * Lists users on the team.
+	 *
+	 * @returns An async generator that yields user objects
+	 */
 	async *users(): AsyncGenerator<User<UserData>> {
 		yield* paginate(this, 'users.list', {}, (r) =>
 			r.members.map((u) => UserImpl.create(this, u.id, u)),
 		)
 	}
 
+	/**
+	 * Fetches all custom emoji.
+	 *
+	 * @returns All custom emoji in the form of an object. The key of the object is the custom emoji
+	 *   name, and the corresponding value is either a URL to the emoji image, or
+	 *   `alias:<aliased-emoji-name>`.
+	 */
 	async emoji(): Promise<Record<string, string>> {
 		const { emoji } = await this.request('emoji.list', {})
 		return emoji
