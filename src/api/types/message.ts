@@ -1,4 +1,4 @@
-import type { AnyBlock } from '@slack/types'
+import type { AllMessageEvents, AnyBlock } from '@slack/types'
 import type { FileData } from './file'
 
 // objects
@@ -122,10 +122,14 @@ export interface MessageDeletedData extends MessageCommon {
 	previous_message: Exclude<AnyMessage, { hidden: true }>
 }
 
-export type AnyMessage =
+export type OverriddenMessage =
 	| NormalMessageData
 	| BotMessageData
 	| ChannelJoinMessageData
 	| MeMessageData
 	| MessageChangedData
 	| MessageDeletedData
+
+export type AnyMessage =
+	| (Exclude<AllMessageEvents, { subtype: OverriddenMessage['subtype'] }> & MessageCommon)
+	| OverriddenMessage
