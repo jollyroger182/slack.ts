@@ -259,3 +259,85 @@ export interface ChatDeleteResponse {
 	channel: string
 	ts: string
 }
+
+export interface ChatGetPermalinkParams {
+	/** Channel ID for the message. */
+	channel: string
+
+	/** Timestamp of the message. */
+	ts: string
+}
+
+export interface ChatGetPermalinkResponse {
+	channel: string
+	permalink: string
+}
+
+export type ChatUnfurlParams = (
+	| {
+			/** Channel ID for the message. */
+			channel: string
+
+			/** Timestamp of the message. */
+			ts: string
+	  }
+	| {
+			/**
+			 * The source of the link to unfurl. The source may either be `composer`, when the link is
+			 * inside the message composer, or `conversations_history`, when the link has been posted to a
+			 * conversation.
+			 */
+			source: 'composer' | 'conversations_history'
+
+			/**
+			 * The ID of the link to unfurl. Both `unfurl_id` and `source` must be provided together, or
+			 * `channel` and `ts` must be provided together.
+			 */
+			unfurl_id: string
+	  }
+) &
+	(
+		| {
+				/**
+				 * Object with keys set to URLs featured in the message, pointing to their unfurl blocks or
+				 * message attachments.
+				 */
+				unfurls: Record<string, AttachmentData>
+		  }
+		| {
+				/**
+				 * Unfurl metadata featuring an array of entities to attach to the message based on URLs
+				 * featured in the message.
+				 */
+				metadata: Partial<MessageMetadata> & {
+					entities: unknown[] // TODO: type
+				}
+		  }
+	) & {
+		/**
+		 * Provide a simply-formatted string to send as an ephemeral message to the user as invitation
+		 * to authenticate further and enable full unfurling behavior. Provides two buttons, Not now or
+		 * Never ask me again.
+		 */
+		user_auth_message?: string
+
+		/**
+		 * Set to `true` to indicate the user must install your Slack app to trigger unfurls for this
+		 * domain. Defaults to `false`.
+		 */
+		user_auth_required?: boolean
+
+		/**
+		 * Send users to this custom URL where they will complete authentication in your app to fully
+		 * trigger unfurling. Value should be properly URL-encoded.
+		 */
+		user_auth_url?: string
+
+		/**
+		 * Provide a JSON based array of structured blocks to send as an ephemeral message to the user
+		 * as invitation to authenticate further and enable full unfurling behavior.
+		 */
+		user_auth_blocks?: AnyBlock[]
+	}
+
+export interface ChatUnfurlResponse {} // TODO: check if there are any fields

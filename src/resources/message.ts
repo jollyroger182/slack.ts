@@ -302,6 +302,18 @@ export class MessageImpl<
 	async delete() {
 		await this.client.request('chat.delete', { channel: this.#channel, ts: this.#ts })
 	}
+
+	get permalink() {
+		return this.#permalink()
+	}
+
+	async #permalink() {
+		const { permalink } = await this.client.request('chat.getPermalink', {
+			channel: this.#channel,
+			ts: this.#ts,
+		})
+		return permalink
+	}
 }
 
 export type Message<
