@@ -38,7 +38,7 @@ import { ActionImpl, type Action } from './resources/action'
 import { AutocompleteImpl, type Autocomplete } from './resources/autocomplete'
 import { ChannelImpl, type Channel } from './resources/channel'
 import { HomeOpenedImpl, type HomeOpened } from './resources/home_opened'
-import { Message, type MessageInstance } from './resources/message'
+import { MessageImpl, type Message } from './resources/message'
 import { SlashCommandImpl, type SlashCommand } from './resources/slash'
 import { UserImpl, type User } from './resources/user'
 import { sleep, type AnyToken } from './utils'
@@ -46,6 +46,7 @@ import { AsyncEventEmitter } from './utils/events'
 import { paginate } from './utils/paginate'
 import type { DistributiveOmit, DistributivePick } from './utils/typing'
 import { EventImpl, type Event } from './resources/event'
+import type { AnyBlock } from '@slack/types'
 
 type ReceiverOptions =
 	| ({
@@ -77,7 +78,7 @@ interface AppOptions<Receiver extends ReceiverOptions['type'] = ReceiverOptions[
 }
 
 export type MessageCallbackData = {
-	message: MessageInstance
+	message: Message
 	client: App
 	event: EventWrapper<MessageEvent>
 }
@@ -217,12 +218,7 @@ export class App<
 	}
 
 	async #onMessage({ payload }: { payload: MessageEvent }) {
-		const message = new Message<AnyMessage>(
-			this,
-			payload.channel,
-			payload.ts,
-			payload,
-		) as MessageInstance
+		const message = MessageImpl.create(this, payload.channel, payload.ts, payload)
 		await Promise.all([
 			this.emit('message', message),
 			this.emit(`message:${payload.subtype ?? 'normal'}`, message as any),
@@ -387,8 +383,8 @@ type AppEventMap = {
 	actions: [BlockActionsData]
 	action: [Action]
 	submit: [Submission]
-	message: [MessageInstance]
-	'message:normal': [MessageInstance<NormalMessageData>]
+	message: [Message<AnyMessage, AnyBlock[], true>]
+	'message:normal': [Message<NormalMessageData, AnyBlock[], true>]
 	slash: [SlashCommand]
 	autocomplete: [Autocomplete]
 	home: [HomeOpened]
@@ -403,15 +399,17 @@ type AppEventMap = {
 } & {
 	[K in `submit.${string}`]: [Submission]
 } & {
-	[K in `message#${string}`]: [MessageInstance]
+	[K in `message#${string}`]: [Message<AnyMessage, AnyBlock[], true>]
 } & {
-	[K in Extract<AnyMessage, { subtype: string }> as `message:${K['subtype']}`]: [MessageInstance<K>]
-} & {
-	[K in Extract<AnyMessage, { subtype: string }> as `message:${K['subtype']}#${string}`]: [
-		MessageInstance<K>,
+	[K in Extract<AnyMessage, { subtype: string }> as `message:${K['subtype']}`]: [
+		Message<K, AnyBlock[], true>,
 	]
 } & {
-	[K in `message:normal#${string}`]: [MessageInstance<NormalMessageData>]
+	[K in Extract<AnyMessage, { subtype: string }> as `message:${K['subtype']}#${string}`]: [
+		Message<K, AnyBlock[], true>,
+	]
+} & {
+	[K in `message:normal#${string}`]: [Message<NormalMessageData, AnyBlock[], true>]
 } & {
 	[K in `/${string}`]: [SlashCommand]
 } & {

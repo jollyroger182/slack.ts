@@ -60,14 +60,17 @@ describe('SocketEventsReceiver', () => {
 				},
 				websocket: {
 					open(ws) {
+						console.debug('[mock] websocket opened')
 						websocket = ws
 					},
 					message(ws, message) {
 						if (typeof message === 'string') {
+							console.debug('[mock] websocket message received')
 							messagesReceived.push(message)
 						}
 					},
 					close() {
+						console.debug('[mock] websocket closed')
 						websocket = undefined
 					},
 				},
