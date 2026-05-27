@@ -246,3 +246,16 @@ export interface ChatUpdateResponse {
 	text: string
 	message: NormalMessageData | MeMessageData
 }
+
+export interface ChatDeleteParams {
+	/** Channel ID for the message. */
+	channel: string
+
+	/** Timestamp of the message. */
+	ts: string
+}
+
+export interface ChatDeleteResponse {
+	channel: string
+	ts: string
+}

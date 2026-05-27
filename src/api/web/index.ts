@@ -41,6 +41,8 @@ import type {
 	ChatStopStreamResponse,
 	ChatUpdateParams,
 	ChatUpdateResponse,
+	ChatDeleteParams,
+	ChatDeleteResponse,
 } from './chat'
 import type {
 	ConversationsHistoryParams,
@@ -108,6 +110,10 @@ import type {
 } from './views'
 
 interface SlackWebAPIMapInternal {
+	'chat.delete': {
+		params: ChatDeleteParams
+		response: ChatDeleteResponse
+	}
 	'conversations.create': {
 		params: ConversationsCreateParams
 		response: ConversationsCreateResponse

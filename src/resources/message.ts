@@ -298,6 +298,10 @@ export class MessageImpl<
 		}
 		throw new SlackError('Slack is not doing its job')
 	}
+
+	async delete() {
+		await this.client.request('chat.delete', { channel: this.#channel, ts: this.#ts })
+	}
 }
 
 export type Message<
