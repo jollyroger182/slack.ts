@@ -1,6 +1,6 @@
 /** This file lists all the event types you'll see in a `slack.ts` app. */
 
-import { App, option, optionGroup } from 'slack.ts'
+import { App, blocks, option, optionGroup, section, type AttachmentData } from 'slack.ts'
 
 const SLACK_BOT_TOKEN = process.env.SLACK_BOT_TOKEN!
 const SLACK_APP_TOKEN = process.env.SLACK_APP_TOKEN!
@@ -165,6 +165,20 @@ app.on('autocomplete.greetings', async (event) => {
 		optionGroup('english', option('hello'), option('hi')),
 		optionGroup('spanish', option('hola'), option('buenas tardes')),
 	)
+})
+
+/**
+ * `unfurl` events are triggered for chat unfurl requests (i.e., Slack's `link_shared` events).
+ * Calling the `respond` method will make a `chat.unfurl` API call to unfurl the links found in the
+ * message.
+ */
+
+app.on('unfurl', async (event) => {
+	const unfurls: Record<string, AttachmentData> = {}
+	for (const link of event.links) {
+		unfurls[link.url] = { blocks: blocks(section(`Unfurl for ${link.url}`)) }
+	}
+	await event.respond(unfurls)
 })
 
 await app.start()
