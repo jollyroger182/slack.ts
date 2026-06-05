@@ -33,3 +33,7 @@ await app.start()
 ```
 
 For more examples, see [the examples directory](./examples) and [the (in)complete guide](./docs/guide.md).
+
+## AI declaration
+
+Claude Code helped with inline documentation in a few files, as well as the HTTP and fetch receivers.
