@@ -14,6 +14,8 @@ type TypedPlainTextOption<Value extends string | undefined> = PlainTextOption & 
 export class OptionObjectBuilder<
 	Value extends string | undefined = string | undefined,
 > extends Builder<TypedPlainTextOption<Value>> {
+	private _url?: string
+
 	constructor(
 		private _text: TextObjectBuilder<false>,
 		private _value: Value,
@@ -32,8 +34,13 @@ export class OptionObjectBuilder<
 		return this as any
 	}
 
+	url(url: string) {
+		this._url = url
+		return this
+	}
+
 	override build(): TypedPlainTextOption<Value> {
-		return { text: this._text.build(), value: this._value }
+		return { text: this._text.build(), value: this._value, url: this._url }
 	}
 }
 
