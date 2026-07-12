@@ -14,18 +14,22 @@ import {
 	type SlackAPIResponse,
 	type User,
 } from 'slack.ts'
-import type { EventWrapper } from '../../src/api/events'
-import type { BlockActionsData } from '../../src/api/interactive/block_actions'
-import type { ConversationData, IMData, PublicChannelData } from '../../src/api/types/conversation'
-import type { UserData as UserData } from '../../src/api/types/user'
+import type { EventWrapper } from '../../../src/old/api/events'
+import type { BlockActionsData } from '../../../src/old/api/interactive/block_actions'
+import type {
+	ConversationData,
+	IMData,
+	PublicChannelData,
+} from '../../../src/old/api/types/conversation'
+import type { UserData as UserData } from '../../../src/old/api/types/user'
 import {
 	blockActions,
 	BUTTON_DATA,
 	MESSAGE_EVENT,
 	PUBLIC_CHANNEL_DATA,
 	USER_DATA,
-} from '../fixtures'
-import { EventImpl, type Event } from '../../src/resources/event'
+} from '../../fixtures'
+import { EventImpl, type Event } from '../../../src/old/resources/event'
 
 describe('App client', () => {
 	let app: App<'dummy'>

@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, spyOn } from 'bun:test'
 import { App, ModalImpl, SlackError, type SlackAPIResponse } from 'slack.ts'
-import { Responder } from '../../../src/utils/respond'
-import { MODAL_VIEW_DATA } from '../../fixtures'
+import { Responder } from '../../../../src/old/utils/respond'
+import { MODAL_VIEW_DATA } from '../../../fixtures'
 
 describe('Responder', () => {
 	let app: App

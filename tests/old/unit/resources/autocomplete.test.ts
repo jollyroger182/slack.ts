@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, mock } from 'bun:test'
 import { App, AutocompleteImpl, option, optionGroup, type Autocomplete } from 'slack.ts'
-import type { BlockSuggestionResponder } from '../../../src/receivers/base'
-import { BLOCK_SUGGESTION_DATA } from '../../fixtures'
+import type { BlockSuggestionResponder } from '../../../../src/old/receivers/base'
+import { BLOCK_SUGGESTION_DATA } from '../../../fixtures'
 
 describe('Autocomplete', () => {
 	let app: App<'dummy'>

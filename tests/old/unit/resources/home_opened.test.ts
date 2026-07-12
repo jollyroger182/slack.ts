@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, spyOn } from 'bun:test'
 import { App, HomeOpenedImpl, type HomeOpened, type SlackAPIResponse } from 'slack.ts'
-import { HOME_OPENED_DATA, HOME_VIEW_DATA } from '../../fixtures'
+import { HOME_OPENED_DATA, HOME_VIEW_DATA } from '../../../fixtures'
 
 describe('HomeOpened', () => {
 	let app: App

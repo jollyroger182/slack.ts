@@ -1,8 +1,8 @@
 import { beforeEach, describe, expect, it } from 'bun:test'
 import { createHmac } from 'crypto'
-import { App } from '../../../src/client'
-import { HttpFetchReceiver } from '../../../src/receivers/fetch'
-import { MESSAGE_EVENT } from '../../fixtures'
+import { App } from '../../../../src/old/client'
+import { HttpFetchReceiver } from '../../../../src/old/receivers/fetch'
+import { MESSAGE_EVENT } from '../../../fixtures'
 
 const SIGNING_SECRET = '9973309e5bddf914572f508d4c661a61'
 

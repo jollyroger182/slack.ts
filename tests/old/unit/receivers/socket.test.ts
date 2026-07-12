@@ -9,11 +9,11 @@ import {
 	spyOn,
 	type Mock,
 } from 'bun:test'
-import type { EventWrapper } from '../../../src/api/events'
-import type { AppsConnectionsOpenResponse } from '../../../src/api/web/apps'
-import { App } from '../../../src/client'
-import { SocketEventsReceiver } from '../../../src/receivers/socket'
-import { MESSAGE_EVENT } from '../../fixtures'
+import type { EventWrapper } from '../../../../src/old/api/events'
+import type { AppsConnectionsOpenResponse } from '../../../../src/old/api/web/apps'
+import { App } from '../../../../src/old/client'
+import { SocketEventsReceiver } from '../../../../src/old/receivers/socket'
+import { MESSAGE_EVENT } from '../../../fixtures'
 
 describe('SocketEventsReceiver', () => {
 	let app: App

@@ -1,9 +1,9 @@
 import { afterEach, beforeEach, describe, expect, it } from 'bun:test'
 import { createHmac } from 'crypto'
-import type { EventWrapper } from '../../../src/api/events'
-import { App } from '../../../src/client'
-import { HttpServerReceiver } from '../../../src/receivers/http'
-import { MESSAGE_EVENT } from '../../fixtures'
+import type { EventWrapper } from '../../../../src/old/api/events'
+import { App } from '../../../../src/old/client'
+import { HttpServerReceiver } from '../../../../src/old/receivers/http'
+import { MESSAGE_EVENT } from '../../../fixtures'
 
 const SIGNING_SECRET = '9973309e5bddf914572f508d4c661a61'
 

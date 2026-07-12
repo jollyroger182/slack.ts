@@ -1,16 +1,16 @@
 import type { LinkSharedEvent } from '@slack/types'
-import type { AppHomeOpenedEvent, EventWrapper } from '../../src/api/events'
+import type { AppHomeOpenedEvent, EventWrapper } from '../../src/old/api/events'
 import type {
 	ActionData,
 	BlockActionsData,
 	ButtonAction,
-} from '../../src/api/interactive/block_actions'
-import type { BlockSuggestionData } from '../../src/api/interactive/block_suggestion'
-import type { InteractionCommon } from '../../src/api/interactive/common'
-import type { PublicChannelData } from '../../src/api/types/conversation'
-import type { NormalMessageData } from '../../src/api/types/message'
-import type { UserData } from '../../src/api/types/user'
-import type { HomeViewData, ModalViewData } from '../../src/api/types/view'
+} from '../../src/old/api/interactive/block_actions'
+import type { BlockSuggestionData } from '../../src/old/api/interactive/block_suggestion'
+import type { InteractionCommon } from '../../src/old/api/interactive/common'
+import type { PublicChannelData } from '../../src/old/api/types/conversation'
+import type { NormalMessageData } from '../../src/old/api/types/message'
+import type { UserData } from '../../src/old/api/types/user'
+import type { HomeViewData, ModalViewData } from '../../src/old/api/types/view'
 
 export const PUBLIC_CHANNEL_DATA: PublicChannelData = {
 	id: 'C123',

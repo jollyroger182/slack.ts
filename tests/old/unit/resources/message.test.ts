@@ -7,13 +7,19 @@ import {
 	UserImpl,
 	type SlackAPIResponse,
 } from 'slack.ts'
-import type { BlockActionsData } from '../../../src/api/interactive/block_actions'
-import type { NormalMessageData } from '../../../src/api/types/message'
-import { App } from '../../../src/client'
-import { MessageImpl, type Message } from '../../../src/resources/message'
-import { blockActions, BUTTON_DATA, MESSAGE_DATA, normalMessage, USER_DATA } from '../../fixtures'
+import type { BlockActionsData } from '../../../../src/old/api/interactive/block_actions'
+import type { NormalMessageData } from '../../../../src/old/api/types/message'
+import { App } from '../../../../src/old/client'
+import { MessageImpl, type Message } from '../../../../src/old/resources/message'
+import {
+	blockActions,
+	BUTTON_DATA,
+	MESSAGE_DATA,
+	normalMessage,
+	USER_DATA,
+} from '../../../fixtures'
 import type { AnyBlock } from '@slack/types'
-import type { AnyMessage } from '../../../dist'
+import type { AnyMessage } from '../../../../dist'
 
 describe('Message', () => {
 	let app: App<'dummy'>

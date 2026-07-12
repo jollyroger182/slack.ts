@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, spyOn } from 'bun:test'
 import { App, UnfurlImpl, type AttachmentData, type SlackAPIResponse, type Unfurl } from 'slack.ts'
-import { LINK_SHARED_DATA } from '../../fixtures'
+import { LINK_SHARED_DATA } from '../../../fixtures'
 
 describe('Unfurl', () => {
 	let app: App

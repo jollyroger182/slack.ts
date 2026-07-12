@@ -1,15 +1,9 @@
 {
 	"compilerOptions": {
-		"lib": [
-			"ESNext"
-		],
+		"lib": ["ESNext"],
 		"paths": {
-			"slack.ts": [
-				"./src/index.ts"
-			],
-			"slack.ts/rich": [
-				"./src/exports/rich.ts"
-			]
+			"slack.ts": ["./src/index.ts"],
+			"slack.ts/rich": ["./src/old/exports/rich.ts"]
 		},
 		"target": "ESNext",
 		"module": "Preserve",

@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, spyOn } from 'bun:test'
 import { App, type SlackAPIResponse } from 'slack.ts'
-import { paginate } from '../../../src/utils/paginate'
-import type { AnyMessage } from '../../../src/api/types/message'
+import { paginate } from '../../../../src/old/utils/paginate'
+import type { AnyMessage } from '../../../../src/old/api/types/message'
 
 describe('paginate', () => {
 	let app: App

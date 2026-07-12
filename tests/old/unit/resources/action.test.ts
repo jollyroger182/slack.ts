@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, spyOn } from 'bun:test'
 import { ActionImpl, App, type Action } from 'slack.ts'
-import type { ButtonAction } from '../../../src/api/interactive/block_actions'
-import { blockActionsEx, BUTTON_DATA } from '../../fixtures'
+import type { ButtonAction } from '../../../../src/old/api/interactive/block_actions'
+import { blockActionsEx, BUTTON_DATA } from '../../../fixtures'
 
 const EVENT_DATA = blockActionsEx({ response_url: 'http://localhost:3003/respond' }, BUTTON_DATA)
 

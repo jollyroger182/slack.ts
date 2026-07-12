@@ -1,9 +1,9 @@
 import { beforeEach, describe, expect, it, spyOn } from 'bun:test'
 import { MessageImpl, type AnyMessage, type Message, type SlackAPIResponse } from 'slack.ts'
-import type { PublicChannelData } from '../../../src/api/types/conversation'
-import { App } from '../../../src/client'
-import { ChannelImpl, type Channel } from '../../../src/resources/channel'
-import { PUBLIC_CHANNEL_DATA as DATA } from '../../fixtures'
+import type { PublicChannelData } from '../../../../src/old/api/types/conversation'
+import { App } from '../../../../src/old/client'
+import { ChannelImpl, type Channel } from '../../../../src/old/resources/channel'
+import { PUBLIC_CHANNEL_DATA as DATA } from '../../../fixtures'
 import type { AnyBlock } from '@slack/types'
 
 describe('Channel', () => {

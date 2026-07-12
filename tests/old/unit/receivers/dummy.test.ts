@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'bun:test'
-import { DummyReceiver } from '../../../src/receivers/dummy'
+import { DummyReceiver } from '../../../../src/old/receivers/dummy'
 
 describe('DummyReceiver', () => {
 	it('creates a dummy receiver', () => {
