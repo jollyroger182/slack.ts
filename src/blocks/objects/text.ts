@@ -18,7 +18,7 @@ export class MrkdwnTextObjectBuilder implements MrkdwnElement {
 
 export class PlainTextObjectBuilder implements PlainTextElement {
 	readonly type: 'plain_text' = 'plain_text'
-	emoji?: boolean
+	emoji?: boolean = true
 
 	constructor(public text: string) {}
 

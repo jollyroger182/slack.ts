@@ -6,7 +6,7 @@ import type {
 	TextObject,
 } from '@slack/types'
 import { textOrMrkdwn } from '../objects'
-import type { ForceArray, Replace } from '$/utils/types/prop'
+import type { ForceArray, Replace } from '$/utils/types'
 
 // @ts-expect-error
 export interface SectionBlockBuilder<T extends SectionBlock> extends T {}
