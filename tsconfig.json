@@ -3,7 +3,8 @@
 		"lib": ["ESNext"],
 		"paths": {
 			"slack.ts": ["./src/index.ts"],
-			"slack.ts/rich": ["./src/old/exports/rich.ts"]
+			"slack.ts/rich": ["./src/old/exports/rich.ts"],
+			"$/*": ["./src/*"]
 		},
 		"target": "ESNext",
 		"module": "Preserve",
