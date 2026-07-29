@@ -24,6 +24,7 @@ describe('SocketEventsReceiver', () => {
 		receiver = new SocketEventsReceiver({
 			appToken: 'xapp-test-token',
 			client: app,
+			maxReconnectDelay: 10,
 		})
 	})
 
@@ -116,6 +117,25 @@ describe('SocketEventsReceiver', () => {
 			await new Promise((resolve) => setTimeout(resolve, 10))
 
 			expect(requestSpy).toHaveBeenCalledTimes(2)
+			expect(websocket).toBeDefined()
+		})
+
+		it('keeps retrying when a reconnect attempt itself fails', async () => {
+			expect(requestSpy).toHaveBeenCalledTimes(1)
+
+			requestSpy.mockRejectedValueOnce(new Error('apps.connections.open is having a day'))
+			requestSpy.mockResolvedValueOnce({
+				ok: true,
+				url: `ws://localhost:${server.port}`,
+			} satisfies AppsConnectionsOpenResponse & {
+				ok: true
+			})
+
+			websocket?.close()
+			await new Promise((resolve) => setTimeout(resolve, 150))
+
+			// the failed attempt used to end reconnection for good
+			expect(requestSpy.mock.calls.length).toBeGreaterThanOrEqual(3)
 			expect(websocket).toBeDefined()
 		})
 

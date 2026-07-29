@@ -21,6 +21,7 @@ describe('RTMReceiver', () => {
 		receiver = new RTMReceiver({
 			client: app,
 			token: { cookie: 'xoxd-test-cookie', token: 'xoxc-test-token' },
+			maxReconnectDelay: 10,
 		})
 	})
 
@@ -115,6 +116,74 @@ describe('RTMReceiver', () => {
 
 			expect(requestSpy).toHaveBeenCalledTimes(1)
 			expect(websocket).toBeUndefined()
+		})
+	})
+
+	describe('connection failures', () => {
+		let stalled: Bun.Server<never>
+		let requestSpy: Mock<typeof app.request>
+
+		beforeAll(() => {
+			// accepts the tcp connection then never completes the upgrade, so the client
+			// sees neither open nor error
+			stalled = Bun.serve({
+				fetch: () => new Promise<Response>(() => {}),
+				port: 0,
+			})
+		})
+
+		afterAll(() => {
+			stalled.stop(true)
+		})
+
+		afterEach(async () => {
+			await receiver.stop()
+			requestSpy?.mockReset()
+		})
+
+		it('gives up on a stalled handshake rather than waiting forever', async () => {
+			receiver = new RTMReceiver({
+				client: app,
+				token: { cookie: 'xoxd-test-cookie', token: 'xoxc-test-token' },
+				connectTimeout: 40,
+				maxReconnectDelay: 10,
+			})
+			requestSpy = spyOn(app, 'request').mockResolvedValue({
+				ok: true,
+				primary_websocket_url: `ws://localhost:${stalled.port}`,
+			})
+
+			// start() only settles once a connection opens, so it stays floating here
+			void receiver.start()
+			await new Promise((resolve) => setTimeout(resolve, 220))
+
+			// each attempt times out and the next one renegotiates, so a stalled handshake
+			// keeps the receiver moving instead of silently parking it
+			expect(requestSpy.mock.calls.length).toBeGreaterThan(1)
+		})
+
+		it('spaces out repeated failures', async () => {
+			receiver = new RTMReceiver({
+				client: app,
+				token: { cookie: 'xoxd-test-cookie', token: 'xoxc-test-token' },
+				maxReconnectDelay: 60,
+			})
+
+			const attemptedAt: number[] = []
+			requestSpy = spyOn(app, 'request').mockImplementation(async () => {
+				attemptedAt.push(Date.now())
+				// nothing listens on port 1, so the attempt fails promptly
+				return { ok: true, primary_websocket_url: 'ws://localhost:1' } as never
+			})
+
+			void receiver.start()
+			await new Promise((resolve) => setTimeout(resolve, 300))
+
+			expect(attemptedAt.length).toBeGreaterThan(1)
+			const gaps = attemptedAt.slice(1).map((at, i) => at - attemptedAt[i]!)
+			for (const gap of gaps) {
+				expect(gap).toBeGreaterThanOrEqual(40)
+			}
 		})
 	})
 })
