@@ -23,6 +23,7 @@ export class RTMReceiver
 	#ws?: WebSocket
 	#pingInterval?: ReturnType<typeof setInterval>
 	#id = 1
+	#shouldConnect: boolean = false
 
 	constructor({ client, token }: RTMReceiverOptions) {
 		super()
@@ -31,16 +32,21 @@ export class RTMReceiver
 	}
 
 	async start() {
+		this.#shouldConnect = true
 		return this._syncConnect()
 	}
 
 	async stop() {
+		this.#shouldConnect = false
 		if (this.#pingInterval) {
 			clearInterval(this.#pingInterval)
 			this.#pingInterval = undefined
 		}
 		return new Promise<void>((resolve, reject) => {
 			if (this.#ws) {
+				if (this.#ws.readyState === WebSocket.CLOSED) {
+					return resolve()
+				}
 				this.#ws.once('close', () => resolve())
 				this.#ws.once('error', (error) => reject(error))
 				this.#ws.close()
@@ -128,6 +134,8 @@ export class RTMReceiver
 	}
 
 	private async _syncConnect(): Promise<void> {
+		if (!this.#shouldConnect) return
+
 		console.debug('[rtm] attempting connection to slack')
 		return this._connect().catch((error) => {
 			console.error('[rtm] connection failed, retrying')
@@ -214,10 +222,10 @@ export class RTMReceiver
 	}
 
 	#onError(event: WebSocket.ErrorEvent) {
-		console.error('[socket-mode] websocket error', event.message)
+		console.error('[rtm] websocket error', event.message)
 		console.error(event.error)
+		// closing here fires #onClose, which is what reconnects
 		this.#ws?.close()
-		this._syncConnect()
 	}
 }
 
