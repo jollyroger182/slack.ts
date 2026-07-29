@@ -3,6 +3,12 @@ import type { EventWrapper } from '../api/events'
 import type { BlockActionsData } from '../api/interactive/block_actions'
 import type { SlashCommandData } from '../api/slash'
 import type { App } from '../client'
+import {
+	DEFAULT_CONNECT_TIMEOUT,
+	DEFAULT_MAX_RECONNECT_DELAY,
+	reconnectDelay,
+	sleep,
+} from '../utils'
 import { AsyncEventEmitter } from '../utils/events'
 import type { EventsReceiver, ReceiverEventMap } from './base'
 import type { BlockSuggestionData } from '../api/interactive/block_suggestion'
@@ -10,6 +16,10 @@ import type { BlockSuggestionData } from '../api/interactive/block_suggestion'
 export interface SocketEventsReceiverOptions {
 	appToken: string
 	client: App
+	/** How long to wait for the websocket handshake before giving up. Defaults to 30s. */
+	connectTimeout?: number
+	/** Ceiling for the reconnect backoff. Defaults to 30s. */
+	maxReconnectDelay?: number
 }
 
 export class SocketEventsReceiver
@@ -20,11 +30,21 @@ export class SocketEventsReceiver
 	public client: App
 	#ws?: WebSocket
 	#shouldConnect: boolean = false
+	#connecting: boolean = false
+	#connectTimeout: number
+	#maxReconnectDelay: number
 
-	constructor({ appToken, client }: SocketEventsReceiverOptions) {
+	constructor({
+		appToken,
+		client,
+		connectTimeout = DEFAULT_CONNECT_TIMEOUT,
+		maxReconnectDelay = DEFAULT_MAX_RECONNECT_DELAY,
+	}: SocketEventsReceiverOptions) {
 		super()
 		this.#appToken = appToken
 		this.client = client
+		this.#connectTimeout = connectTimeout
+		this.#maxReconnectDelay = maxReconnectDelay
 	}
 
 	async start() {
@@ -35,17 +55,22 @@ export class SocketEventsReceiver
 	async stop() {
 		this.#shouldConnect = false
 		return new Promise<void>((resolve, reject) => {
-			if (this.#ws) {
-				if (this.#ws.readyState === WebSocket.CLOSED) {
-					return resolve()
-				}
-				this.#ws.once('close', () => resolve())
-				this.#ws.once('error', (error) => reject(error))
-				this.#ws.close()
-				this.#ws = undefined
-			} else {
-				resolve()
+			const ws = this.#ws
+			this.#ws = undefined
+
+			if (!ws || ws.readyState === WebSocket.CLOSED) {
+				return resolve()
 			}
+			if (ws.readyState !== WebSocket.OPEN) {
+				// aborting a handshake that never completed emits neither close nor error,
+				// so waiting on either one here would hang
+				ws.terminate()
+				return resolve()
+			}
+
+			ws.once('close', () => resolve())
+			ws.once('error', (error) => reject(error))
+			ws.close()
 		})
 	}
 
@@ -56,16 +81,56 @@ export class SocketEventsReceiver
 
 		return new Promise<void>((resolve, reject) => {
 			this.#ws = new WebSocket(url)
+
+			// a handshake that stalls emits neither open nor error, so without this the
+			// receiver goes quiet for good while the process stays healthy
+			const timer = setTimeout(() => {
+				console.error('[socket-mode] connection attempt timed out')
+				this.#ws?.terminate()
+				reject(new Error('Timed out opening the socket mode websocket'))
+			}, this.#connectTimeout)
+
 			this.#ws.addEventListener('open', this.#onOpen.bind(this))
 			this.#ws.addEventListener('message', this.#onMessage.bind(this))
 			this.#ws.addEventListener('close', this.#onClose.bind(this))
 			this.#ws.addEventListener('error', this.#onError.bind(this))
-			this.#ws.once('open', () => resolve())
+			this.#ws.once('open', () => {
+				clearTimeout(timer)
+				resolve()
+			})
 			this.#ws.once('error', (error) => {
-				this.#onError(error)
+				clearTimeout(timer)
 				reject(error)
 			})
 		})
+	}
+
+	/**
+	 * Drives reconnection with backoff. Reconnect attempts can fail too, and before this a
+	 * single failed attempt would end them for good.
+	 */
+	private async _reconnect(): Promise<void> {
+		// a single owner keeps overlapping close and error events from racing two
+		// connections, each with its own backoff
+		if (this.#connecting) return
+		this.#connecting = true
+
+		try {
+			let attempt = 0
+			while (this.#shouldConnect) {
+				try {
+					await this._connect()
+					return
+				} catch (error) {
+					const delay = reconnectDelay(attempt++, this.#maxReconnectDelay)
+					console.error(`[socket-mode] connection failed, retrying in ${delay}ms`)
+					console.error(error)
+					await sleep(delay)
+				}
+			}
+		} finally {
+			this.#connecting = false
+		}
 	}
 
 	#onOpen() {
@@ -107,13 +172,13 @@ export class SocketEventsReceiver
 
 	#onClose(event: WebSocket.CloseEvent) {
 		console.debug('[socket-mode] websocket closed with code', event.code, event.reason)
-		this._connect()
+		this._reconnect()
 	}
 
 	#onError(event: { message: string }) {
 		console.debug('[socket-mode] websocket error', event.message)
+		// closing here fires #onClose, which is what reconnects
 		this.#ws?.close()
-		this._connect()
 	}
 }
 

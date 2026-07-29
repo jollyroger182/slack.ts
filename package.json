@@ -4,6 +4,14 @@
 	"description": "A fully-typed, opinionated Slack API library",
 	"author": "@jollyroger182",
 	"license": "MIT",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/jollyroger182/slack.ts.git"
+	},
+	"homepage": "https://github.com/jollyroger182/slack.ts#readme",
+	"bugs": {
+		"url": "https://github.com/jollyroger182/slack.ts/issues"
+	},
 	"keywords": [
 		"slack",
 		"api",

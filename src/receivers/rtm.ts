@@ -3,12 +3,22 @@ import { EVENT_TYPES, type EventData, type EventWrapper } from '../api/events'
 import type { App } from '../client'
 import { SlackError, SlackTimeoutError } from '../error'
 import type { User } from '../resources'
+import {
+	DEFAULT_CONNECT_TIMEOUT,
+	DEFAULT_MAX_RECONNECT_DELAY,
+	reconnectDelay,
+	sleep,
+} from '../utils'
 import { AsyncEventEmitter } from '../utils/events'
 import type { EventsReceiver, ReceiverEventMap } from './base'
 
 export interface RTMReceiverOptions {
 	client: App
 	token: { cookie: string; token: string }
+	/** How long to wait for the websocket handshake before giving up. Defaults to 30s. */
+	connectTimeout?: number
+	/** Ceiling for the reconnect backoff. Defaults to 30s. */
+	maxReconnectDelay?: number
 }
 
 export class RTMReceiver
@@ -24,11 +34,21 @@ export class RTMReceiver
 	#pingInterval?: ReturnType<typeof setInterval>
 	#id = 1
 	#shouldConnect: boolean = false
+	#connecting: boolean = false
+	#connectTimeout: number
+	#maxReconnectDelay: number
 
-	constructor({ client, token }: RTMReceiverOptions) {
+	constructor({
+		client,
+		token,
+		connectTimeout = DEFAULT_CONNECT_TIMEOUT,
+		maxReconnectDelay = DEFAULT_MAX_RECONNECT_DELAY,
+	}: RTMReceiverOptions) {
 		super()
 		this.#client = client
 		this.#token = token
+		this.#connectTimeout = connectTimeout
+		this.#maxReconnectDelay = maxReconnectDelay
 	}
 
 	async start() {
@@ -43,17 +63,22 @@ export class RTMReceiver
 			this.#pingInterval = undefined
 		}
 		return new Promise<void>((resolve, reject) => {
-			if (this.#ws) {
-				if (this.#ws.readyState === WebSocket.CLOSED) {
-					return resolve()
-				}
-				this.#ws.once('close', () => resolve())
-				this.#ws.once('error', (error) => reject(error))
-				this.#ws.close()
-				this.#ws = undefined
-			} else {
-				resolve()
+			const ws = this.#ws
+			this.#ws = undefined
+
+			if (!ws || ws.readyState === WebSocket.CLOSED) {
+				return resolve()
 			}
+			if (ws.readyState !== WebSocket.OPEN) {
+				// aborting a handshake that never completed emits neither close nor error,
+				// so waiting on either one here would hang
+				ws.terminate()
+				return resolve()
+			}
+
+			ws.once('close', () => resolve())
+			ws.once('error', (error) => reject(error))
+			ws.close()
 		})
 	}
 
@@ -134,14 +159,28 @@ export class RTMReceiver
 	}
 
 	private async _syncConnect(): Promise<void> {
-		if (!this.#shouldConnect) return
+		// a single owner keeps overlapping close and error events from racing two
+		// connections, each with its own backoff
+		if (this.#connecting) return
+		this.#connecting = true
 
-		console.debug('[rtm] attempting connection to slack')
-		return this._connect().catch((error) => {
-			console.error('[rtm] connection failed, retrying')
-			console.error(error)
-			return this._syncConnect()
-		})
+		try {
+			let attempt = 0
+			while (this.#shouldConnect) {
+				console.debug('[rtm] attempting connection to slack')
+				try {
+					await this._connect()
+					return
+				} catch (error) {
+					const delay = reconnectDelay(attempt++, this.#maxReconnectDelay)
+					console.error(`[rtm] connection failed, retrying in ${delay}ms`)
+					console.error(error)
+					await sleep(delay)
+				}
+			}
+		} finally {
+			this.#connecting = false
+		}
 	}
 
 	private async _connect() {
@@ -157,14 +196,27 @@ export class RTMReceiver
 
 		return new Promise<void>((resolve, reject) => {
 			this.#ws = new WebSocket(url.toString(), { headers: { cookie: `d=${this.#token.cookie}` } })
+
+			// a handshake that stalls emits neither open nor error, so without this the
+			// receiver goes quiet for good while the process stays healthy
+			const timer = setTimeout(() => {
+				console.error('[rtm] connection attempt timed out')
+				this.#ws?.terminate()
+				reject(new SlackTimeoutError('Timed out opening the rtm websocket'))
+			}, this.#connectTimeout)
+
 			this.#ws.addEventListener('open', this.#onOpen.bind(this))
 			this.#ws.addEventListener('message', this.#onMessage.bind(this))
 			this.#ws.once('open', () => {
+				clearTimeout(timer)
 				this.#ws?.addEventListener('close', this.#onClose.bind(this))
 				this.#ws?.addEventListener('error', this.#onError.bind(this))
 				resolve()
 			})
-			this.#ws.on('error', (error) => reject(error))
+			this.#ws.on('error', (error) => {
+				clearTimeout(timer)
+				reject(error)
+			})
 
 			if (!this.#pingInterval) {
 				this.#pingInterval = setInterval(this.#sendPing.bind(this), 44000)
