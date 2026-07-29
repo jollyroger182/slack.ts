@@ -1,3 +1,4 @@
+import type { LinkSharedEvent } from '@slack/types'
 import type { AppHomeOpenedEvent, EventWrapper } from '../../src/api/events'
 import type {
 	ActionData,
@@ -251,3 +252,13 @@ export const HOME_OPENED_DATA = {
 	event_ts: '123456.789',
 	channel: 'D123',
 } as const satisfies AppHomeOpenedEvent
+
+export const LINK_SHARED_DATA = {
+	type: 'link_shared',
+	user: 'U123',
+	channel: 'C123',
+	message_ts: '123456.789',
+	event_ts: '123456.789',
+	is_bot_user_member: false,
+	links: [{ domain: 'example.com', url: 'https://example.com/unfurl' }],
+} as const satisfies LinkSharedEvent

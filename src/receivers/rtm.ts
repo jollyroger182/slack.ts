@@ -22,6 +22,8 @@ export class RTMReceiver
 
 	#ws?: WebSocket
 	#pingInterval?: ReturnType<typeof setInterval>
+	#id = 1
+	#shouldConnect: boolean = false
 
 	constructor({ client, token }: RTMReceiverOptions) {
 		super()
@@ -30,16 +32,21 @@ export class RTMReceiver
 	}
 
 	async start() {
+		this.#shouldConnect = true
 		return this._syncConnect()
 	}
 
 	async stop() {
+		this.#shouldConnect = false
 		if (this.#pingInterval) {
 			clearInterval(this.#pingInterval)
 			this.#pingInterval = undefined
 		}
 		return new Promise<void>((resolve, reject) => {
 			if (this.#ws) {
+				if (this.#ws.readyState === WebSocket.CLOSED) {
+					return resolve()
+				}
 				this.#ws.once('close', () => resolve())
 				this.#ws.once('error', (error) => reject(error))
 				this.#ws.close()
@@ -114,7 +121,21 @@ export class RTMReceiver
 		})
 	}
 
+	async send<T = { ok: true; reply_to: number }>(data: Record<string, unknown>): Promise<T> {
+		const id = this.#id++
+		data.id = id
+		return new Promise((resolve, reject) => {
+			this.once(`replied.${id}`, (data) => {
+				if (data.ok) resolve(data as T)
+				else reject(data)
+			})
+			this.#ws?.send(JSON.stringify(data))
+		})
+	}
+
 	private async _syncConnect(): Promise<void> {
+		if (!this.#shouldConnect) return
+
 		console.debug('[rtm] attempting connection to slack')
 		return this._connect().catch((error) => {
 			console.error('[rtm] connection failed, retrying')
@@ -177,10 +198,13 @@ export class RTMReceiver
 					this.#reconnectUrl = payload.url
 				} else if (payload.type === 'hello') {
 					console.debug('[rtm] received hello event from', payload.region)
-				} else if (isSlackEvent(payload)) {
+				} else if (payload.type && isSlackEvent(payload)) {
 					this.emit('event', makeEventWrapper(payload))
 				} else if (payload?.type) {
 					this.emit(payload.type, payload as any)
+				} else if (payload.reply_to) {
+					this.emit('replied', payload)
+					this.emit(`replied.${payload.reply_to}`, payload)
 				} else {
 					console.warn('[rtm] unknown payload')
 					console.warn(payload)
@@ -198,10 +222,10 @@ export class RTMReceiver
 	}
 
 	#onError(event: WebSocket.ErrorEvent) {
-		console.error('[socket-mode] websocket error', event.message)
+		console.error('[rtm] websocket error', event.message)
 		console.error(event.error)
+		// closing here fires #onClose, which is what reconnects
 		this.#ws?.close()
-		this._syncConnect()
 	}
 }
 
@@ -354,6 +378,7 @@ export type RTMEvent =
 	// | TeamProfileReorderEvent
 	| UserTypingEvent
 	| Extract<EventData, { type: (typeof SLACK_RTM_API_EVENTS)[number] }>
+	| { ok: boolean; reply_to: number; type?: undefined }
 // not planned
 // | ExternalOrgMigrationFinishedEvent
 // | ExternalOrgMigrationStartedEvent
@@ -361,7 +386,11 @@ export type RTMEvent =
 // | GroupMarkedEvent
 
 export type RTMEventEmitterMap = {
-	[K in Exclude<RTMEvent, EventData> as K['type']]: [K]
+	[K in Exclude<RTMEvent, EventData | { reply_to: number }> as K['type']]: [K]
+} & {
+	replied: [{ ok: boolean; reply_to: number } & Record<string, unknown>]
+} & {
+	[K in number as `replied.${K}`]: [{ ok: boolean; reply_to: K } & Record<string, unknown>]
 }
 
 export const SLACK_RTM_API_EVENTS = [

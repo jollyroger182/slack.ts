@@ -60,14 +60,17 @@ describe('SocketEventsReceiver', () => {
 				},
 				websocket: {
 					open(ws) {
+						console.debug('[mock] websocket opened')
 						websocket = ws
 					},
 					message(ws, message) {
 						if (typeof message === 'string') {
+							console.debug('[mock] websocket message received')
 							messagesReceived.push(message)
 						}
 					},
 					close() {
+						console.debug('[mock] websocket closed')
 						websocket = undefined
 					},
 				},
@@ -75,8 +78,8 @@ describe('SocketEventsReceiver', () => {
 			})
 		})
 
-		afterAll(async () => {
-			await server.stop(true)
+		afterAll(() => {
+			server.stop(true)
 		})
 
 		beforeEach(async () => {
@@ -97,6 +100,22 @@ describe('SocketEventsReceiver', () => {
 
 		it('establishes a WebSocket connection', async () => {
 			expect(requestSpy).toHaveBeenCalledTimes(1)
+			expect(websocket).toBeDefined()
+		})
+
+		it('reconnects', async () => {
+			expect(requestSpy).toHaveBeenCalledTimes(1)
+
+			requestSpy.mockResolvedValueOnce({
+				ok: true,
+				url: `ws://localhost:${server.port}`,
+			} satisfies AppsConnectionsOpenResponse & {
+				ok: true
+			})
+			websocket?.close()
+			await new Promise((resolve) => setTimeout(resolve, 10))
+
+			expect(requestSpy).toHaveBeenCalledTimes(2)
 			expect(websocket).toBeDefined()
 		})
 

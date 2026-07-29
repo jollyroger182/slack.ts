@@ -33,12 +33,12 @@ import { HttpFetchReceiver, type HttpFetchReceiverOptions } from './receivers/fe
 import { HttpServerReceiver, type HttpServerReceiverOptions } from './receivers/http'
 import { RTMReceiver, type RTMReceiverOptions } from './receivers/rtm'
 import { SocketEventsReceiver, type SocketEventsReceiverOptions } from './receivers/socket'
-import { SubmissionImpl, type Submission } from './resources'
+import { SubmissionImpl, UnfurlImpl, type Submission, type Unfurl } from './resources'
 import { ActionImpl, type Action } from './resources/action'
 import { AutocompleteImpl, type Autocomplete } from './resources/autocomplete'
 import { ChannelImpl, type Channel } from './resources/channel'
 import { HomeOpenedImpl, type HomeOpened } from './resources/home_opened'
-import { Message, type MessageInstance } from './resources/message'
+import { MessageImpl, type Message } from './resources/message'
 import { SlashCommandImpl, type SlashCommand } from './resources/slash'
 import { UserImpl, type User } from './resources/user'
 import { sleep, type AnyToken } from './utils'
@@ -46,6 +46,7 @@ import { AsyncEventEmitter } from './utils/events'
 import { paginate } from './utils/paginate'
 import type { DistributiveOmit, DistributivePick } from './utils/typing'
 import { EventImpl, type Event } from './resources/event'
+import type { AnyBlock, LinkSharedEvent } from '@slack/types'
 
 type ReceiverOptions =
 	| ({
@@ -77,7 +78,7 @@ interface AppOptions<Receiver extends ReceiverOptions['type'] = ReceiverOptions[
 }
 
 export type MessageCallbackData = {
-	message: MessageInstance
+	message: Message
 	client: App
 	event: EventWrapper<MessageEvent>
 }
@@ -172,6 +173,7 @@ export class App<
 
 		this.on('event:message', this.#onMessage.bind(this))
 		this.on('event:app_home_opened', this.#onAppHomeOpened.bind(this))
+		this.on('event:link_shared', this.#onLinkShared.bind(this))
 	}
 
 	async #onEvent(event: EventWrapper) {
@@ -220,12 +222,7 @@ export class App<
 	}
 
 	async #onMessage({ payload }: { payload: MessageEvent }) {
-		const message = new Message<AnyMessage>(
-			this,
-			payload.channel,
-			payload.ts,
-			payload,
-		) as MessageInstance
+		const message = MessageImpl.create(this, payload.channel, payload.ts, payload)
 		await Promise.all([
 			this.emit('message', message),
 			this.emit(`message:${payload.subtype ?? 'normal'}`, message as any),
@@ -237,6 +234,11 @@ export class App<
 	async #onAppHomeOpened({ payload }: { payload: AppHomeOpenedEvent }) {
 		const obj = HomeOpenedImpl.create(this, payload)
 		await this.emit('home', obj)
+	}
+
+	async #onLinkShared({ payload }: { payload: LinkSharedEvent }) {
+		const obj = UnfurlImpl.create(this, payload)
+		await this.emit('unfurl', obj)
 	}
 
 	get receiver(): ReceiverMap[Receiver] {
@@ -260,8 +262,8 @@ export class App<
 	}
 
 	/**
-	 * Gets a channel reference object. You can use this object to call API methods, or `await` it to
-	 * fetch channel details.
+	 * Gets a channel reference object. You can use this object to call API methods, or call `fetch`
+	 * to fetch channel details.
 	 *
 	 * @param id Channel ID
 	 * @returns A channel reference object
@@ -271,7 +273,7 @@ export class App<
 	}
 
 	/**
-	 * Gets a user reference object. You can use this object to call API methods, or `await` it to
+	 * Gets a user reference object. You can use this object to call API methods, or call `fetch` to
 	 * fetch user details.
 	 *
 	 * @param id User ID
@@ -305,12 +307,24 @@ export class App<
 		return channels
 	}
 
+	/**
+	 * Lists users on the team.
+	 *
+	 * @returns An async generator that yields user objects
+	 */
 	async *users(): AsyncGenerator<User<UserData>> {
 		yield* paginate(this, 'users.list', {}, (r) =>
 			r.members.map((u) => UserImpl.create(this, u.id, u)),
 		)
 	}
 
+	/**
+	 * Fetches all custom emoji.
+	 *
+	 * @returns All custom emoji in the form of an object. The key of the object is the custom emoji
+	 *   name, and the corresponding value is either a URL to the emoji image, or
+	 *   `alias:<aliased-emoji-name>`.
+	 */
 	async emoji(): Promise<Record<string, string>> {
 		const { emoji } = await this.request('emoji.list', {})
 		return emoji
@@ -390,11 +404,12 @@ type AppEventMap = {
 	actions: [BlockActionsData]
 	action: [Action]
 	submit: [Submission]
-	message: [MessageInstance]
-	'message:normal': [MessageInstance<NormalMessageData>]
+	message: [Message<AnyMessage, AnyBlock[], true>]
+	'message:normal': [Message<NormalMessageData, AnyBlock[], true>]
 	slash: [SlashCommand]
 	autocomplete: [Autocomplete]
 	home: [HomeOpened]
+	unfurl: [Unfurl]
 } & {
 	[K in EventTypes as `event:${K}`]: [Event<EventMap[K]>]
 } & {
@@ -406,15 +421,17 @@ type AppEventMap = {
 } & {
 	[K in `submit.${string}`]: [Submission]
 } & {
-	[K in `message#${string}`]: [MessageInstance]
+	[K in `message#${string}`]: [Message<AnyMessage, AnyBlock[], true>]
 } & {
-	[K in Extract<AnyMessage, { subtype: string }> as `message:${K['subtype']}`]: [MessageInstance<K>]
-} & {
-	[K in Extract<AnyMessage, { subtype: string }> as `message:${K['subtype']}#${string}`]: [
-		MessageInstance<K>,
+	[K in Extract<AnyMessage, { subtype: string }> as `message:${K['subtype']}`]: [
+		Message<K, AnyBlock[], true>,
 	]
 } & {
-	[K in `message:normal#${string}`]: [MessageInstance<NormalMessageData>]
+	[K in Extract<AnyMessage, { subtype: string }> as `message:${K['subtype']}#${string}`]: [
+		Message<K, AnyBlock[], true>,
+	]
+} & {
+	[K in `message:normal#${string}`]: [Message<NormalMessageData, AnyBlock[], true>]
 } & {
 	[K in `/${string}`]: [SlashCommand]
 } & {

@@ -45,10 +45,19 @@ interface FetchRepliesParams extends Omit<TimestampPaginationParams, 'limit'> {
 	token?: AnyToken
 }
 
-abstract class MessageMixin<
+function transformData(client: App, data: AnyMessage | undefined) {
+	if (!data) return {}
+	const transformed: any = { ...data }
+	return transformed
+}
+
+export class MessageImpl<
 	Subtype extends AnyMessage = AnyMessage,
 	Blocks extends AnyBlock[] = AnyBlock[],
+	HasData extends boolean = false,
 > {
+	#data: Subtype | undefined
+	#wrappedData: any
 	#channel: string
 	#ts: string
 
@@ -56,23 +65,47 @@ abstract class MessageMixin<
 		protected client: App,
 		channel: string,
 		ts: string,
+		data?: Subtype,
 	) {
 		this.#channel = channel
 		this.#ts = ts
+		this.#data = data
+		this.#wrappedData = transformData(client, this.#data)
+		return makeProxy(this, () => this.#wrappedData)
 	}
 
-	protected abstract _updateData<
-		Subtype extends AnyMessage = AnyMessage,
-		Blocks extends AnyBlock[] = AnyBlock[],
-	>(data: Subtype): MessageInstance<Subtype, Blocks>
+	static create<Subtype extends AnyMessage = AnyMessage, Blocks extends AnyBlock[] = AnyBlock[]>(
+		client: App,
+		channel: string,
+		ts: string,
+		data: Subtype,
+	): Message<Subtype, Blocks, true>
+	static create<Subtype extends AnyMessage = AnyMessage, Blocks extends AnyBlock[] = AnyBlock[]>(
+		client: App,
+		channel: string,
+		ts: string,
+		data?: Subtype,
+	): Message<Subtype, Blocks>
+	static create<Subtype extends AnyMessage = AnyMessage>(
+		client: App,
+		channel: string,
+		ts: string,
+		data?: Subtype,
+	) {
+		return new MessageImpl(client, channel, ts, data)
+	}
+
+	protected _updateData<NewBlocks extends AnyBlock[] = Blocks>(
+		data: Subtype,
+	): Message<Subtype, NewBlocks, true> {
+		this.#data = data as any
+		this.#wrappedData = transformData(this.client, this.#data)
+		return makeProxy(this, () => this.#wrappedData)
+	}
 
 	/** The channel where this message was sent */
 	get channel() {
 		return ChannelImpl.create(this.client, this.#channel)
-	}
-
-	protected get _channelId() {
-		return this.#channel
 	}
 
 	/** Timestamp of the message */
@@ -80,8 +113,40 @@ abstract class MessageMixin<
 		return this.#ts
 	}
 
+	/** The raw data of this message */
+	get raw() {
+		return this.#data
+	}
+
 	protected get _threadTs(): string | undefined {
-		return undefined
+		return this.#data?.thread_ts
+	}
+
+	async fetch(): Promise<Message<Subtype, Blocks, true>> {
+		const data = await this.client.request('conversations.replies', {
+			channel: this.#channel,
+			ts: this.ts,
+			latest: this.ts,
+			oldest: this.ts,
+			inclusive: true,
+		})
+		if (!data.messages.length) {
+			throw new SlackError('Message is not found')
+		}
+		return MessageImpl.create(this.client, this.#channel, this.ts, data.messages[0] as Subtype)
+	}
+
+	/**
+	 * A reference to the user that created the message. Note that for system messages (such as
+	 * channel join messages), this may not be the user you expect. Read the Slack documentation to
+	 * find out.
+	 */
+	get author(): HasData extends true
+		? Subtype extends { user: string }
+			? User
+			: User | undefined
+		: undefined {
+		return (this.#data?.user ? UserImpl.create(this.client, this.#data.user) : undefined) as any
 	}
 
 	/**
@@ -89,7 +154,7 @@ abstract class MessageMixin<
 	 * see its methods (for example, `message.wait.timeout(60000)`).
 	 */
 	get wait() {
-		return new MessageWait<Subtype, Blocks>(this, this.client)
+		return new MessageWait(this as Message<Subtype, Blocks, boolean>, this.client)
 	}
 
 	/**
@@ -110,7 +175,7 @@ abstract class MessageMixin<
 	 */
 	async reply<Blocks extends AnyBlock[] = AnyBlock[]>(
 		message: DistributiveOmit<SendMessageWithoutFiles<Blocks>, 'channel' | 'thread_ts'> | string,
-	): Promise<MessageInstance<NormalMessageData<Blocks>, Blocks>>
+	): Promise<Message<NormalMessageData<Blocks>, Blocks, true>>
 
 	async reply(message: DistributiveOmit<SendMessageParams, 'channel' | 'thread_ts'> | string) {
 		if (typeof message === 'string') {
@@ -122,12 +187,7 @@ abstract class MessageMixin<
 			thread_ts: this._threadTs || this.#ts,
 		})
 		if (data) {
-			return new Message(
-				this.client,
-				this.#channel,
-				data.ts,
-				data.message,
-			) as MessageInstance<NormalMessageData>
+			return MessageImpl.create(this.client, this.#channel, data.ts, data.message)
 		}
 	}
 
@@ -169,7 +229,9 @@ abstract class MessageMixin<
 	 * @param params Options for fetching replies
 	 * @returns An async iterator of messages, from oldest to newest
 	 */
-	async *replies(params: FetchRepliesParams = {}): AsyncGenerator<MessageInstance, void, unknown> {
+	async *replies(
+		params: FetchRepliesParams = {},
+	): AsyncGenerator<Message<AnyMessage, AnyBlock[], true>, void, unknown> {
 		yield* paginate(
 			this.client,
 			'conversations.replies',
@@ -178,7 +240,7 @@ abstract class MessageMixin<
 				r.messages
 					.values()
 					.filter((m) => m.ts !== this.#ts || (params.root ?? true))
-					.map((m) => new Message(this.client, this.#channel, m.ts, m) as MessageInstance),
+					.map((m) => MessageImpl.create(this.client, this.#channel, m.ts, m)),
 		)
 	}
 
@@ -190,7 +252,7 @@ abstract class MessageMixin<
 			ts: this.#ts,
 			...params,
 		} satisfies ChatUpdateParams<NewBlocks> as any)
-		return this._updateData<Subtype, NewBlocks>(message as Subtype)
+		return this._updateData<NewBlocks>(message as Subtype)
 	}
 
 	async react(name: string) {
@@ -236,109 +298,36 @@ abstract class MessageMixin<
 		}
 		throw new SlackError('Slack is not doing its job')
 	}
-}
 
-export class MessageRef<
-	Subtype extends AnyMessage = AnyMessage,
-	Blocks extends AnyBlock[] = AnyBlock[],
->
-	extends MessageMixin<Subtype, Blocks>
-	implements PromiseLike<MessageInstance<Subtype>>
-{
-	protected override _updateData<
-		Subtype extends AnyMessage = AnyMessage,
-		Blocks extends AnyBlock[] = AnyBlock[],
-	>(data: Subtype): MessageInstance<Subtype, Blocks> {
-		return new Message(this.client, this._channelId, this.ts, data) as MessageInstance<
-			Subtype,
-			Blocks
-		>
+	async delete() {
+		await this.client.request('chat.delete', { channel: this.#channel, ts: this.#ts })
 	}
 
-	then<TResult1 = MessageInstance<Subtype>, TResult2 = never>(
-		onfulfilled?:
-			| ((value: MessageInstance<Subtype>) => TResult1 | PromiseLike<TResult1>)
-			| null
-			| undefined,
-		onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | null | undefined,
-	): PromiseLike<TResult1 | TResult2> {
-		return this.#fetch().then(onfulfilled, onrejected)
+	get permalink() {
+		return this.#permalink()
 	}
 
-	async #fetch(): Promise<MessageInstance<Subtype>> {
-		const data = await this.client.request('conversations.replies', {
-			channel: this._channelId,
-			ts: this.ts,
-			latest: this.ts,
-			oldest: this.ts,
-			inclusive: true,
+	async #permalink() {
+		const { permalink } = await this.client.request('chat.getPermalink', {
+			channel: this.#channel,
+			ts: this.#ts,
 		})
-		if (!data.messages.length) {
-			throw new SlackError('Message is not found')
-		}
-		return new Message(
-			this.client,
-			this._channelId,
-			this.ts,
-			data.messages[0] as Subtype,
-		) as MessageInstance<Subtype>
+		return permalink
 	}
 }
 
-export class Message<
+export type Message<
 	Subtype extends AnyMessage = AnyMessage,
 	Blocks extends AnyBlock[] = AnyBlock[],
-> extends MessageMixin<Subtype, Blocks> {
-	#data: Subtype
-
-	constructor(client: App, channel: string, ts: string, data: Subtype) {
-		super(client, channel, ts)
-		this.#data = data
-		return makeProxy(this, () => this.#data)
-	}
-
-	protected override _updateData<
-		Subtype extends AnyMessage = AnyMessage,
-		Blocks extends AnyBlock[] = AnyBlock[],
-	>(data: Subtype): MessageInstance<Subtype, Blocks> {
-		this.#data = data as any
-		return makeProxy(this, () => this.#data)
-	}
-
-	/** @returns Whether this message is a normal message (subtype is undefined) */
-	isNormal(): this is MessageInstance<NormalMessageData> {
-		return !this.#data.subtype
-	}
-
-	/** The raw data of this message */
-	get raw() {
-		return this.#data
-	}
-
-	/**
-	 * A reference to the user that created the message. Note that for system messages (such as
-	 * channel join messages), this may not be the user you expect. Read the Slack documentation to
-	 * find out.
-	 */
-	get author(): undefined extends Subtype['user'] ? User | undefined : User {
-		return this.#data.user ? UserImpl.create(this.client, this.#data.user) : (undefined as any)
-	}
-
-	protected override get _threadTs(): string | undefined {
-		return this.#data.thread_ts
-	}
-}
-
-export type MessageInstance<
-	Subtype extends AnyMessage = AnyMessage,
-	Blocks extends AnyBlock[] = AnyBlock[],
-> = Message<Subtype, Blocks> & Subtype
+	HasData extends boolean = false,
+> = MessageImpl<Subtype, Blocks, HasData> &
+	(HasData extends true ? Subtype & { readonly raw: Subtype } : {})
 
 class MessageWait<Subtype extends AnyMessage = AnyMessage, Blocks extends AnyBlock[] = AnyBlock[]> {
 	private _timeout = 60_0_000
 
 	constructor(
-		private message: MessageMixin<Subtype, Blocks>,
+		private message: Message<Subtype, Blocks, any>,
 		private client: App,
 	) {}
 

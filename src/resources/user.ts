@@ -1,3 +1,4 @@
+import type { AnyBlock } from '@slack/types'
 import type { IMData } from '../api/types/conversation'
 import type { NormalMessageData } from '../api/types/message'
 import type { UserData as UserData } from '../api/types/user'
@@ -11,7 +12,7 @@ import {
 } from '../utils/messaging'
 import type { DistributiveOmit } from '../utils/typing'
 import { ChannelImpl } from './channel'
-import { Message, type MessageInstance } from './message'
+import { MessageImpl, type Message } from './message'
 
 export class UserImpl {
 	#data: UserData | undefined
@@ -61,9 +62,9 @@ export class UserImpl {
 	 * @param message The message payload to send, either a mrkdwn-formatted string or an object.
 	 * @returns The sent message
 	 */
-	async send(
-		message: DistributiveOmit<SendMessageWithoutFiles, 'channel'> | string,
-	): Promise<MessageInstance<NormalMessageData>>
+	async send<Blocks extends AnyBlock[] = AnyBlock[]>(
+		message: DistributiveOmit<SendMessageWithoutFiles<Blocks>, 'channel'> | string,
+	): Promise<Message<NormalMessageData<Blocks>, Blocks, true>>
 
 	async send(message: DistributiveOmit<SendMessageParams, 'channel'> | string) {
 		if (typeof message === 'string') {
@@ -71,12 +72,7 @@ export class UserImpl {
 		}
 		const data = await sendMessage(this.client, { ...message, channel: this.id })
 		if (data) {
-			return new Message(
-				this.client,
-				this.#id,
-				data.ts,
-				data.message,
-			) as MessageInstance<NormalMessageData>
+			return MessageImpl.create(this.client, this.#id, data.ts, data.message)
 		}
 	}
 

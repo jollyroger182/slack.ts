@@ -13,7 +13,7 @@ import {
 } from '../utils/messaging'
 import { paginate } from '../utils/paginate'
 import type { DistributiveOmit } from '../utils/typing'
-import { Message, MessageRef, type MessageInstance } from './message'
+import { MessageImpl, type Message } from './message'
 import { type User } from './user'
 
 interface FetchMessagesParams extends Omit<TimestampPaginationParams, 'cursor' | 'limit'> {
@@ -124,7 +124,7 @@ export class ChannelImpl {
 	 */
 	async send<Blocks extends AnyBlock[] = AnyBlock[]>(
 		message: DistributiveOmit<SendMessageWithoutFiles<Blocks>, 'channel'> | string,
-	): Promise<MessageInstance<NormalMessageData<Blocks>, Blocks>>
+	): Promise<Message<NormalMessageData<Blocks>, Blocks, true>>
 
 	async send(message: DistributiveOmit<SendMessageParams, 'channel'> | string) {
 		if (typeof message === 'string') {
@@ -132,12 +132,7 @@ export class ChannelImpl {
 		}
 		const data = await sendMessage(this.client, { ...message, channel: this.id })
 		if (data) {
-			return new Message(
-				this.client,
-				this.#id,
-				data.ts,
-				data.message,
-			) as MessageInstance<NormalMessageData>
+			return MessageImpl.create(this.client, this.#id, data.ts, data.message)
 		}
 	}
 
@@ -149,7 +144,7 @@ export class ChannelImpl {
 	 * @returns A message reference object
 	 */
 	message(ts: string) {
-		return new MessageRef(this.client, this.#id, ts)
+		return MessageImpl.create(this.client, this.#id, ts)
 	}
 
 	/**
@@ -162,9 +157,7 @@ export class ChannelImpl {
 	 */
 	async *messages(params: FetchMessagesParams = {}) {
 		yield* paginate(this.client, 'conversations.history', { channel: this.#id, ...params }, (r) =>
-			r.messages
-				.values()
-				.map((m) => new Message(this.client, this.#id, m.ts, m) as MessageInstance),
+			r.messages.values().map((m) => MessageImpl.create(this.client, this.#id, m.ts, m)),
 		)
 	}
 

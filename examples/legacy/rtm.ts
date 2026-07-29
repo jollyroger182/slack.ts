@@ -7,7 +7,7 @@ const app = new App({
 
 app.on('event:reaction_added', async ({ payload }) => {
 	if (payload.item.type === 'message') {
-		const msg = await app.channel(payload.item.channel).message(payload.item.ts)
+		const msg = await app.channel(payload.item.channel).message(payload.item.ts).fetch()
 		console.log(`+:${payload.reaction}:`, msg.text)
 		await app.receiver.subscribe(payload.user)
 	}

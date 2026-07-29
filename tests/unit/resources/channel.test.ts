@@ -1,9 +1,10 @@
 import { beforeEach, describe, expect, it, spyOn } from 'bun:test'
-import { Message, MessageRef, type MessageInstance, type SlackAPIResponse } from 'slack.ts'
+import { MessageImpl, type AnyMessage, type Message, type SlackAPIResponse } from 'slack.ts'
 import type { PublicChannelData } from '../../../src/api/types/conversation'
 import { App } from '../../../src/client'
 import { ChannelImpl, type Channel } from '../../../src/resources/channel'
 import { PUBLIC_CHANNEL_DATA as DATA } from '../../fixtures'
+import type { AnyBlock } from '@slack/types'
 
 describe('Channel', () => {
 	let app: App
@@ -56,7 +57,7 @@ describe('Channel', () => {
 
 	it('creates message ref with the correct ts', () => {
 		const messageRef = channel.message('123456.789')
-		expect(messageRef).toBeInstanceOf(MessageRef)
+		expect(messageRef).toBeInstanceOf(MessageImpl)
 		expect(messageRef.channel.id).toBe(DATA.id)
 		expect(messageRef.ts).toBe('123456.789')
 	})
@@ -71,7 +72,7 @@ describe('Channel', () => {
 			has_more: false,
 		} satisfies SlackAPIResponse<'conversations.history'>)
 
-		const messages: MessageInstance[] = []
+		const messages: Message<AnyMessage, AnyBlock[], true>[] = []
 		for await (const message of channel.messages()) {
 			messages.push(message)
 		}
@@ -80,7 +81,7 @@ describe('Channel', () => {
 		expect(requestSpy.mock.calls[0]![0]).toBe('conversations.history')
 		expect(requestSpy.mock.calls[0]![1]).toMatchObject({ channel: DATA.id })
 		expect(messages).toHaveLength(1)
-		expect(messages[0]!).toBeInstanceOf(Message)
+		expect(messages[0]!).toBeInstanceOf(MessageImpl)
 		expect(messages[0]!.channel.id).toBe(DATA.id)
 		expect(messages[0]!.ts).toBe('123456.789')
 		expect(messages[0]!.text).toBe('test message')

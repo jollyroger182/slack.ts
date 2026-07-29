@@ -41,6 +41,12 @@ import type {
 	ChatStopStreamResponse,
 	ChatUpdateParams,
 	ChatUpdateResponse,
+	ChatDeleteParams,
+	ChatDeleteResponse,
+	ChatGetPermalinkParams,
+	ChatGetPermalinkResponse,
+	ChatUnfurlParams,
+	ChatUnfurlResponse,
 } from './chat'
 import type {
 	ConversationsHistoryParams,
@@ -108,6 +114,18 @@ import type {
 } from './views'
 
 interface SlackWebAPIMapInternal {
+	'chat.unfurl': {
+		params: ChatUnfurlParams
+		response: ChatUnfurlResponse
+	}
+	'chat.getPermalink': {
+		params: ChatGetPermalinkParams
+		response: ChatGetPermalinkResponse
+	}
+	'chat.delete': {
+		params: ChatDeleteParams
+		response: ChatDeleteResponse
+	}
 	'conversations.create': {
 		params: ConversationsCreateParams
 		response: ConversationsCreateResponse

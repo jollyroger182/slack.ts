@@ -10,21 +10,18 @@ import {
 import type { BlockActionsData } from '../../../src/api/interactive/block_actions'
 import type { NormalMessageData } from '../../../src/api/types/message'
 import { App } from '../../../src/client'
-import { Message, MessageRef, type MessageInstance } from '../../../src/resources/message'
+import { MessageImpl, type Message } from '../../../src/resources/message'
 import { blockActions, BUTTON_DATA, MESSAGE_DATA, normalMessage, USER_DATA } from '../../fixtures'
+import type { AnyBlock } from '@slack/types'
+import type { AnyMessage } from '../../../dist'
 
 describe('Message', () => {
 	let app: App<'dummy'>
-	let message: MessageInstance<NormalMessageData>
+	let message: Message<NormalMessageData, AnyBlock[], true>
 
 	beforeEach(() => {
 		app = new App({ token: 'xoxb-test-token' })
-		message = new Message(
-			app,
-			'C123',
-			'123456.789',
-			MESSAGE_DATA,
-		) as MessageInstance<NormalMessageData>
+		message = MessageImpl.create(app, 'C123', '123456.789', MESSAGE_DATA)
 	})
 
 	it('provides channel property', () => {
@@ -79,7 +76,7 @@ describe('Message', () => {
 			channel: 'C123',
 			thread_ts: '123456.789',
 		})
-		expect(reply).toBeInstanceOf(Message)
+		expect(reply).toBeInstanceOf(MessageImpl)
 		expect(reply.raw).toEqual(replyData)
 		expect(reply.ts).toBe('123457.789')
 		expect(reply.text).toBe(replyData.text)
@@ -130,7 +127,7 @@ describe('Message', () => {
 		await stream.append(' bar')
 		const reply = await stream.stop()
 
-		expect(reply).toBeInstanceOf(Message)
+		expect(reply).toBeInstanceOf(MessageImpl)
 		expect(reply.ts).toEqual('123457.789')
 		expect(reply.text).toEqual(completeData.text)
 		expect(requestSpy).toBeCalledTimes(3)
@@ -209,13 +206,13 @@ describe('Message', () => {
 			has_more: false,
 		} satisfies SlackAPIResponse<'conversations.replies'>)
 
-		const messages: MessageInstance[] = []
+		const messages: Message<AnyMessage, AnyBlock[], true>[] = []
 		for await (const reply of message.replies()) {
 			messages.push(reply)
 		}
 
 		expect(messages).toHaveLength(1)
-		expect(messages[0]).toBeInstanceOf(Message)
+		expect(messages[0]).toBeInstanceOf(MessageImpl)
 		expect(messages[0]!.text).toBe(replyData.text)
 		expect(requestSpy).toBeCalledTimes(1)
 		expect(requestSpy).toBeCalledWith('conversations.replies', {
@@ -236,7 +233,7 @@ describe('Message', () => {
 
 		const newMessage = await message.edit({ text: 'edited' })
 
-		expect(newMessage).toBeInstanceOf(Message)
+		expect(newMessage).toBeInstanceOf(MessageImpl)
 		expect(newMessage.raw).toEqual(newData)
 		expect(newMessage.text).toBe(newData.text)
 		expect(requestSpy).toBeCalledTimes(1)
@@ -355,19 +352,15 @@ describe('Message', () => {
 		const author = message.author
 		expect(author.id).toBe('U123')
 	})
-
-	it('detects normal messages', () => {
-		expect(message.isNormal()).toBeTrue()
-	})
 })
 
 describe('MessageRef', () => {
 	let app: App
-	let ref: MessageRef<NormalMessageData>
+	let ref: Message<NormalMessageData>
 
 	beforeEach(() => {
 		app = new App({ token: 'xoxb-test-token' })
-		ref = new MessageRef(app, 'C123', '123456.789')
+		ref = MessageImpl.create(app, 'C123', '123456.789')
 	})
 
 	it('can fetch message details', async () => {
@@ -377,7 +370,7 @@ describe('MessageRef', () => {
 			has_more: false,
 		} satisfies SlackAPIResponse<'conversations.replies'>)
 
-		const message = await ref
+		const message = await ref.fetch()
 		expect(requestSpy).toBeCalledTimes(1)
 		expect(requestSpy).toBeCalledWith('conversations.replies', {
 			channel: 'C123',
@@ -386,7 +379,7 @@ describe('MessageRef', () => {
 			latest: '123456.789',
 			oldest: '123456.789',
 		})
-		expect(message).toBeInstanceOf(Message)
+		expect(message).toBeInstanceOf(MessageImpl)
 		expect(message.raw).toEqual(MESSAGE_DATA)
 		expect(message.text).toBe(MESSAGE_DATA.text)
 	})
