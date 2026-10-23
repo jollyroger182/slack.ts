@@ -1,0 +1,27 @@
+{
+	"name": "slack.ts",
+	"version": "0.1.0",
+	"type": "module",
+	"files": [
+		"src",
+		"dist"
+	],
+	"module": "./dist/index.js",
+	"types": "./dist/index.d.ts",
+	"exports": {
+		".": {
+			"bun": "./src/index.ts",
+			"types": "./dist/index.d.ts",
+			"default": "./dist/index.js"
+		}
+	},
+	"scripts": {
+		"format": "prettier --write .",
+		"build": "bun scripts/build.ts",
+		"prepublishOnly": "bun run build"
+	},
+	"devDependencies": {
+		"@types/bun": "1.4.4",
+		"typescript": "^7"
+	}
+}
