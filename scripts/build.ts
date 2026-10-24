@@ -2,7 +2,11 @@ import { $, build, Glob } from 'bun'
 import { rm } from 'node:fs/promises'
 
 const [entrypoints] = await Promise.all([
-	Array.fromAsync(new Glob('*.{ts,tsx}').scan('./src'), (file) => `./src/${file}`),
+	Array.fromAsync(new Glob('*.{ts,tsx}').scan('./src')).then((files) =>
+		files
+			.filter((file) => !file.includes('.test.') && !file.endsWith('.d.ts'))
+			.map((file) => `./src/${file}`),
+	),
 	rm('./dist', { recursive: true, force: true }),
 ])
 
