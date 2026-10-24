@@ -7,25 +7,21 @@ import {
 	expect,
 	it,
 	jest,
-	mock,
 	spyOn,
 	type Mock,
 } from 'bun:test'
 import { request } from './request'
-import type { delay } from './utils'
+import * as time from './time'
 
 describe('request', () => {
 	let fetchSpy: Mock<typeof fetch>
 	let randomSpy: Mock<typeof Math.random>
-	let delaySpy: Mock<typeof delay>
+	let delaySpy: Mock<typeof time.delay>
 
 	beforeAll(() => {
 		fetchSpy = spyOn(globalThis, 'fetch')
 		randomSpy = spyOn(Math, 'random')
-		delaySpy = mock()
-		mock.module('./utils', () => ({
-			delay: delaySpy,
-		}))
+		delaySpy = spyOn(time, 'delay')
 	})
 
 	afterEach(() => {

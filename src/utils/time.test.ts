@@ -9,7 +9,7 @@ import {
 	spyOn,
 	type Mock,
 } from 'bun:test'
-import { delay } from './utils'
+import { delay } from './time'
 
 describe('delay', () => {
 	let setTimeoutSpy: Mock<typeof setTimeout>

@@ -1,4 +1,4 @@
-import type { Equals } from '../utils'
+import type { Equals } from '../utils/types'
 
 export type MethodMap = {
 	'auth.test': {

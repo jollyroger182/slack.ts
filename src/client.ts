@@ -1,7 +1,10 @@
 import type { MethodMap, OptionalParamMethods } from './api/methods'
-import type { Receiver } from './receivers'
-import { request } from './request'
-import { ensureUrlEncoded } from './utils'
+import type { Receiver } from './receivers/base'
+import { request } from './utils/request'
+
+function ensureUrlEncoded(text: string) {
+	return encodeURIComponent(decodeURIComponent(text))
+}
 
 export interface ClientConfig<R extends Receiver = any> {
 	/**

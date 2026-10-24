@@ -1,4 +1,4 @@
-import { delay } from './utils'
+import { delay } from './time'
 
 export interface RequestOptions extends RequestInit {
 	/**
