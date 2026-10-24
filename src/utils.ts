@@ -11,3 +11,5 @@ export function ensureUrlEncoded(text: string) {
 export async function delay(ms: number) {
 	await new Promise((resolve) => setTimeout(resolve, ms))
 }
+
+export type Equals<A, B> = A extends B ? (B extends A ? true : false) : false

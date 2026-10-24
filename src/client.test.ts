@@ -22,7 +22,7 @@ describe('Client', () => {
 	})
 
 	afterEach(() => {
-		jest.clearAllMocks()
+		jest.resetAllMocks()
 	})
 
 	afterAll(() => {
@@ -40,7 +40,7 @@ describe('Client', () => {
 		expect(() => new Client({ token: 'xoxd-1234', cookie: 'xoxd-1234' })).toThrow()
 	})
 
-	it('can override token', async () => {
+	it('can override with string token', async () => {
 		fetchSpy.mockResolvedValueOnce(
 			new Response('{"ok":true}', {
 				headers: { 'Content-Type': 'application/json' },
@@ -56,6 +56,40 @@ describe('Client', () => {
 		expect(init!.headers).toBeDefined()
 		const headers = new Headers(init!.headers!)
 		expect(headers.get('Authorization')).toBe(`Bearer xoxb-5678`)
+	})
+
+	it('can override with object token', async () => {
+		fetchSpy.mockResolvedValueOnce(
+			new Response('{"ok":true}', {
+				headers: { 'Content-Type': 'application/json' },
+			}),
+		)
+
+		const client = new Client('xoxb-1234')
+
+		await client.request('method.name', { token: { token: 'xoxc-1234', cookie: 'xoxd-1234' } })
+
+		const [, init] = fetchSpy.mock.lastCall!
+		const headers = new Headers(init!.headers!)
+		expect(headers.get('Authorization')).toBe(`Bearer xoxc-1234`)
+		expect(headers.get('Cookie')).toBe('d=xoxd-1234')
+	})
+
+	it('rejects invalid override tokens', async () => {
+		const client = new Client('xoxb-1234')
+
+		expect(client.request('method.name', { token: 'invalid-token' })).rejects.toThrow(
+			'String tokens can only start with xoxb- or xoxp-',
+		)
+		expect(client.request('method.name', { token: 'xoxd-token' })).rejects.toThrow(
+			'String tokens can only start with xoxb- or xoxp-',
+		)
+		expect(
+			client.request('method.name', { token: { cookie: 'xoxd-token', token: 'invalid-token' } }),
+		).rejects.toThrow('Object tokens must be of the shape')
+		expect(
+			client.request('method.name', { token: { cookie: 'invalid-token', token: 'xoxc-token' } }),
+		).rejects.toThrow('Object tokens must be of the shape')
 	})
 
 	describe('using xoxb/xoxp token', () => {
@@ -87,6 +121,16 @@ describe('Client', () => {
 			}
 		})
 
+		it('makes slack requests with omitted params parameter', async () => {
+			fetchSpy.mockResolvedValueOnce(
+				new Response('{"ok":true}', { headers: { 'Content-Type': 'application/json' } }),
+			)
+
+			const resp = await client.request('method.name')
+
+			expect(resp).toEqual({ ok: true })
+		})
+
 		it('makes slack requests with string params', async () => {
 			fetchSpy.mockResolvedValueOnce(
 				new Response('{"ok":true,"channel":"C123"}', {
@@ -110,7 +154,7 @@ describe('Client', () => {
 				}),
 			)
 
-			await client.request('chat.postMessage', {
+			await client.request('method.name', {
 				channel: 'C123',
 				blocks: [{ type: 'section', text: { type: 'plain_text', text: 'Hello World' } }],
 			})
@@ -291,6 +335,32 @@ describe('Client', () => {
 			const headers = new Headers(init!.headers!)
 			expect(headers.get('cookie')).toBe('d=xoxd-1234')
 			expect(headers.get('authorization')).toBe('Bearer xoxc-1234')
+		})
+
+		it('quotes xoxd tokens', async () => {
+			fetchSpy.mockResolvedValueOnce(
+				new Response('{"ok":true}', { headers: { 'Content-Type': 'application/json' } }),
+			)
+
+			client = new Client({ cookie: 'xoxd-123=', token: 'xoxc-1234' })
+
+			await client.request('method.name', {})
+			const [, init] = fetchSpy.mock.lastCall!
+			const headers = new Headers(init!.headers!)
+			expect(headers.get('cookie')).toBe('d=xoxd-123%3D')
+		})
+
+		it('detects already quoted xoxd tokens', async () => {
+			fetchSpy.mockResolvedValueOnce(
+				new Response('{"ok":true}', { headers: { 'Content-Type': 'application/json' } }),
+			)
+
+			client = new Client({ cookie: 'xoxd-123%3D', token: 'xoxc-1234' })
+
+			await client.request('method.name', {})
+			const [, init] = fetchSpy.mock.lastCall!
+			const headers = new Headers(init!.headers!)
+			expect(headers.get('cookie')).toBe('d=xoxd-123%3D')
 		})
 	})
 })

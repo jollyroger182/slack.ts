@@ -1,4 +1,4 @@
-import type { MethodMap } from './api/methods'
+import type { MethodMap, OptionalParamMethods } from './api/methods'
 import type { Receiver } from './receivers'
 import { request } from './request'
 import { ensureUrlEncoded } from './utils'
@@ -54,20 +54,20 @@ export class Client<R extends Receiver = any> {
 		}
 	}
 
-	tokenPromise?: Promise<{ token: string; cookie?: string }>
+	#tokenPromise?: Promise<{ token: string; cookie?: string }>
 
 	get token(): Promise<{ token: string; cookie?: string }> {
-		if (this.tokenPromise) return this.tokenPromise
+		if (this.#tokenPromise) return this.#tokenPromise
 
 		if (typeof this.#token === 'object') {
-			return (this.tokenPromise = Promise.resolve({
+			return (this.#tokenPromise = Promise.resolve({
 				token: this.#token.token,
 				cookie: `d=${ensureUrlEncoded(this.#token.cookie)}`,
 			}))
 		}
 
 		if (this.#token.startsWith('xoxb-') || this.#token.startsWith('xoxp-')) {
-			return (this.tokenPromise = Promise.resolve({ token: this.#token }))
+			return (this.#tokenPromise = Promise.resolve({ token: this.#token }))
 		}
 
 		const getXoxcToken = async (xoxd: string) => {
@@ -77,13 +77,14 @@ export class Client<R extends Receiver = any> {
 				headers: { Cookie: `d=${encodedXoxd}` },
 			})
 			if (!resp.ok) {
-				this.tokenPromise = undefined
+				this.#tokenPromise = undefined
 				throw new Error(`Failed to fetch xoxc token: Slack returned status code ${resp.status}`)
 			}
 
 			const body = await resp.text()
 			const match = body.match(/sessionStorage\.incomingConfig = JSON\.stringify\((.+)\)/)
 			if (!match) {
+				this.#tokenPromise = undefined
 				throw new Error('Failed to fetch xoxc token: Slack returned unknown auth page format')
 			}
 
@@ -94,6 +95,7 @@ export class Client<R extends Receiver = any> {
 				!payload.teams ||
 				typeof payload.teams !== 'object'
 			) {
+				this.#tokenPromise = undefined
 				throw new Error('Failed to fetch xoxc token: Slack returned unknown auth payload format')
 			}
 
@@ -109,6 +111,7 @@ export class Client<R extends Receiver = any> {
 					'Failed to fetch xoxc token: The provided token is signed in to multiple Slack workspaces; the `team` option is required',
 				)
 			}
+
 			if (this.team && !teams.find(([id]) => id === this.team)) {
 				throw new Error(`Failed to fetch xoxc token: The specified team ID is not found`)
 			}
@@ -117,18 +120,24 @@ export class Client<R extends Receiver = any> {
 			return { cookie: `d=${encodedXoxd}`, token: team.token }
 		}
 
-		return (this.tokenPromise = getXoxcToken(this.#token))
+		return (this.#tokenPromise = getXoxcToken(this.#token))
 	}
+
+	async request<M extends OptionalParamMethods | (string & {})>(
+		method: M,
+		params?: (M extends keyof MethodMap ? MethodMap[M]['params'] : Record<string, unknown>) & {
+			token?: string | { token: string; cookie: string }
+		},
+	): Promise<
+		(M extends keyof MethodMap ? MethodMap[M]['response'] : Record<string, unknown>) & { ok: true }
+	>
 
 	async request<M extends keyof MethodMap>(
 		method: M,
-		params: MethodMap[M]['params'] & { token?: string | { token: string; cookie: string } },
+		params: MethodMap[M]['params'] & {
+			token?: string | { token: string; cookie: string }
+		},
 	): Promise<MethodMap[M]['response'] & { ok: true }>
-
-	async request(
-		method: string,
-		params: { token?: string | { token: string; cookie: string } } & Record<string, unknown>,
-	): Promise<Record<string, unknown> & { ok: true }>
 
 	/**
 	 * Makes a Slack Web API request.
@@ -140,20 +149,37 @@ export class Client<R extends Receiver = any> {
 	 */
 	async request(
 		method: string,
-		params: { token?: string | { token: string; cookie: string } } & Record<string, unknown>,
-	) {
-		let { token: overrideToken, ...realParams } = params
+		params: Record<string, unknown> & {
+			token?: string | { token: string; cookie: string }
+		} = {},
+	): Promise<Record<string, unknown> & { ok: true }> {
+		const { token: overrideToken, ...realParams } = params
+
+		if (typeof overrideToken === 'string' && !/^xox[bp]\-/.test(overrideToken)) {
+			throw new Error('String tokens can only start with xoxb- or xoxp-')
+		}
+
+		if (
+			typeof overrideToken === 'object' &&
+			(!overrideToken.cookie.startsWith('xoxd-') || !overrideToken.token.startsWith('xoxc-'))
+		) {
+			throw new Error(
+				"Object tokens must be of the shape { token: 'xoxc-...', cookie: 'xoxd-...' }",
+			)
+		}
 
 		const token =
 			typeof overrideToken === 'string'
 				? { token: overrideToken }
-				: (overrideToken ?? (await this.token))
-
-		delete params.token
+				: overrideToken
+					? { token: overrideToken.token, cookie: `d=${ensureUrlEncoded(overrideToken.cookie)}` }
+					: await this.token
 
 		const body = new FormData()
+		let hasBody = false
 		for (const [key, value] of Object.entries(realParams)) {
 			if (value === undefined) continue
+			hasBody = true
 			if (typeof value === 'string' || value instanceof Blob) {
 				body.set(key, value)
 			} else {
@@ -161,13 +187,16 @@ export class Client<R extends Receiver = any> {
 			}
 		}
 
+		const headers: Record<string, string> = { Authorization: `Bearer ${token.token}` }
+
+		if (token.cookie) {
+			headers['Cookie'] = token.cookie
+		}
+
 		const resp = await request(`https://slack.com/api/${method}`, {
 			method: 'POST',
-			headers: {
-				Authorization: `Bearer ${token.token}`,
-				Cookie: token.cookie,
-			} as Record<string, string>,
-			body,
+			headers,
+			body: hasBody ? body : undefined,
 		})
 
 		if (!resp.ok) {
@@ -195,7 +224,7 @@ export class Client<R extends Receiver = any> {
 			throw new APIError(`Error for ${method}: ${error}`, method, error, payload)
 		}
 
-		return payload
+		return payload as any
 	}
 }
 

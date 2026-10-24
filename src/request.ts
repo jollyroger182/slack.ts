@@ -17,11 +17,19 @@ export interface RequestOptions extends RequestInit {
 	baseDelayMs?: number
 
 	/**
-	 * Whether to use a full jitter on the backoff.
+	 * Whether to use a full jitter on the backoff, and an added jitter if the `Retry-After` header is
+	 * sent.
 	 *
 	 * @default true
 	 */
 	jitter?: boolean
+
+	/**
+	 * Maximum jitter amount to add on top of `Retry-After`.
+	 *
+	 * @default 1000
+	 */
+	maxJitterMs?: number
 }
 
 /** Like `fetch`, but handles exponential backoff. */
@@ -31,18 +39,26 @@ export async function request(url: string | URL, options?: RequestOptions) {
 
 async function _request(url: string | URL, options: RequestOptions & { retry: number }) {
 	const { retry, ...requestOptions } = options
-	const { retries = 3, baseDelayMs = 1000, jitter = true, ...init } = requestOptions
-
-	if (retry >= retries) {
-		throw new RequestError(`Failed to fetch ${url} after ${retries} tries`, requestOptions)
-	}
+	const {
+		retries = 3,
+		baseDelayMs = 1000,
+		jitter = true,
+		maxJitterMs = 1000,
+		...init
+	} = requestOptions
 
 	const response = await fetch(url, init)
 
 	if (response.status === 429) {
-		const retryAfter =
-			Number(response.headers.get('Retry-After')) ||
-			baseDelayMs * (jitter ? Math.random() : 1) * 2 ** retry
+		if (retry >= retries) {
+			throw new RequestError(`Failed to fetch ${url} after ${retries} tries`, requestOptions)
+		}
+
+		const retryAfterHeader = Number(response.headers.get('Retry-After'))
+
+		const retryAfter = retryAfterHeader
+			? retryAfterHeader * 1000 + (jitter ? Math.random() * maxJitterMs : 0)
+			: baseDelayMs * (jitter ? Math.random() : 1) * 2 ** retry
 
 		await delay(retryAfter)
 
@@ -53,7 +69,10 @@ async function _request(url: string | URL, options: RequestOptions & { retry: nu
 }
 
 export class RequestError extends Error {
-	constructor(message: string, options: RequestOptions) {
+	constructor(
+		message: string,
+		public options: RequestOptions,
+	) {
 		super(message)
 	}
 }
