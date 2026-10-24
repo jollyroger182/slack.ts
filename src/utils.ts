@@ -7,3 +7,7 @@
 export function ensureUrlEncoded(text: string) {
 	return encodeURIComponent(decodeURIComponent(text))
 }
+
+export async function delay(ms: number) {
+	await new Promise((resolve) => setTimeout(resolve, ms))
+}

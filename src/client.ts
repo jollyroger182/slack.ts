@@ -1,4 +1,6 @@
+import type { MethodMap } from './api/methods'
 import type { Receiver } from './receivers'
+import { request } from './request'
 import { ensureUrlEncoded } from './utils'
 
 export interface ClientConfig<R extends Receiver = any> {
@@ -15,9 +17,10 @@ export interface ClientConfig<R extends Receiver = any> {
 	team?: string
 }
 
-/** A client for making Slack web API requests. */
+/** A client for making Slack Web API requests. */
 export class Client<R extends Receiver = any> {
-	private _token: string | { token: string; cookie: string }
+	#token: string | { token: string; cookie: string }
+
 	private team?: string
 
 	/**
@@ -29,7 +32,20 @@ export class Client<R extends Receiver = any> {
 	 * @param config Optional configuration for the client.
 	 */
 	constructor(token: string | { token: string; cookie: string }, config?: ClientConfig<R>) {
-		this._token = token
+		if (
+			typeof token === 'object' &&
+			(!token.cookie.startsWith('xoxd-') || !token.token.startsWith('xoxc-'))
+		) {
+			throw new Error(
+				"Object tokens must be of the shape { token: 'xoxc-...', cookie: 'xoxd-...' }",
+			)
+		}
+
+		if (typeof token === 'string' && !/^xox[dpb]\-/.test(token)) {
+			throw new Error('String tokens can only start with xoxb-, xoxp- or xoxd-')
+		}
+
+		this.#token = token
 
 		this.team = config?.team
 
@@ -43,24 +59,15 @@ export class Client<R extends Receiver = any> {
 	get token(): Promise<{ token: string; cookie?: string }> {
 		if (this.tokenPromise) return this.tokenPromise
 
-		if (typeof this._token === 'object') {
-			if (!this._token.cookie.startsWith('xoxd-') || !this._token.token.startsWith('xoxc-')) {
-				throw new Error(
-					"Object tokens must be of the shape { token: 'xoxc-...', cookie: 'xoxd-...' }",
-				)
-			}
+		if (typeof this.#token === 'object') {
 			return (this.tokenPromise = Promise.resolve({
-				token: this._token.token,
-				cookie: `d=${ensureUrlEncoded(this._token.cookie)}`,
+				token: this.#token.token,
+				cookie: `d=${ensureUrlEncoded(this.#token.cookie)}`,
 			}))
 		}
 
-		if (this._token.startsWith('xoxb-') || this._token.startsWith('xoxp-')) {
-			return (this.tokenPromise = Promise.resolve({ token: this._token }))
-		}
-
-		if (!this._token.startsWith('xoxd-')) {
-			throw new Error('String tokens can only start with xoxb-, xoxp- or xoxd-')
+		if (this.#token.startsWith('xoxb-') || this.#token.startsWith('xoxp-')) {
+			return (this.tokenPromise = Promise.resolve({ token: this.#token }))
 		}
 
 		const getXoxcToken = async (xoxd: string) => {
@@ -110,6 +117,95 @@ export class Client<R extends Receiver = any> {
 			return { cookie: `d=${encodedXoxd}`, token: team.token }
 		}
 
-		return (this.tokenPromise = getXoxcToken(this._token))
+		return (this.tokenPromise = getXoxcToken(this.#token))
+	}
+
+	async request<M extends keyof MethodMap>(
+		method: M,
+		params: MethodMap[M]['params'] & { token?: string | { token: string; cookie: string } },
+	): Promise<MethodMap[M]['response'] & { ok: true }>
+
+	async request(
+		method: string,
+		params: { token?: string | { token: string; cookie: string } } & Record<string, unknown>,
+	): Promise<Record<string, unknown> & { ok: true }>
+
+	/**
+	 * Makes a Slack Web API request.
+	 *
+	 * @param method The request method name.
+	 * @param params The parameters. The `token` parameter will override the token set on the client
+	 *   object; it must be either an `xoxb-` or `xoxp-` token, or a `{ token: 'xoxc-...', cookie:
+	 *   'xoxd-...' }` object. A raw `xoxd-` token is not allowed.
+	 */
+	async request(
+		method: string,
+		params: { token?: string | { token: string; cookie: string } } & Record<string, unknown>,
+	) {
+		let { token: overrideToken, ...realParams } = params
+
+		const token =
+			typeof overrideToken === 'string'
+				? { token: overrideToken }
+				: (overrideToken ?? (await this.token))
+
+		delete params.token
+
+		const body = new FormData()
+		for (const [key, value] of Object.entries(realParams)) {
+			if (value === undefined) continue
+			if (typeof value === 'string' || value instanceof Blob) {
+				body.set(key, value)
+			} else {
+				body.set(key, JSON.stringify(value))
+			}
+		}
+
+		const resp = await request(`https://slack.com/api/${method}`, {
+			method: 'POST',
+			headers: {
+				Authorization: `Bearer ${token.token}`,
+				Cookie: token.cookie,
+			} as Record<string, string>,
+			body,
+		})
+
+		if (!resp.ok) {
+			let payload
+			let error = 'slack_ts_unknown_error'
+			try {
+				payload = (await resp.clone().json()) as any
+				if (typeof payload === 'object' && payload && payload?.error) {
+					error = payload.error
+				}
+			} catch {}
+			throw new APIError(
+				`Received ${resp.status} status code for ${method}: ${error}`,
+				method,
+				error,
+				payload,
+			)
+		}
+
+		const payload = (await resp.json()) as
+			{ ok: false; error?: string } | ({ ok: true } & Record<string, unknown>)
+
+		if (!payload.ok) {
+			const error = payload.error || 'slack_ts_unknown_error'
+			throw new APIError(`Error for ${method}: ${error}`, method, error, payload)
+		}
+
+		return payload
+	}
+}
+
+export class APIError extends Error {
+	constructor(
+		message: string,
+		public method: string,
+		public error: string,
+		public response: any,
+	) {
+		super(message)
 	}
 }
