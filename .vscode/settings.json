@@ -1,7 +1,7 @@
 {
 	"customLocalFormatters.formatters": [
 		{
-			"command": "bun fmt --stdin-filepath ${file}",
+			"command": "bun fmt --stdin-filepath \"${file}\" || cat",
 			"languages": [
 				"typescript",
 				"typescriptreact",
