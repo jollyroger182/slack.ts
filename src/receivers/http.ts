@@ -1,0 +1,117 @@
+import http from 'node:http'
+import { BaseReceiver } from './base'
+import { once } from 'node:events'
+import {} from 'node:stream/promises'
+import { parseHTTPPayload } from '../utils/http'
+
+export interface HTTPReceiverOptions {
+	/** Slack signing secret, obtained from the developer portal. */
+	signingSecret: string
+
+	/**
+	 * Port to listen on.
+	 *
+	 * @default 8000
+	 */
+	port?: number
+
+	/**
+	 * Host to listen on.
+	 *
+	 * @default 0.0.0.0
+	 */
+	host?: string
+
+	/**
+	 * Maximum size of a request to handle.
+	 *
+	 * @default 1_000_000
+	 */
+	maxRequestSize?: number
+}
+
+export class HTTPReceiver extends BaseReceiver {
+	private readonly server: http.Server
+
+	constructor(private options: HTTPReceiverOptions) {
+		super()
+
+		this.server = http.createServer(async (req, res) => {
+			try {
+				this.#handler(req, res)
+			} catch (error) {
+				console.error('Error handling HTTP request', error)
+				if (!res.headersSent) res.writeHead(500)
+				res.end()
+			}
+		})
+	}
+
+	async #handler(req: http.IncomingMessage, res: http.ServerResponse) {
+		const end = (status: number, chunk?: string) => {
+			res.writeHead(status)
+			res.end(chunk)
+		}
+
+		if (!req.headers['x-slack-request-timestamp'] || !req.headers['x-slack-signature']) {
+			return end(401)
+		}
+
+		const maxRequestSize = this.options.maxRequestSize ?? 1_000_000
+
+		let chunks: Buffer[] = []
+		let size = 0
+		for await (const chunk of req) {
+			size += chunk.length
+			if (size > maxRequestSize) {
+				return end(400)
+			}
+			chunks.push(chunk)
+		}
+
+		const body = Buffer.concat(chunks).toString('utf8')
+
+		const data = parseHTTPPayload(body, this.options.signingSecret, (name) => {
+			const header = req.headers[name.toLowerCase()]
+			return Array.isArray(header) ? header.join(', ') : header
+		})
+
+		if (!data) {
+			return end(400)
+		}
+
+		switch (data.type) {
+			case 'event_callback':
+				this.emit('event', data.payload)
+				end(200)
+				break
+
+			case 'url_verification':
+				end(200, data.payload.challenge)
+				break
+
+			default:
+				data satisfies never
+				end(400)
+		}
+	}
+
+	async start() {
+		this.server.listen(this.options.port ?? 8000, this.options.host ?? '0.0.0.0')
+		await once(this.server, 'listening')
+		// await new Promise<void>((resolve, reject) => {
+		// 	this.server.once('error', reject)
+		// 	this.server.listen(this.options.port ?? 8000, this.options.host ?? '0.0.0.0', () => {
+		// 		this.server.off('error', reject)
+		// 		resolve()
+		// 	})
+		// })
+	}
+
+	async stop() {
+		await new Promise<void>((resolve) => {
+			this.server.close(() => resolve())
+			this.server.closeIdleConnections()
+		})
+	}
+}

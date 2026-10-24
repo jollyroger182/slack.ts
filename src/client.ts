@@ -1,4 +1,4 @@
-import type { MethodMap, OptionalParamMethods } from './api/methods'
+import type { MethodMap, OptionalParamMethods } from './types/methods'
 import type { Receiver } from './receivers/base'
 import { request } from './utils/request'
 
