@@ -19,9 +19,16 @@ export interface HTTPReceiverOptions {
 	/**
 	 * Host to listen on.
 	 *
-	 * @default 0.0.0.0
+	 * @default '0.0.0.0'
 	 */
 	host?: string
+
+	/**
+	 * Path to respond on. Other paths will return 404.
+	 *
+	 * @default '/slack/events'
+	 */
+	path?: string
 
 	/**
 	 * Maximum size of a request to handle.
@@ -32,14 +39,14 @@ export interface HTTPReceiverOptions {
 }
 
 export class HTTPReceiver extends BaseReceiver {
-	private readonly server: http.Server
+	public readonly server: http.Server
 
 	constructor(private options: HTTPReceiverOptions) {
 		super()
 
 		this.server = http.createServer(async (req, res) => {
 			try {
-				this.#handler(req, res)
+				this._handleRequest(req, res)
 			} catch (error) {
 				console.error('Error handling HTTP request', error)
 				if (!res.headersSent) res.writeHead(500)
@@ -48,10 +55,16 @@ export class HTTPReceiver extends BaseReceiver {
 		})
 	}
 
-	async #handler(req: http.IncomingMessage, res: http.ServerResponse) {
+	/** @internal */
+	async _handleRequest(req: http.IncomingMessage, res: http.ServerResponse) {
 		const end = (status: number, chunk?: string) => {
 			res.writeHead(status)
 			res.end(chunk)
+		}
+
+		const url = new URL(req.url!, 'http://localhost')
+		if (url.pathname !== this.options.path) {
+			return end(404)
 		}
 
 		if (!req.headers['x-slack-request-timestamp'] || !req.headers['x-slack-signature']) {
