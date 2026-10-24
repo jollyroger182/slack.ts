@@ -1,4 +1,5 @@
 import { EventEmitter } from 'node:events'
+
 import type { EventWrapper } from '../types/events'
 
 export interface ReceiverEventMap {

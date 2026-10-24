@@ -7,9 +7,10 @@ import {
 	expect,
 	it,
 	jest,
-	spyOn,
 	type Mock,
+	spyOn,
 } from 'bun:test'
+
 import { request } from './request'
 import * as time from './time'
 

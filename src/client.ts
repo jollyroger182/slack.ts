@@ -1,5 +1,5 @@
-import type { MethodMap, OptionalParamMethods } from './types/methods'
 import type { Receiver } from './receivers/base'
+import type { MethodMap, OptionalParamMethods } from './types/methods'
 import { request } from './utils/request'
 
 function ensureUrlEncoded(text: string) {

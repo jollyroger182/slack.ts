@@ -1,5 +1,6 @@
-import { $, build, Glob } from 'bun'
 import { rm } from 'node:fs/promises'
+
+import { $, build, Glob } from 'bun'
 
 const [entrypoints, tests] = await Promise.all([
 	Array.fromAsync(new Glob('**/*.{ts,tsx}').scan('./src')).then((files) =>

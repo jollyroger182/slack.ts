@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it } from 'bun:test'
+
 import { Client } from '../../src'
 
 const { XOXB_TOKEN } = process.env

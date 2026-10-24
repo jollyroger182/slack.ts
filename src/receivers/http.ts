@@ -1,8 +1,9 @@
-import http from 'node:http'
-import { BaseReceiver } from './base'
 import { once } from 'node:events'
+import http from 'node:http'
 import {} from 'node:stream/promises'
+
 import { parseHTTPPayload } from '../utils/http'
+import { BaseReceiver } from './base'
 
 export interface HTTPReceiverOptions {
 	/** Slack signing secret, obtained from the developer portal. */

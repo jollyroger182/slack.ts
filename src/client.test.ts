@@ -7,9 +7,10 @@ import {
 	expect,
 	it,
 	jest,
-	spyOn,
 	type Mock,
+	spyOn,
 } from 'bun:test'
+
 import { Client } from './client'
 
 describe('Client', () => {

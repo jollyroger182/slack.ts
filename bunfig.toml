@@ -4,3 +4,4 @@ semi = false
 singleQuote = true
 printWidth = 100
 jsdoc = true
+sortImports = true

@@ -1,4 +1,5 @@
 import { describe, expectTypeOf, it } from 'bun:test'
+
 import type { Equals } from './types'
 
 describe('Equals', () => {

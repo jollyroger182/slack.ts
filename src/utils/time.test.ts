@@ -6,9 +6,10 @@ import {
 	expect,
 	it,
 	jest,
-	spyOn,
 	type Mock,
+	spyOn,
 } from 'bun:test'
+
 import { delay } from './time'
 
 describe('delay', () => {
