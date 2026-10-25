@@ -33,15 +33,15 @@ import type {
 
 import type { File } from '../objects/file'
 import type { RichTextBlock } from './blocks'
-import type { MrkdwnTextObject, PlainTextObject, PlainTextOptionObject } from './objects'
+import type { MrkdwnObject, PlainTextObject, PlainTextOptionObject } from './objects'
 
 /** An option in checkboxes or radio buttons. Its `text` and `description` can also be `mrkdwn`. */
 export interface CheckboxOptionObject extends Omit<
 	PlainTextOptionObject,
 	'text' | 'description' | 'url'
 > {
-	text: PlainTextObject | MrkdwnTextObject
-	description?: PlainTextObject | MrkdwnTextObject
+	text: PlainTextObject | MrkdwnObject
+	description?: PlainTextObject | MrkdwnObject
 }
 
 export interface Element<Type extends string = string> {
@@ -148,26 +148,26 @@ export interface DatepickerAction
 		Pick<DatepickerElement, 'initial_date' | 'confirm'> {}
 
 /** {@inheritDoc @slack/types#DateTimepicker} */
-export interface DateTimepickerElement extends DateTimepicker {}
+export interface DatetimepickerElement extends DateTimepicker {}
 
-export interface DateTimepickerValue extends Value<DateTimepicker['type']> {
+export interface DatetimepickerValue extends Value<DateTimepicker['type']> {
 	selected_date_time: number | null
 }
 
-export interface DateTimepickerAction
+export interface DatetimepickerAction
 	extends
 		Action<DateTimepicker['type']>,
-		DateTimepickerValue,
-		Pick<DateTimepickerElement, 'initial_date_time' | 'confirm'> {}
+		DatetimepickerValue,
+		Pick<DatetimepickerElement, 'initial_date_time' | 'confirm'> {}
 
 /** {@inheritDoc @slack/types#EmailInput} */
-export interface EmailInputElement extends EmailInput {}
+export interface EmailTextInputElement extends EmailInput {}
 
-export interface EmailInputValue extends Value<EmailInput['type']> {
+export interface EmailTextInputValue extends Value<EmailInput['type']> {
 	value?: string // may be an empty string
 }
 
-export interface EmailInputAction extends Action<EmailInput['type']>, EmailInputValue {
+export interface EmailTextInputAction extends Action<EmailInput['type']>, EmailTextInputValue {
 	value: string // may be an empty string
 }
 
@@ -372,13 +372,13 @@ export interface TimepickerAction
 		Pick<TimepickerElement, 'initial_time' | 'timezone' | 'confirm'> {}
 
 /** {@inheritDoc @slack/types#URLInput} */
-export interface URLInputElement extends URLInput {}
+export interface URLTextInputElement extends URLInput {}
 
-export interface URLInputValue extends Value<URLInput['type']> {
+export interface URLTextInputValue extends Value<URLInput['type']> {
 	value?: string // may be empty string
 }
 
-export interface URLInputAction extends Action<URLInput['type']>, URLInputValue {
+export interface URLTextInputAction extends Action<URLInput['type']>, URLTextInputValue {
 	value: string
 }
 
@@ -407,8 +407,8 @@ export type KnownElement =
 	| CheckboxesElement
 	| ConversationsSelectElement
 	| DatepickerElement
-	| DateTimepickerElement
-	| EmailInputElement
+	| DatetimepickerElement
+	| EmailTextInputElement
 	| ExternalSelectElement
 	| FeedbackButtonsElement
 	| FileInputElement
@@ -426,7 +426,7 @@ export type KnownElement =
 	| RichTextInputElement
 	| StaticSelectElement
 	| TimepickerElement
-	| URLInputElement
+	| URLTextInputElement
 	| UsersSelectElement
 	| WorkflowButtonElement
 
@@ -436,8 +436,8 @@ export type KnownAction =
 	| CheckboxesAction
 	| ConversationsSelectAction
 	| DatepickerAction
-	| DateTimepickerAction
-	| EmailInputAction
+	| DatetimepickerAction
+	| EmailTextInputAction
 	| ExternalSelectAction
 	| FeedbackButtonsAction
 	| IconButtonAction
@@ -453,7 +453,7 @@ export type KnownAction =
 	| RichTextInputAction
 	| StaticSelectAction
 	| TimepickerAction
-	| URLInputAction
+	| URLTextInputAction
 	| UsersSelectAction
 
 export type KnownValue =
@@ -461,8 +461,8 @@ export type KnownValue =
 	| CheckboxesValue
 	| ConversationsSelectValue
 	| DatepickerValue
-	| DateTimepickerValue
-	| EmailInputValue
+	| DatetimepickerValue
+	| EmailTextInputValue
 	| ExternalSelectValue
 	| FileInputValue
 	| MultiChannelsSelectValue
@@ -476,5 +476,5 @@ export type KnownValue =
 	| RichTextInputValue
 	| StaticSelectValue
 	| TimepickerValue
-	| URLInputValue
+	| URLTextInputValue
 	| UsersSelectValue
