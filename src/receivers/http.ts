@@ -2,7 +2,7 @@ import { once } from 'node:events'
 import http from 'node:http'
 import {} from 'node:stream/promises'
 
-import { parseHTTPPayload } from '../utils/http'
+import { parseHTTPPayload, type SlackHTTPPayload } from '../utils/http'
 import { BaseReceiver } from './base'
 
 export interface HTTPReceiverOptions {
@@ -46,7 +46,7 @@ export class HTTPReceiver extends BaseReceiver {
 
 		this.server = http.createServer(async (req, res) => {
 			try {
-				this._handleRequest(req, res)
+				await this._handleRequest(req, res)
 			} catch (error) {
 				console.error('Error handling HTTP request', error)
 				if (!res.headersSent) res.writeHead(500)
@@ -63,7 +63,7 @@ export class HTTPReceiver extends BaseReceiver {
 		}
 
 		const url = new URL(req.url!, 'http://localhost')
-		if (url.pathname !== this.options.path) {
+		if (url.pathname !== (this.options.path ?? '/slack/events')) {
 			return end(404)
 		}
 
@@ -106,20 +106,12 @@ export class HTTPReceiver extends BaseReceiver {
 
 			default:
 				data satisfies never
-				end(400)
 		}
 	}
 
 	async start() {
 		this.server.listen(this.options.port ?? 8000, this.options.host ?? '0.0.0.0')
 		await once(this.server, 'listening')
-		// await new Promise<void>((resolve, reject) => {
-		// 	this.server.once('error', reject)
-		// 	this.server.listen(this.options.port ?? 8000, this.options.host ?? '0.0.0.0', () => {
-		// 		this.server.off('error', reject)
-		// 		resolve()
-		// 	})
-		// })
 	}
 
 	async stop() {

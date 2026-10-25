@@ -22,6 +22,8 @@
 	},
 	"devDependencies": {
 		"@types/bun": "1.4.4",
+		"@types/express": "^5.0.6",
+		"node-mocks-http": "^1.18.1",
 		"typescript": "^7"
 	},
 	"dependencies": {

@@ -5,3 +5,6 @@ singleQuote = true
 printWidth = 100
 jsdoc = true
 sortImports = true
+
+[test]
+coverage = true

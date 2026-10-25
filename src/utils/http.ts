@@ -23,8 +23,7 @@ export function parseHTTPPayload(
 		throw new Error('Slack timestamp more than 1 minute off, possible replay attack')
 	}
 
-	const baseString = `v0:${timestamp}:${body}`
-	const expectedSignature = `v0=${createHmac('sha256', signingSecret).update(baseString).digest('hex')}`
+	const expectedSignature = calculateSignature(body, timestamp, signingSecret)
 
 	if (signature.length !== expectedSignature.length) {
 		throw new Error('Slack signature length mismatch')
@@ -56,4 +55,10 @@ export function parseHTTPPayload(
 	}
 
 	// TODO: other payload types
+}
+
+export function calculateSignature(body: string, timestamp: number, signingSecret: string) {
+	const baseString = `v0:${timestamp}:${body}`
+	const expectedSignature = `v0=${createHmac('sha256', signingSecret).update(baseString).digest('hex')}`
+	return expectedSignature
 }
