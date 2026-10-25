@@ -14,7 +14,7 @@
 		}
 	},
 	"scripts": {
-		"format": "prettier --write .",
+		"format": "bun fmt",
 		"build": "bun scripts/build.ts",
 		"prepublishOnly": "bun run build"
 	},
