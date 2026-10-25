@@ -10,7 +10,9 @@ import type {
 	DateTimepicker,
 	EmailInput,
 	ExternalSelect,
+	FeedbackButtons,
 	FileInput,
+	IconButton,
 	ImageElement as Image,
 	MultiChannelsSelect,
 	MultiConversationsSelect,
@@ -31,7 +33,16 @@ import type {
 
 import type { File } from '../objects/file'
 import type { RichTextBlock } from './blocks'
-import type { PlainTextOptionObject } from './objects'
+import type { MrkdwnTextObject, PlainTextObject, PlainTextOptionObject } from './objects'
+
+/** An option in checkboxes or radio buttons. Its `text` and `description` can also be `mrkdwn`. */
+export interface CheckboxOptionObject extends Omit<
+	PlainTextOptionObject,
+	'text' | 'description' | 'url'
+> {
+	text: PlainTextObject | MrkdwnTextObject
+	description?: PlainTextObject | MrkdwnTextObject
+}
 
 export interface Element<Type extends string = string> {
 	type: Type
@@ -86,16 +97,26 @@ export interface ChannelsSelectAction
 	extends
 		Action<ChannelsSelect['type']>,
 		ChannelsSelectValue,
-		Pick<ChannelsSelectElement, 'initial_channel'> {}
+		Pick<ChannelsSelectElement, 'initial_channel' | 'confirm'> {}
 
 /** {@inheritDoc @slack/types#Checkboxes} */
-export interface CheckboxesElement extends Checkboxes {}
+export interface CheckboxesElement extends Omit<Checkboxes, 'options' | 'initial_options'> {
+	/** {@inheritDoc @slack/types#Checkboxes.options} */
+	options: CheckboxOptionObject[]
 
-export interface CheckboxesValue extends Value<Checkboxes['type']> {
-	selected_options: PlainTextOptionObject[]
+	/** {@inheritDoc @slack/types#Checkboxes.initial_options} */
+	initial_options?: CheckboxOptionObject[]
+
+	/** User IDs that can see this checkboxes element. Defaults to all users. */
+	visible_to_user_ids?: string[]
 }
 
-export interface CheckboxesAction extends Action<Checkboxes['type']>, CheckboxesValue {}
+export interface CheckboxesValue extends Value<Checkboxes['type']> {
+	selected_options: CheckboxOptionObject[]
+}
+
+export interface CheckboxesAction
+	extends Action<Checkboxes['type']>, CheckboxesValue, Pick<CheckboxesElement, 'confirm'> {}
 
 /** {@inheritDoc @slack/types#ConversationsSelect} */
 export interface ConversationsSelectElement extends ConversationsSelect {}
@@ -108,7 +129,10 @@ export interface ConversationsSelectValue
 }
 
 export interface ConversationsSelectAction
-	extends Action<ConversationsSelect['type']>, ConversationsSelectValue {}
+	extends
+		Action<ConversationsSelect['type']>,
+		ConversationsSelectValue,
+		Pick<ConversationsSelectElement, 'initial_conversation' | 'confirm'> {}
 
 /** {@inheritDoc @slack/types#Datepicker} */
 export interface DatepickerElement extends Datepicker {}
@@ -118,7 +142,10 @@ export interface DatepickerValue extends Value<Datepicker['type']> {
 }
 
 export interface DatepickerAction
-	extends Action<Datepicker['type']>, DatepickerValue, Pick<DatepickerElement, 'initial_date'> {}
+	extends
+		Action<Datepicker['type']>,
+		DatepickerValue,
+		Pick<DatepickerElement, 'initial_date' | 'confirm'> {}
 
 /** {@inheritDoc @slack/types#DateTimepicker} */
 export interface DateTimepickerElement extends DateTimepicker {}
@@ -131,7 +158,7 @@ export interface DateTimepickerAction
 	extends
 		Action<DateTimepicker['type']>,
 		DateTimepickerValue,
-		Pick<DateTimepickerElement, 'initial_date_time'> {}
+		Pick<DateTimepickerElement, 'initial_date_time' | 'confirm'> {}
 
 /** {@inheritDoc @slack/types#EmailInput} */
 export interface EmailInputElement extends EmailInput {}
@@ -155,7 +182,18 @@ export interface ExternalSelectAction
 	extends
 		Action<ExternalSelect['type']>,
 		ExternalSelectValue,
-		Pick<ExternalSelectElement, 'initial_option' | 'placeholder'> {}
+		Pick<ExternalSelectElement, 'initial_option' | 'placeholder' | 'confirm'> {}
+
+/** {@inheritDoc @slack/types#FeedbackButtons} */
+export interface FeedbackButtonsElement extends FeedbackButtons {}
+
+export interface FeedbackButtonsAction extends Action<FeedbackButtons['type']> {
+	/** The `text` of the clicked button. */
+	text: PlainTextObject
+
+	/** The `value` of the clicked button. */
+	value: string
+}
 
 /** {@inheritDoc @slack/types#FileInput} */
 export interface FileInputElement extends FileInput {}
@@ -167,6 +205,14 @@ export interface FileInputValue extends Value<FileInput['type']> {
 // doesn't seem to exist...?
 // export interface FileInputAction
 // 	extends Action<FileInput['type']>, FileInputValue, Pick<FileInputElement, never> {}
+
+/** {@inheritDoc @slack/types#IconButton} */
+export interface IconButtonElement extends IconButton {}
+
+export interface IconButtonAction
+	extends
+		Action<IconButton['type']>,
+		Pick<IconButtonElement, 'icon' | 'text' | 'value' | 'confirm'> {}
 
 /** {@inheritDoc @slack/types#ImageElement} */
 export type ImageElement = Image & {}
@@ -182,7 +228,7 @@ export interface MultiChannelsSelectAction
 	extends
 		Action<MultiChannelsSelect['type']>,
 		MultiChannelsSelectValue,
-		Pick<MultiChannelsSelectElement, 'initial_channels'> {}
+		Pick<MultiChannelsSelectElement, 'initial_channels' | 'confirm'> {}
 
 /** {@inheritDoc @slack/types#MultiConversationsSelect} */
 export interface MultiConversationsSelectElement extends MultiConversationsSelect {}
@@ -195,7 +241,7 @@ export interface MultiConversationsSelectAction
 	extends
 		Action<MultiConversationsSelect['type']>,
 		MultiConversationsSelectValue,
-		Pick<MultiConversationsSelectElement, 'initial_conversations'> {}
+		Pick<MultiConversationsSelectElement, 'initial_conversations' | 'confirm'> {}
 
 /** {@inheritDoc @slack/types#MultiExternalSelect} */
 export interface MultiExternalSelectElement extends Omit<MultiExternalSelect, 'focus_on_load'> {}
@@ -208,7 +254,7 @@ export interface MultiExternalSelectAction
 	extends
 		Action<MultiExternalSelect['type']>,
 		MultiExternalSelectValue,
-		Pick<MultiExternalSelectElement, 'initial_options' | 'placeholder'> {}
+		Pick<MultiExternalSelectElement, 'initial_options' | 'placeholder' | 'confirm'> {}
 
 /** {@inheritDoc @slack/types#MultiStaticSelect} */
 export interface MultiStaticSelectElement extends MultiStaticSelect {}
@@ -221,7 +267,7 @@ export interface MultiStaticSelectAction
 	extends
 		Action<MultiStaticSelect['type']>,
 		MultiStaticSelectValue,
-		Pick<MultiStaticSelectElement, 'initial_options' | 'placeholder'> {}
+		Pick<MultiStaticSelectElement, 'initial_options' | 'placeholder' | 'confirm'> {}
 
 /** {@inheritDoc @slack/types#MultiUsersSelect} */
 export interface MultiUsersSelectElement extends MultiUsersSelect {}
@@ -234,16 +280,18 @@ export interface MultiUsersSelectAction
 	extends
 		Action<MultiUsersSelect['type']>,
 		MultiUsersSelectValue,
-		Pick<MultiUsersSelectElement, 'initial_users'> {}
+		Pick<MultiUsersSelectElement, 'initial_users' | 'confirm'> {}
 
 /** {@inheritDoc @slack/types#NumberInput} */
 export interface NumberInputElement extends NumberInput {}
 
 export interface NumberInputValue extends Value<NumberInput['type']> {
-	value: string | null
+	value?: string | null
 }
 
-export interface NumberInputAction extends Action<NumberInput['type']>, NumberInputValue {}
+export interface NumberInputAction extends Action<NumberInput['type']>, NumberInputValue {
+	value: string | null
+}
 
 /** {@inheritDoc @slack/types#Overflow} */
 export interface OverflowElement extends Overflow {}
@@ -266,14 +314,20 @@ export interface PlainTextInputAction
 		Pick<PlainTextInputElement, 'initial_value'> {}
 
 /** {@inheritDoc @slack/types#RadioButtons} */
-export interface RadioButtonsElement extends RadioButtons {}
+export interface RadioButtonsElement extends Omit<RadioButtons, 'options' | 'initial_option'> {
+	options: CheckboxOptionObject[]
+	initial_option?: CheckboxOptionObject
+}
 
 export interface RadioButtonsValue extends Value<RadioButtons['type']> {
-	selected_option: PlainTextOptionObject | null
+	selected_option: CheckboxOptionObject | null
 }
 
 export interface RadioButtonsAction
-	extends Action<RadioButtons['type']>, RadioButtonsValue, Pick<RadioButtonsElement, never> {}
+	extends
+		Action<RadioButtons['type']>,
+		RadioButtonsValue,
+		Pick<RadioButtonsElement, 'initial_option' | 'confirm'> {}
 
 /** {@inheritDoc @slack/types#RichTextInput} */
 export interface RichTextInputElement extends RichTextInput {}
@@ -301,7 +355,7 @@ export interface StaticSelectAction
 	extends
 		Action<StaticSelect['type']>,
 		StaticSelectValue,
-		Pick<StaticSelectElement, 'initial_option' | 'placeholder'> {}
+		Pick<StaticSelectElement, 'initial_option' | 'placeholder' | 'confirm'> {}
 
 /** {@inheritDoc @slack/types#Timepicker} */
 export interface TimepickerElement extends Timepicker {}
@@ -315,7 +369,7 @@ export interface TimepickerAction
 	extends
 		Action<Timepicker['type']>,
 		TimepickerValue,
-		Pick<TimepickerElement, 'initial_time' | 'timezone'> {}
+		Pick<TimepickerElement, 'initial_time' | 'timezone' | 'confirm'> {}
 
 /** {@inheritDoc @slack/types#URLInput} */
 export interface URLInputElement extends URLInput {}
@@ -336,7 +390,10 @@ export interface UsersSelectValue extends Value<UsersSelect['type']> {
 }
 
 export interface UsersSelectAction
-	extends Action<UsersSelect['type']>, UsersSelectValue, Pick<UsersSelectElement, 'initial_user'> {}
+	extends
+		Action<UsersSelect['type']>,
+		UsersSelectValue,
+		Pick<UsersSelectElement, 'initial_user' | 'confirm'> {}
 
 /** {@inheritDoc @slack/types#WorkflowButton} */
 export interface WorkflowButtonElement extends Omit<WorkflowButton, 'confirm'> {}
@@ -353,7 +410,9 @@ export type KnownElement =
 	| DateTimepickerElement
 	| EmailInputElement
 	| ExternalSelectElement
+	| FeedbackButtonsElement
 	| FileInputElement
+	| IconButtonElement
 	| ImageElement
 	| MultiChannelsSelectElement
 	| MultiConversationsSelectElement
@@ -380,6 +439,8 @@ export type KnownAction =
 	| DateTimepickerAction
 	| EmailInputAction
 	| ExternalSelectAction
+	| FeedbackButtonsAction
+	| IconButtonAction
 	| MultiChannelsSelectAction
 	| MultiConversationsSelectAction
 	| MultiExternalSelectAction
