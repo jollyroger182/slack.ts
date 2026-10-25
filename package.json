@@ -16,6 +16,7 @@
 	"scripts": {
 		"format": "bun fmt",
 		"build": "bun scripts/build.ts",
+		"generate-elements-test": "bun scripts/generate-elements-test.ts > tests/elements.test.ts",
 		"prepublishOnly": "bun run build"
 	},
 	"devDependencies": {
