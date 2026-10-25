@@ -12,6 +12,7 @@ export type MethodMap = {
 }
 
 export type KnownMethods = keyof MethodMap
+
 export type OptionalParamMethods = {
 	[M in KnownMethods]: Equals<Partial<MethodMap[M]['params']>, MethodMap[M]['params']> extends true
 		? M

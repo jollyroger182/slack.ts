@@ -6,8 +6,6 @@
 		"src",
 		"dist"
 	],
-	"module": "./dist/index.js",
-	"types": "./dist/index.d.ts",
 	"exports": {
 		".": {
 			"bun": "./src/index.ts",
