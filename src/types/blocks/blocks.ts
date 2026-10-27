@@ -117,6 +117,51 @@ export type DocumentedBlock =
 	| TaskCardBlock
 	| VideoBlock
 
+export type CallV1Participant =
+	| { slack_id: string; external_id?: never }
+	| { external_id: string; slack_id?: never; display_name: string; avatar_url?: string }
+
+export interface CallV1 {
+	id: string
+	app_id: string
+	app_icon_urls: {
+		[K in 32 | 36 | 48 | 64 | 72 | 96 | 128 | 192 | 512 | 1024 as `image_${K}`]: string
+	}
+	date_start: number
+	active_participants: CallV1Participant[]
+	all_participants: CallV1Participant[]
+	display_id: string
+	join_url: string
+	name: string
+	created_by: string
+	date_end: number
+	channels: string[]
+	is_dm_call: boolean
+	was_rejected: boolean
+	was_missed: boolean
+	was_accepted: boolean
+	has_ended: boolean
+}
+
+/**
+ * An external call (such as a Zoom meeting).
+ *
+ * This block is not included in the Block Kit documentation, but it is mentioned in the [Calls API
+ * documentation](https://docs.slack.dev/apis/web-api/using-the-calls-api).
+ */
+export interface CallBlock extends Block<'call'> {
+	/** ID of the call obtained from `calls.add`. */
+	call_id: string
+
+	/**
+	 * The call object. Always exists on responses from the server. Rejected with an error when sent
+	 * by the client.
+	 */
+	call?: { v1: CallV1; media_backend_type: string }
+
+	api_decoration_available?: boolean
+}
+
 /** Allowed enum in the `background_color` property of {@link CalloutBlock|callout blocks}. */
 export type CalloutColor =
 	'indigo' | 'blue' | 'jade' | 'pink' | 'gray' | 'purple' | 'orange' | 'brown' | 'green'
@@ -141,7 +186,7 @@ export interface CalloutBlock extends Block<'callout'> {
 	background_color: CalloutColor
 
 	/** Blocks to display inside the callout card. */
-	child_blocks: Block[]
+	child_blocks: CalloutChildBlock[]
 }
 
 export type CanvasTableChildBlock =
@@ -226,7 +271,7 @@ export type ConditionChildBlock =
 	| EventBlock
 	| FileBlock
 	| CallBlock
-	| MessageBlock
+// | MessageBlock
 
 export type Condition = { op: '=' | '!=' } & (
 	| { type: 'client'; value: 'desktop' | 'ios' | 'android' | (string & {}) }
@@ -357,7 +402,7 @@ export interface DataVisualizationBlock extends Block<'data_visualization'> {
  * The minimally required fields are `start` and `end`; if you don't provide both, Slack will throw
  * a schema error. However, for events to show up, you need at least the {@link organizer} and
  * {@link attendees} fields too. In addition, if the event is in the future (i.e., at least one of
- * {@link start} and {@link end} is in the future, then the user must be in the {@link attendees}
+ * {@link start} and {@link end} is in the future), then the user must be in the {@link attendees}
  * array, linked by `user_id`; otherwise, the block will show as "We can’t fully display this
  * message."
  */
@@ -414,11 +459,34 @@ export interface EventBlock extends Block<'event'> {
 	/**
 	 * The event represented by the block. If not set, the server will look up an event from
 	 * `event_id`, and if an event is not found, set {@link is_deleted} to `true` and leave this field
-	 * empty. When provided by the client, it takes precendence over the server's fetching logic, and
+	 * empty. When provided by the client, it takes precedence over the server's fetching logic, and
 	 * it is shown on desktop even when `event_id` is nonexistent (though {@link is_deleted} will
 	 * still be set).
 	 */
 	event?: CalendarEvent
+}
+
+/** Block allowed in the `fallback` property. See {@link FallbackCanaryBlock} for more info. */
+export type FallbackChildBlock =
+	| DividerBlock
+	| HeaderBlock
+	| ContextBlock
+	| ImageBlock
+	| TableBlock
+	| ContactCardBlock
+	| VideoBlock
+	| SectionBlock
+	| RichTextBlock
+
+/**
+ * Block that always fails to display and therefore always displays its `fallback` property. Used in
+ * fallback testing.
+ *
+ * This is an undocumented block.
+ */
+export interface FallbackCanaryBlock extends Block<'fallback_canary'> {
+	/** Fallback blocks to render. */
+	fallback: FallbackChildBlock[]
 }
 
 /**
@@ -449,11 +517,45 @@ export interface MessageEmbedBlock extends Block<'message_embed'> {
 	ts: string
 }
 
-// TODO: what is this??
-// export interface SharePromptBlock extends Block<'share_prompt'> {
-// 	prompt: string
-// 	label: string
-// }
+/**
+ * Shares a prompt with an AI agent (Slackbot or other agents).
+ *
+ * This is an undocumented block.
+ */
+export interface SharePromptBlock extends Block<'share_prompt'> {
+	/** The plain text prompt to share. */
+	prompt: string
+
+	/** The title of the prompt card. */
+	label: string
+
+	/** Rich text blocks that make up the prompt. If this is provided, {@link prompt} is ignored. */
+	prompt_rich_text?: RichTextBlock[]
+
+	/** App ID of agent to look up. */
+	app_id?: string
+
+	/** User ID of the agent bot to look up. If this is provided, {@link app_id} is ignored. */
+	bot_user_id?: string
+
+	/**
+	 * Whether this is a Slackbot prompt. If this is `true`, {@link app_id} and {@link bot_user_id} is
+	 * ignored. However, if Slackbot is disabled for the workspace, then this field is simply ignored,
+	 * as if it doesn't exist.
+	 */
+	is_slackbot?: boolean
+
+	/**
+	 * ID of the prompt, used to copy a link or forward the prompt. Obtain via the `share.prompts.add`
+	 * API method.
+	 */
+	prompt_id?: string
+
+	attached_skills?: { id: string; name: string }[]
+
+	/** This parameter is not sent anywhere by the Slack client, nor is it rendered. */
+	turn_number?: number
+}
 
 /**
  * Shares a card for a Slack workflow. Only a few fields are required; however, if you don't provide
@@ -488,6 +590,77 @@ export interface ShareShortcutBlock extends Block<'share_shortcut'> {
 	url?: string
 }
 
+export type TimelineIcon =
+	| 'ai-sparkle'
+	| 'agentforce--filled'
+	| 'calendar'
+	| 'book'
+	| 'mentions'
+	| 'ai-file-summary'
+	| 'user'
+	| 'search'
+	| 'search-files'
+	| 'settings'
+	| 'canvas-content'
+	| 'warning'
+	| 'clock'
+	| 'lists'
+	| 'sf-cloud'
+	| 'email'
+	| 'ai-workflow'
+
+export type TimelineSource =
+	| { type: 'message'; channel_id: string; timestamp: string }
+	| { type: 'file'; url: string }
+	| { type: 'web'; url: string; title?: string }
+
+export interface TimelineStep {
+	id: string
+	sections: { rich_text_title: RichTextBlock; sources: TimelineSource[] }[]
+}
+
+/** A task that Slackbot worked on, which may have multiple steps. */
+export interface TimelinePoint {
+	id: string
+
+	/** Status of the point. */
+	status: 'in_progress' | 'complete' | 'error' | 'canceled'
+
+	/** Title of the point. */
+	text: string
+
+	/** Rich text title of the point. When this is provided, {@link text} is ignored. */
+	rich_text_title?: RichTextBlock
+
+	/** Icon to use. */
+	icon?: TimelineIcon | (string & {})
+
+	/** Icon image URL to use. When this is provided, {@link icon} is ignored. */
+	icon_url?: string
+
+	/** An array of steps that Slackbot went through in this point. */
+	steps?: TimelineStep[]
+}
+
+/**
+ * A series of points that represents items Slackbot was working on.
+ *
+ * This is an undocumented block.
+ */
+export interface TimelineBlock extends Block<'timeline'> {
+	/** List of points that Slackbot worked on. */
+	points: TimelinePoint[]
+
+	/** Summary text to use instead of "Used N tools". */
+	summary?: RichTextBlock
+
+	/** Start time of the timeline. Not rendered. */
+	start_ts?: number
+
+	/** End time of the timeline. Not rendered. */
+	end_ts?: number
+}
+
 /**
  * All known Slack block types.
  *
@@ -496,6 +669,7 @@ export interface ShareShortcutBlock extends Block<'share_shortcut'> {
  */
 export type KnownBlock =
 	| DocumentedBlock
+	| CallBlock
 	| CalloutBlock
 	| CanvasTableBlock
 	| ChannelSectionBlock
@@ -503,6 +677,9 @@ export type KnownBlock =
 	| ContactCardBlock
 	| DataVisualizationBlock
 	| EventBlock
+	| FallbackChildBlock
 	| LoadingBlock
 	| MessageEmbedBlock
+	| SharePromptBlock
 	| ShareShortcutBlock
+	| TimelineBlock
