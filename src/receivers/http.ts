@@ -106,6 +106,8 @@ export class HTTPReceiver extends BaseReceiver {
 
 			default:
 				data satisfies never
+				end(500)
+				throw new Error('unreachable')
 		}
 	}
 
