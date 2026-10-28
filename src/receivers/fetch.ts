@@ -37,11 +37,17 @@ export class FetchReceiver extends BaseReceiver {
 
 	/** Handle a Slack request and returns a Response object. */
 	async fetch(request: Request): Promise<Response> {
-		const data = parseHTTPPayload(
-			await request.text(),
-			this.options.signingSecret,
-			(name) => request.headers.get(name) ?? undefined,
-		)
+		let data
+		try {
+			data = parseHTTPPayload(
+				await request.text(),
+				this.options.signingSecret,
+				(name) => request.headers.get(name) ?? undefined,
+			)
+		} catch (e) {
+			console.error('[fetch] Error parsing Slack request', e)
+			return new Response(null, { status: 500 })
+		}
 
 		if (!data) {
 			return new Response(null, { status: 400 })

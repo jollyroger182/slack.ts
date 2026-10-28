@@ -2,7 +2,7 @@ import { once } from 'node:events'
 import http from 'node:http'
 import {} from 'node:stream/promises'
 
-import { parseHTTPPayload, type SlackHTTPPayload } from '../utils/http'
+import { parseHTTPPayload, RequestParsingError, type SlackHTTPPayload } from '../utils/http'
 import { BaseReceiver } from './base'
 
 export interface HTTPReceiverOptions {
@@ -67,10 +67,6 @@ export class HTTPReceiver extends BaseReceiver {
 			return end(404)
 		}
 
-		if (!req.headers['x-slack-request-timestamp'] || !req.headers['x-slack-signature']) {
-			return end(401)
-		}
-
 		const maxRequestSize = this.options.maxRequestSize ?? 1_000_000
 
 		let chunks: Buffer[] = []
@@ -85,10 +81,17 @@ export class HTTPReceiver extends BaseReceiver {
 
 		const body = Buffer.concat(chunks).toString('utf8')
 
-		const data = parseHTTPPayload(body, this.options.signingSecret, (name) => {
-			const header = req.headers[name.toLowerCase()]
-			return Array.isArray(header) ? header.join(', ') : header
-		})
+		let data
+		try {
+			data = parseHTTPPayload(body, this.options.signingSecret, (name) => {
+				const header = req.headers[name.toLowerCase()]
+				return Array.isArray(header) ? header.join(', ') : header
+			})
+		} catch (e) {
+			console.error('[http] Error parsing Slack request', e)
+			if (e instanceof RequestParsingError) return end(400)
+			return end(500)
+		}
 
 		if (!data) {
 			return end(400)
