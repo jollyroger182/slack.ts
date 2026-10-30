@@ -1,6 +1,13 @@
 import { describe, expectTypeOf, it } from 'bun:test'
 
-import type { Action, ButtonAction, ButtonElement, Element } from './blocks/elements'
+import type {
+	Action,
+	ButtonAction,
+	ButtonElement,
+	Element,
+	PlainTextInputAction,
+	PlainTextInputElement,
+} from './blocks/elements'
 import type { BlockActions, DefaultAction } from './interactions'
 
 describe('BlockActions', () => {
@@ -21,10 +28,13 @@ describe('BlockActions', () => {
 	it('allows both defined elements', () => {
 		interface ElementMap extends Record<string, Element> {
 			confirm: ButtonElement
+			deny: PlainTextInputElement
 		}
 
 		expectTypeOf<BlockActions<DefaultAction<ElementMap>>>().toEqualTypeOf<
-			BlockActions<ButtonAction & { action_id: 'confirm' }>
+			BlockActions<
+				(ButtonAction & { action_id: 'confirm' }) | (PlainTextInputAction & { action_id: 'deny' })
+			>
 		>()
 	})
 })
