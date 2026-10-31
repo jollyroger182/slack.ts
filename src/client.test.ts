@@ -8,10 +8,18 @@ import {
 	it,
 	jest,
 	type Mock,
+	mock,
 	spyOn,
 } from 'bun:test'
 
 import { Client } from './client'
+import { BaseReceiver } from './receivers/base'
+import type { Event as SlackEvent, EventWrapper, KnownEvent } from './types/events'
+
+class DummyReceiver extends BaseReceiver {
+	start() {}
+	stop() {}
+}
 
 describe('Client', () => {
 	let client: Client
@@ -362,6 +370,57 @@ describe('Client', () => {
 			const [, init] = fetchSpy.mock.lastCall!
 			const headers = new Headers(init!.headers!)
 			expect(headers.get('cookie')).toBe('d=xoxd-123%3D')
+		})
+	})
+
+	describe('with a receiver', () => {
+		let receiver: DummyReceiver
+
+		beforeEach(() => {
+			receiver = new DummyReceiver()
+			client = new Client('xoxb-1234', { receiver })
+		})
+
+		it('calls start and stop on the receiver', async () => {
+			const startSpy = spyOn(receiver, 'start')
+			const stopSpy = spyOn(receiver, 'stop')
+
+			await client.start()
+
+			expect(startSpy).toBeCalledTimes(1)
+			expect(startSpy).toBeCalledWith(client)
+
+			await client.stop()
+
+			expect(stopSpy).toBeCalledTimes(1)
+		})
+
+		it('receives event_callback events', async () => {
+			const event = { type: 'test_event', key: 'value' }
+			const wrapper: EventWrapper<SlackEvent> = {
+				type: 'event_callback',
+				token: '',
+				team_id: '',
+				api_app_id: '',
+				authorizations: [],
+				event,
+				event_id: '',
+				event_context: '',
+				event_time: Date.now() / 1000,
+			}
+
+			const rawListener = mock()
+			const eventListener = mock()
+
+			client.on('event', rawListener)
+			client.on('event:test_event' as `event:${KnownEvent['type']}`, eventListener)
+
+			await receiver.emit('event', wrapper)
+
+			expect(rawListener).toBeCalledTimes(1)
+			expect(rawListener).toBeCalledWith(event, wrapper)
+			expect(eventListener).toBeCalledTimes(1)
+			expect(eventListener).toBeCalledWith(event, wrapper)
 		})
 	})
 })

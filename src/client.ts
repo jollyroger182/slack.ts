@@ -1,5 +1,7 @@
 import type { Receiver } from './receivers/base'
+import type { Event as SlackEvent, EventWrapper, KnownEvent } from './types/events'
 import type { MethodMap, OptionalParamMethods } from './types/methods'
+import { AsyncEventEmitter } from './utils/events'
 import { request } from './utils/request'
 
 function ensureUrlEncoded(text: string) {
@@ -21,10 +23,12 @@ export interface ClientConfig<R extends Receiver = any> {
 }
 
 /** A client for making Slack Web API requests. */
-export class Client<R extends Receiver = any> {
+export class Client<R extends Receiver = any> extends AsyncEventEmitter<ClientEventMap> {
 	#token: string | { token: string; cookie: string }
 
 	private team?: string
+
+	receiver?: R
 
 	/**
 	 * Creates a new Slack client.
@@ -35,6 +39,8 @@ export class Client<R extends Receiver = any> {
 	 * @param config Optional configuration for the client.
 	 */
 	constructor(token: string | { token: string; cookie: string }, config?: ClientConfig<R>) {
+		super()
+
 		if (
 			typeof token === 'object' &&
 			(!token.cookie.startsWith('xoxd-') || !token.token.startsWith('xoxc-'))
@@ -53,8 +59,25 @@ export class Client<R extends Receiver = any> {
 		this.team = config?.team
 
 		if (config?.receiver) {
-			// config.receiver.on(...)
+			this.receiver = config.receiver
+			config.receiver.on('event', this.#onEvent.bind(this))
 		}
+	}
+
+	start() {
+		return this.receiver?.start(this)
+	}
+
+	stop() {
+		return this.receiver?.stop()
+	}
+
+	async #onEvent(wrapper: EventWrapper<SlackEvent>) {
+		const event = wrapper.event as KnownEvent
+		await Promise.all([
+			this.emit('event', event, wrapper as EventWrapper<KnownEvent>),
+			this.emit(`event:${event.type}`, event as never, wrapper as never),
+		])
 	}
 
 	#tokenPromise?: Promise<{ token: string; cookie?: string }>
@@ -229,6 +252,14 @@ export class Client<R extends Receiver = any> {
 
 		return payload as any
 	}
+}
+
+type EventArgs<E extends SlackEvent> = [event: E, wrapper: EventWrapper<E>]
+
+export type ClientEventMap = {
+	event: EventArgs<KnownEvent>
+} & {
+	[K in KnownEvent['type'] as `event:${K}`]: EventArgs<Extract<KnownEvent, { type: K }>>
 }
 
 export class APIError extends Error {

@@ -1,9 +1,9 @@
 import type { Client } from '../client'
-import type { EventWrapper } from '../types/events'
+import type { Event, EventWrapper } from '../types/events'
 import { AsyncEventEmitter, type EventMap } from '../utils/events'
 
 export interface ReceiverEventMap {
-	event: [event: EventWrapper]
+	event: [event: EventWrapper<Event>]
 }
 
 /** A connector responsible for receiving events from Slack. */
