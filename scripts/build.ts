@@ -3,10 +3,9 @@ import { rm } from 'node:fs/promises'
 import { $, build, Glob } from 'bun'
 
 const [entrypoints, tests] = await Promise.all([
-	Array.fromAsync(new Glob('**/*.{ts,tsx}').scan('./src')).then((files) =>
-		files
-			.filter((file) => !file.includes('.test.') && !file.endsWith('.d.ts'))
-			.map((file) => `./src/${file}`),
+	Array.fromAsync(new Glob('**/*.{ts,tsx}').scan('./src')).then(
+		(files) => files.filter((file) => !file.includes('.test.') && !file.endsWith('.d.ts')),
+		// .map((file) => `./src/${file}`),
 	),
 	Array.fromAsync(new Glob('**/*.test.{ts,tsx}').scan('./src')).then((files) =>
 		files.map((file) => `./src/${file}`),
@@ -23,9 +22,11 @@ await build({
 	packages: 'external',
 })
 
+process.chdir('src')
+
 await build({
 	entrypoints,
-	outdir: './dist',
+	outdir: '../dist',
 	check: true,
 
 	target: 'node',
@@ -33,6 +34,10 @@ await build({
 	packages: 'external',
 	splitting: true,
 	sourcemap: 'linked',
+
+	tsconfig: '../tsconfig.build.json',
 })
+
+process.chdir('..')
 
 await $`tsc -p tsconfig.build.json`

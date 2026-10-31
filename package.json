@@ -4,7 +4,9 @@
 	"type": "module",
 	"files": [
 		"src",
-		"dist"
+		"dist",
+		"!src/**/*.test.ts",
+		"!src/**/*.test.tsx"
 	],
 	"exports": {
 		".": {
