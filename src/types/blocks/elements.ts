@@ -33,16 +33,7 @@ import type {
 
 import type { File } from '../objects/file'
 import type { RichTextBlock } from './blocks'
-import type { MrkdwnObject, PlainTextObject, PlainTextOptionObject } from './objects'
-
-/** An option in checkboxes or radio buttons. Its `text` and `description` can also be `mrkdwn`. */
-export interface CheckboxOptionObject extends Omit<
-	PlainTextOptionObject,
-	'text' | 'description' | 'url'
-> {
-	text: PlainTextObject | MrkdwnObject
-	description?: PlainTextObject | MrkdwnObject
-}
+import type { CheckboxOptionObject, PlainTextObject, PlainTextOptionObject } from './objects'
 
 export interface Element<Type extends string = string> {
 	type: Type

@@ -20,3 +20,9 @@ export type KnownKeys<T> = keyof {
 export type WithIds<M, IDKey extends string> = {
 	[K in KnownKeys<M>]: M[K] & { [Key in IDKey]: K }
 }
+
+export type StrictOmit<T, K extends keyof T> = Omit<T, K>
+
+export type Simplify<T> = { [K in keyof T]: T[K] } & {}
+
+export type DistributiveMerge<Union, Type> = Union extends unknown ? Simplify<Union & Type> : never

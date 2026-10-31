@@ -12,6 +12,15 @@ export interface MrkdwnObject extends MrkdwnElement {}
 /** {@inheritDoc @slack/types#PlainTextElement} */
 export interface PlainTextObject extends PlainTextElement {}
 
+/** An option in checkboxes or radio buttons. Its `text` and `description` can also be `mrkdwn`. */
+export interface CheckboxOptionObject extends Omit<
+	PlainTextOptionObject,
+	'text' | 'description' | 'url'
+> {
+	text: PlainTextObject | MrkdwnObject
+	description?: PlainTextObject | MrkdwnObject
+}
+
 /** {@inheritDoc @slack/types#MrkdwnOption} */
 export interface MrkdwnOptionObject extends MrkdwnOption {}
 

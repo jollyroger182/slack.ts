@@ -5,7 +5,7 @@ export * from './receivers/http'
 export * from './types/blocks/objects'
 export * from './types/interactions'
 export * from './types/methods'
+export * from './types/objects'
 export * from './types/views'
 
 export { RequestError } from './utils/request'
-export { TimeoutError } from './utils/time'
