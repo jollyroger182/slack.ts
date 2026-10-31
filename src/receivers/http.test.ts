@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, spyOn } from 'bun:test'
+import { afterEach, beforeEach, describe, expect, it, mock, spyOn } from 'bun:test'
 import type { IncomingMessage, ServerResponse } from 'node:http'
 
 import { createMocks, type MockRequest, type MockResponse } from 'node-mocks-http'
@@ -51,6 +51,18 @@ describe('HTTPReceiver', () => {
 		await handleRequest(JSON.stringify({ type: 'event_callback', key: 'value' }), 'json')
 
 		expect(event).toEqual({ type: 'event_callback', key: 'value' })
+	})
+
+	it('handles events', async () => {
+		let handler = mock()
+		receiver.once('actions', handler)
+
+		const payload = { type: 'block_actions', key: 'value' }
+
+		await handleRequest(`payload=${encodeURIComponent(JSON.stringify(payload))}`, 'form')
+
+		expect(handler).toBeCalledTimes(1)
+		expect(handler).toBeCalledWith(payload)
 	})
 
 	it('returns 404 on other paths', async () => {

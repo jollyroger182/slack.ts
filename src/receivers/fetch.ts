@@ -1,5 +1,5 @@
 import { parseHTTPPayload } from '../utils/http'
-import { BaseReceiver } from './base'
+import { BaseReceiver, type ReceiverEventMap } from './base'
 
 export interface FetchReceiverOptions {
 	/** Slack signing secret, obtained from the developer portal. */
@@ -63,6 +63,10 @@ export class FetchReceiver extends BaseReceiver {
 
 			case 'url_verification':
 				return new Response(String(data.payload.challenge))
+
+			case 'block_actions':
+				this.#waitUntil(this.emit('actions', data.payload))
+				return new Response()
 
 			default:
 				data satisfies never

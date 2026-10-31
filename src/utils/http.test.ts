@@ -35,12 +35,12 @@ describe('parseHTTPPayload', () => {
 		})
 	})
 
-	// it('parses form payloads', () => {
-	// 	const payload = { type: 'block_actions', key: 'value' }
-	// 	const data = parsePayload(`payload=${encodeURIComponent(JSON.stringify(payload))}`, 'form')
+	it('parses form payloads', () => {
+		const payload = { type: 'block_actions', key: 'value' }
+		const data = parsePayload(`payload=${encodeURIComponent(JSON.stringify(payload))}`, 'form')
 
-	// 	expect(data).toEqual({ type: 'block_actions', payload })
-	// })
+		expect(data).toEqual({ type: 'block_actions', payload } as any)
+	})
 
 	it('rejects missing content-type', () => {
 		expect(() => parsePayload('{}', '' as any, { 'content-type': undefined as any })).toThrow(
@@ -79,15 +79,31 @@ describe('parseHTTPPayload', () => {
 		)
 	})
 
-	it('rejects incomplete bodies', () => {
+	it('rejects incomplete bodies (json)', () => {
 		expect(() => parsePayload('{', 'json')).toThrow('Invalid JSON data')
 	})
 
-	it('rejects invalid bodies', () => {
+	it('rejects invalid bodies (json)', () => {
 		expect(() => parsePayload('{}', 'json')).toThrow('Invalid Slack JSON request body')
 	})
 
 	it('does not return invalid payloads (json)', () => {
 		expect(parsePayload('{"type":"invalid_type"}', 'json')).toBeUndefined()
+	})
+
+	it('rejects invalid bodies (form)', () => {
+		expect(() => parsePayload(`unknown=1234`, 'form')).toThrow('Invalid form body')
+	})
+
+	it('rejects invalid payload bodies (form)', () => {
+		expect(() => parsePayload(`payload=${JSON.stringify({ unknown: 1234 })}`, 'form')).toThrow(
+			'Invalid JSON content in form body',
+		)
+	})
+
+	it('rejects incomplete bodies (form)', () => {
+		expect(() => parsePayload(`payload=${encodeURIComponent('{"')}`, 'form')).toThrow(
+			'Invalid JSON data in form body',
+		)
 	})
 })

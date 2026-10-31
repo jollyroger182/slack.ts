@@ -1,6 +1,8 @@
 import { createHmac, timingSafeEqual } from 'node:crypto'
 
+import type { Action } from '../types/blocks/elements'
 import type { EventWrapper } from '../types/events'
+import type { BlockActions } from '../types/interactions'
 
 export type SlackHTTPPayload =
 	| { type: 'event_callback'; payload: EventWrapper }
@@ -8,6 +10,7 @@ export type SlackHTTPPayload =
 			type: 'url_verification'
 			payload: { type: 'url_verification'; token: string; challenge: string }
 	  }
+	| { type: 'block_actions'; payload: BlockActions<Action> }
 
 export function parseHTTPPayload(
 	body: string,
@@ -57,6 +60,29 @@ export function parseHTTPPayload(
 		}
 
 		if (!['event_callback', 'url_verification'].includes(payload.type)) return
+
+		return { type: payload.type, payload }
+	}
+
+	if (contentType.includes('form-urlencoded')) {
+		const data = new URLSearchParams(body)
+
+		if (!data.has('payload')) {
+			throw new RequestParsingError('Invalid form body')
+		}
+
+		let payload
+		try {
+			payload = JSON.parse(data.get('payload')!)
+		} catch {
+			throw new RequestParsingError('Invalid JSON data in form body')
+		}
+
+		if (!payload || typeof payload !== 'object' || typeof payload.type !== 'string') {
+			throw new RequestParsingError('Invalid JSON content in form body')
+		}
+
+		if (!['block_actions'].includes(payload.type)) return
 
 		return { type: payload.type, payload }
 	}

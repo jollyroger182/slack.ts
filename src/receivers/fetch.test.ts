@@ -85,6 +85,21 @@ describe('FetchReceiver', () => {
 		expect(listener).toHaveBeenCalledWith({ type: 'event_callback', key: 'value' })
 	})
 
+	it('handles block_actions requests', async () => {
+		let listener = mock()
+		receiver.once('actions', listener)
+
+		const payload = { type: 'block_actions', key: 'value' }
+
+		const request = createRequest(`payload=${encodeURIComponent(JSON.stringify(payload))}`, 'form')
+
+		const response = await receiver.fetch(request)
+
+		expect(response.status).toBe(200)
+		expect(listener).toBeCalledTimes(1)
+		expect(listener).toHaveBeenCalledWith(payload)
+	})
+
 	it('handles unknown payloads', async () => {
 		const request = createRequest(JSON.stringify({ type: 'unknown_thing', key: 'value' }), 'json')
 

@@ -106,6 +106,11 @@ export class HTTPReceiver extends BaseReceiver {
 				end(200, data.payload.challenge)
 				break
 
+			case 'block_actions':
+				this.emit('actions', data.payload)
+				end(200)
+				break
+
 			default:
 				data satisfies never
 				end(500)
