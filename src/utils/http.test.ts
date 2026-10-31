@@ -79,6 +79,15 @@ describe('parseHTTPPayload', () => {
 		)
 	})
 
+	it('rejects unicode characters in signature', () => {
+		const timestamp = Math.floor(Date.now() / 1000)
+		const signature = calculateSignature('{}', timestamp, SIGNING_SECRET)
+
+		expect(() =>
+			parsePayload('{}', 'json', { 'x-slack-signature': '\xE9' + signature.substring(1) }),
+		).toThrow('signature length mismatch')
+	})
+
 	it('rejects incomplete bodies (json)', () => {
 		expect(() => parsePayload('{', 'json')).toThrow('Invalid JSON data')
 	})

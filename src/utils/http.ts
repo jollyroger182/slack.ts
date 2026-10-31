@@ -28,15 +28,13 @@ export function parseHTTPPayload(
 
 	const expectedSignature = calculateSignature(body, timestamp, signingSecret)
 
-	if (signature.length !== expectedSignature.length) {
+	const encodedSignature = new TextEncoder().encode(signature)
+	const encodedExpectedSignature = new TextEncoder().encode(expectedSignature)
+
+	if (encodedSignature.byteLength !== encodedExpectedSignature.byteLength) {
 		throw new RequestParsingError('Slack signature length mismatch')
 	}
-	if (
-		!timingSafeEqual(
-			new TextEncoder().encode(signature),
-			new TextEncoder().encode(expectedSignature),
-		)
-	) {
+	if (!timingSafeEqual(encodedSignature, encodedExpectedSignature)) {
 		throw new RequestParsingError('Slack signature mismatch')
 	}
 
