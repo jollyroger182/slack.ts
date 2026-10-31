@@ -46,7 +46,7 @@ export class AsyncEventEmitter<T extends EventMap<T> = {}> {
 export function once<T extends EventMap<T>, N extends keyof T>(
 	eventEmitter: AsyncEventEmitter<T>,
 	eventName: N,
-) {
+): Promise<T[N]> {
 	return new Promise((resolve) => {
 		const handler = (...args: T[N]) => resolve(args)
 		eventEmitter.once(eventName, handler)
