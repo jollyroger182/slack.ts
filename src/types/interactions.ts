@@ -1,6 +1,6 @@
-import type { KnownKeys, WithIds } from '../utils/types'
-import type { Action, Element, KnownAction } from './blocks/elements'
-import type { View, ViewStateValue } from './views'
+import type { KnownKeys } from '../utils/types'
+import type { Action, Element, KnownAction, ValueOf } from './blocks/elements'
+import type { View } from './views'
 
 /**
  * Augment this interface to define your interactive elements. Each entry is a mapping from an
@@ -73,7 +73,7 @@ export type BlockActions<A extends Action = DefaultAction> = {
 	state?: {
 		values: {
 			[blockId: string]: {
-				[ID in A['action_id']]?: ViewStateValue<Extract<A, { action_id: ID }>>
+				[ID in A['action_id']]?: ValueOf<Extract<A, { action_id: ID }>>
 			}
 		}
 	}

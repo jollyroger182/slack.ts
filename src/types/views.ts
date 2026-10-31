@@ -1,6 +1,6 @@
-import type { Action, KnownValue, Value } from './blocks/elements'
+import type { HomeView as SlackHomeView, ModalView as SlackModalView } from '@slack/types'
 
-export type { View, ModalView as Modal } from '@slack/types'
+import type { Action, KnownValue, Value } from './blocks/elements'
 
 export type ViewStateValue<A extends Action = Action> = [
 	Extract<KnownValue, { type: A['type'] }>,
@@ -8,10 +8,8 @@ export type ViewStateValue<A extends Action = Action> = [
 	? Value<A['type']>
 	: Extract<KnownValue, { type: A['type'] }>
 
-// export interface Modal {
-// 	type: 'modal'
-// 	callback_id: string
-// 	// TODO: fields
-// }
+export interface ModalView extends SlackModalView {}
 
-// export type View = Modal
+export interface HomeView extends SlackHomeView {}
+
+export type View = ModalView | HomeView

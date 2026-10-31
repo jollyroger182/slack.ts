@@ -469,3 +469,15 @@ export type KnownValue =
 	| TimepickerValue
 	| URLTextInputValue
 	| UsersSelectValue
+
+export type ActionOf<T extends { type: string }, Default extends Action = never> = [
+	Extract<KnownAction, { type: T['type'] }>,
+] extends [never]
+	? Default
+	: Extract<KnownAction, { type: T['type'] }>
+
+export type ValueOf<T extends { type: string }, Default extends Value = never> = [
+	Extract<KnownValue, { type: T['type'] }>,
+] extends [never]
+	? Default
+	: Extract<KnownValue, { type: T['type'] }>
