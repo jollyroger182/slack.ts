@@ -4,7 +4,7 @@ export async function delay(ms: number) {
 
 export function timeoutError(ms: number, signal?: AbortSignal) {
 	return new Promise<void>((resolve, reject) => {
-		const timeout = setTimeout(reject, ms)
+		const timeout = setTimeout(() => reject(), ms)
 		signal?.addEventListener('abort', () => {
 			clearTimeout(timeout)
 			resolve()
