@@ -1,12 +1,12 @@
-import { once } from 'node:events'
-
 import type { Client } from '../client'
 import type { RTMEvent } from '../types/events'
-import { timeoutError } from '../utils/time'
+import { once } from '../utils/events'
+import { delay, timeoutError } from '../utils/time'
 import { BaseReceiver, type ReceiverEventMap } from './base'
 
 export interface RTMReceiverOptions {
 	reconnectDelayMs?: number
+	pingDelayMs?: number
 	pingTimeoutMs?: number
 }
 
@@ -74,9 +74,11 @@ export class RTMReceiver extends BaseReceiver<RTMReceiverEventMap> {
 		this.socket.addEventListener('message', this.#onMessage.bind(this))
 	}
 
-	#onOpen() {
+	#onOpen(event: Event) {
+		if (event.target !== this.socket) return
 		this.#resolveOpen?.()
 		this.#resolveOpen = undefined
+		this.#ping(this.socket)
 	}
 
 	async #onClose(event: CloseEvent) {
@@ -112,26 +114,51 @@ export class RTMReceiver extends BaseReceiver<RTMReceiverEventMap> {
 			return
 		}
 
-		// TODO: parse payload
+		if (payload.type === 'pong') {
+			await this.emit(`pong.${payload.reply_to}`)
+		} else if (payload.type === 'error') {
+			console.error('[rtm] received error on websocket', JSON.stringify(payload))
+		} else {
+			await this.emit('event', {
+				type: 'event_callback',
+				token: '',
+				team_id: '',
+				api_app_id: '',
+				authorizations: [],
+				event: payload,
+				event_id: '',
+				event_context: '',
+				event_time: Date.now() / 1000,
+			})
+		}
 	}
 
 	async #ping(socket: WebSocket): Promise<void> {
-		const id = this.#id++
 		const pingTimeoutMs = this.options?.pingTimeoutMs ?? 60_000
-		const promise = once(this, `replied:${id}`)
-		socket.send(JSON.stringify({ type: 'ping', id }))
-		try {
-			await Promise.race([promise, timeoutError(pingTimeoutMs)])
-		} catch {
-			console.error(`[rtm] ping timed out after ${pingTimeoutMs}ms`)
-			socket.close()
+		const pingDelayMs = this.options?.pingDelayMs ?? 45_000
+
+		while (true) {
+			if (socket !== this.socket) return
+			const id = this.#id++
+			const promise = once(this, `pong.${id}`)
+			socket.send(JSON.stringify({ type: 'ping', id }))
+			try {
+				await Promise.race([promise, timeoutError(pingTimeoutMs)])
+			} catch {
+				if (socket !== this.socket) return
+				console.error(`[rtm] ping timed out after ${pingTimeoutMs}ms`)
+				this.socket = undefined
+				socket.close()
+				this.#reconnect()
+				return
+			}
+			await delay(pingDelayMs)
 		}
-		return this.#ping(socket)
 	}
 }
 
 export type RTMReceiverEventMap = ReceiverEventMap & {
-	[K in `replied.${number}`]: []
+	[K in `pong.${number}`]: []
 }
 
 interface PongPayload {

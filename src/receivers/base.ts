@@ -1,16 +1,15 @@
-import { EventEmitter } from 'node:events'
-
 import type { Client } from '../client'
 import type { EventWrapper } from '../types/events'
+import { AsyncEventEmitter, type EventMap } from '../utils/events'
 
-export interface ReceiverEventMap extends Record<string, unknown[]> {
+export interface ReceiverEventMap {
 	event: [event: EventWrapper]
 }
 
 /** A connector responsible for receiving events from Slack. */
 export interface Receiver<
-	Map extends ReceiverEventMap = ReceiverEventMap,
-> extends EventEmitter<Map> {
+	Map extends ReceiverEventMap & EventMap<Map> = ReceiverEventMap,
+> extends AsyncEventEmitter<Map> {
 	/**
 	 * Starts the connector.
 	 *
@@ -22,9 +21,9 @@ export interface Receiver<
 	stop(): void | Promise<void>
 }
 
-export abstract class BaseReceiver<Map extends ReceiverEventMap = ReceiverEventMap>
-	extends EventEmitter<Map>
-	implements Receiver
+export abstract class BaseReceiver<Map extends ReceiverEventMap & EventMap<Map> = ReceiverEventMap>
+	extends AsyncEventEmitter<Map>
+	implements Receiver<Map>
 {
 	abstract start(client?: Client): void | Promise<void>
 	abstract stop(): void | Promise<void>

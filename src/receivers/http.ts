@@ -1,8 +1,7 @@
 import { once } from 'node:events'
 import http from 'node:http'
-import {} from 'node:stream/promises'
 
-import { parseHTTPPayload, RequestParsingError, type SlackHTTPPayload } from '../utils/http'
+import { parseHTTPPayload, RequestParsingError } from '../utils/http'
 import { BaseReceiver } from './base'
 
 export interface HTTPReceiverOptions {

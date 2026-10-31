@@ -1,4 +1,3 @@
-import type { Client } from '../client'
 import { parseHTTPPayload } from '../utils/http'
 import { BaseReceiver } from './base'
 
@@ -35,6 +34,10 @@ export class FetchReceiver extends BaseReceiver {
 
 	stop() {}
 
+	#waitUntil(promise: Promise<unknown>) {
+		this.options.waitUntil?.(promise)
+	}
+
 	/** Handle a Slack request and returns a Response object. */
 	async fetch(request: Request): Promise<Response> {
 		let data
@@ -55,7 +58,7 @@ export class FetchReceiver extends BaseReceiver {
 
 		switch (data.type) {
 			case 'event_callback':
-				this.emit('event', data.payload)
+				this.#waitUntil(this.emit('event', data.payload))
 				return new Response()
 
 			case 'url_verification':

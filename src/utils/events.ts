@@ -1,8 +1,11 @@
-type EventHandler<A extends unknown[] = unknown[]> = (...args: A) => void | Promise<void>
+export type EventMap<T> = Record<keyof T, unknown[]>
+
+type EventHandler<A extends unknown[] = unknown[]> = (...args: A) => unknown
 
 type Listener = { handler: EventHandler; once: boolean }
 
-export class AsyncEventEmitter<T extends Record<keyof T, unknown[]> = {}> {
+export class AsyncEventEmitter<T extends EventMap<T> = {}> {
+	#events?: T
 	#listeners: Map<keyof T, Listener[]> = new Map()
 
 	on<N extends keyof T>(eventName: N, handler: EventHandler<T[N]>) {
@@ -30,11 +33,22 @@ export class AsyncEventEmitter<T extends Record<keyof T, unknown[]> = {}> {
 	async emit<N extends keyof T>(eventName: N, ...args: T[N]) {
 		const listeners = this.#listeners.get(eventName)
 		if (!listeners) return
-		this.#listeners.set(
-			eventName,
-			listeners.filter((h) => !h.once),
-		)
+
+		const remaining = listeners.filter((h) => !h.once)
+		if (remaining.length) this.#listeners.set(eventName, remaining)
+		else this.#listeners.delete(eventName)
+
 		const promises = listeners.map(async (f) => f.handler(...args))
 		await Promise.all(promises)
 	}
+}
+
+export function once<T extends EventMap<T>, N extends keyof T>(
+	eventEmitter: AsyncEventEmitter<T>,
+	eventName: N,
+) {
+	return new Promise((resolve) => {
+		const handler = (...args: T[N]) => resolve(args)
+		eventEmitter.once(eventName, handler)
+	})
 }
