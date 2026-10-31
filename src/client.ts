@@ -1,8 +1,11 @@
 import type { Receiver } from './receivers/base'
+import type { Action, ActionOf, KnownAction } from './types/blocks/elements'
 import type { Event as SlackEvent, EventWrapper, KnownEvent } from './types/events'
+import type { BlockActions, ElementMap } from './types/interactions'
 import type { MethodMap, OptionalParamMethods } from './types/methods'
 import { AsyncEventEmitter } from './utils/events'
 import { request } from './utils/request'
+import type { KnownKeys } from './utils/types'
 
 function ensureUrlEncoded(text: string) {
 	return encodeURIComponent(decodeURIComponent(text))
@@ -61,6 +64,9 @@ export class Client<R extends Receiver = any> extends AsyncEventEmitter<ClientEv
 		if (config?.receiver) {
 			this.receiver = config.receiver
 			config.receiver.on('event', this.#onEvent.bind(this))
+			config.receiver.on('actions', (actions) =>
+				this.#onActions(actions as BlockActions<KnownAction>),
+			)
 		}
 	}
 
@@ -78,6 +84,16 @@ export class Client<R extends Receiver = any> extends AsyncEventEmitter<ClientEv
 			this.emit('event', event, wrapper as EventWrapper<KnownEvent>),
 			this.emit(`event:${event.type}`, event as never, wrapper as never),
 		])
+	}
+
+	async #onActions(actions: BlockActions<KnownAction>) {
+		await Promise.all(
+			actions.actions.flatMap((a) => [
+				this.emit('action', a, actions),
+				this.emit(`action:${a.type}`, a as never, actions),
+				this.emit(`action.${a.action_id}`, a as never, actions),
+			]),
+		)
 	}
 
 	#tokenPromise?: Promise<{ token: string; cookie?: string }>
@@ -255,11 +271,21 @@ export class Client<R extends Receiver = any> extends AsyncEventEmitter<ClientEv
 }
 
 type EventArgs<E extends SlackEvent> = [event: E, wrapper: EventWrapper<E>]
+type ActionArgs<A extends Action> = [action: A, wrapper: BlockActions<KnownAction>]
+
+type KnownActionID = [KnownKeys<ElementMap>] extends [never] ? string : KnownKeys<ElementMap>
 
 export type ClientEventMap = {
 	event: EventArgs<KnownEvent>
+	action: ActionArgs<KnownAction>
 } & {
 	[K in KnownEvent['type'] as `event:${K}`]: EventArgs<Extract<KnownEvent, { type: K }>>
+} & {
+	[K in KnownAction['type'] as `action:${K}`]: ActionArgs<Extract<KnownAction, { type: K }>>
+} & {
+	[K in KnownActionID as `action.${K}`]: ActionArgs<
+		[KnownKeys<ElementMap>] extends [never] ? KnownAction : ActionOf<ElementMap[K]>
+	>
 }
 
 export class APIError extends Error {

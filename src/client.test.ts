@@ -14,7 +14,9 @@ import {
 
 import { Client } from './client'
 import { BaseReceiver } from './receivers/base'
+import type { Action } from './types/blocks/elements'
 import type { Event as SlackEvent, EventWrapper, KnownEvent } from './types/events'
+import type { BlockActions } from './types/interactions'
 
 class DummyReceiver extends BaseReceiver {
 	start() {}
@@ -397,17 +399,7 @@ describe('Client', () => {
 
 		it('receives event_callback events', async () => {
 			const event = { type: 'test_event', key: 'value' }
-			const wrapper: EventWrapper<SlackEvent> = {
-				type: 'event_callback',
-				token: '',
-				team_id: '',
-				api_app_id: '',
-				authorizations: [],
-				event,
-				event_id: '',
-				event_context: '',
-				event_time: Date.now() / 1000,
-			}
+			const wrapper = { type: 'event_callback', event } as unknown as EventWrapper<SlackEvent>
 
 			const rawListener = mock()
 			const eventListener = mock()
@@ -421,6 +413,30 @@ describe('Client', () => {
 			expect(rawListener).toBeCalledWith(event, wrapper)
 			expect(eventListener).toBeCalledTimes(1)
 			expect(eventListener).toBeCalledWith(event, wrapper)
+		})
+
+		it('receives block_actions', async () => {
+			const action = { type: 'button', action_id: 'approve' }
+			const actions = {
+				actions: [action],
+			} as BlockActions<Action>
+
+			const rawListener = mock()
+			const typeListener = mock()
+			const idListener = mock()
+
+			client.on('action', rawListener)
+			client.on('action:button', typeListener)
+			client.on('action.approve', idListener)
+
+			await receiver.emit('actions', actions)
+
+			expect(rawListener).toBeCalledTimes(1)
+			expect(rawListener).toBeCalledWith(action, actions)
+			expect(typeListener).toBeCalledTimes(1)
+			expect(typeListener).toBeCalledWith(action, actions)
+			expect(idListener).toBeCalledTimes(1)
+			expect(idListener).toBeCalledWith(action, actions)
 		})
 	})
 })
