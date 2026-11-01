@@ -1,4 +1,4 @@
-import type { MethodInfo, MethodState, ReviewState } from './server'
+import type { MethodArg, MethodInfo, MethodState, ReviewState } from './server'
 
 type Filter = 'todo' | 'reviewed' | 'edited' | 'issues' | 'all'
 type Child = Node | string | null | undefined | false
@@ -94,6 +94,7 @@ function isEdited(m: MethodState) {
 		m.required?.length ||
 		Object.keys(m.args ?? {}).length ||
 		Object.keys(m.argsRequired ?? {}).length ||
+		m.extraArgs?.length ||
 		Object.keys(m.types ?? {}).length ||
 		Object.keys(m.values ?? {}).length ||
 		m.notes?.trim()
@@ -1080,21 +1081,42 @@ function renderParams(info: MethodInfo): Node[] {
 	const m = methodState(info.name)
 	const out: Node[] = []
 
-	if (!args.length) {
-		out.push(
-			h(
-				'section',
-				{},
-				h('div', { class: 'section-head' }, h('h3', {}, 'params'), docsLink(info, 'arguments')),
-				h('p', { class: 'muted' }, 'none'),
-			),
-		)
+	const head = h(
+		'div',
+		{ class: 'section-head' },
+		h('h3', {}, 'params'),
+		docsLink(info, 'arguments'),
+		h(
+			'button',
+			{
+				class: 'small-btn',
+				title: "add a param the docs don't list",
+				onclick: () => {
+					const m = methodState(info.name, true)
+					m.extraArgs = [...(m.extraArgs ?? []), { name: '', required: false }]
+					changed()
+					renderAll()
+					$('main')
+						.querySelector<HTMLInputElement>(
+							`[data-fid="${CSS.escape(`extra|${info.name}|${m.extraArgs.length - 1}|name`)}"]`,
+						)
+						?.focus()
+				},
+			},
+			'+ add param',
+		),
+	)
+
+	if (!args.length && !m.extraArgs?.length) {
+		out.push(h('section', {}, head, h('p', { class: 'muted' }, 'none')))
+	} else if (!args.length) {
+		out.push(h('section', {}, head, renderExtraArgs(info, args)))
 	} else {
 		out.push(
 			h(
 				'section',
 				{},
-				h('div', { class: 'section-head' }, h('h3', {}, 'params'), docsLink(info, 'arguments')),
+				head,
 				h(
 					'table',
 					{ class: 'fixed' },
@@ -1149,11 +1171,14 @@ function renderParams(info: MethodInfo): Node[] {
 						}),
 					),
 				),
+				!!m.extraArgs?.length && renderExtraArgs(info, args),
 			),
 		)
 	}
 
-	const missing = (name: string) => !args.some((a) => a.name === name)
+	// overrides keyed by name apply to extra params too, same as generate-methods
+	const missing = (name: string) =>
+		!args.some((a) => a.name === name) && !m.extraArgs?.some((a) => a.name === name)
 	const stale = [
 		...Object.keys(m.args ?? {})
 			.filter(missing)
@@ -1204,6 +1229,102 @@ function renderParams(info: MethodInfo): Node[] {
 		)
 	}
 	return out
+}
+
+// params the docs don't list, appended after the documented ones by generate-methods
+function renderExtraArgs(info: MethodInfo, args: MethodInfo['args']) {
+	const extraArgs = methodState(info.name).extraArgs ?? []
+
+	function update(i: number, patch: Partial<MethodArg> | null) {
+		const m = methodState(info.name, true)
+		const next = [...(m.extraArgs ?? [])]
+		if (patch) next[i] = { ...next[i]!, ...patch }
+		else next.splice(i, 1)
+		m.extraArgs = next
+		changed()
+		renderAll()
+	}
+
+	function textInput(i: number, field: 'name' | 'type', placeholder: string) {
+		return h('input', {
+			type: 'text',
+			class: 'mono',
+			value: extraArgs[i]![field] ?? '',
+			placeholder,
+			'data-fid': `extra|${info.name}|${i}|${field}`,
+			oninput: (e: Event) => {
+				const value = (e.target as HTMLInputElement).value
+				update(i, { [field]: field === 'type' && !value.trim() ? undefined : value })
+			},
+			onkeydown: (e: KeyboardEvent) => {
+				if (e.key === 'Enter') (e.target as HTMLInputElement).blur()
+			},
+		})
+	}
+
+	return h(
+		'table',
+		{ class: 'fixed' },
+		h(
+			'thead',
+			{},
+			h(
+				'tr',
+				{},
+				h('th', { style: 'width:24%' }, 'extra param'),
+				h('th', { class: 'req-cell', style: 'width:72px' }, 'required'),
+				h('th', {}, 'type'),
+				h('th', { style: 'width:72px' }),
+			),
+		),
+		h(
+			'tbody',
+			{},
+			...extraArgs.map((arg, i) => {
+				const duplicate =
+					arg.name &&
+					(args.some((a) => a.name === arg.name) ||
+						extraArgs.some((a, j) => j !== i && a.name === arg.name))
+				const type = defaultArgType(arg.type)
+				return h(
+					'tr',
+					{},
+					h(
+						'td',
+						{},
+						textInput(i, 'name', 'name'),
+						duplicate &&
+							h(
+								'div',
+								{ class: 'tag overridden', title: 'generate-methods would emit this key twice' },
+								'duplicate',
+							),
+					),
+					h(
+						'td',
+						{ class: 'req-cell' },
+						h('input', {
+							type: 'checkbox',
+							checked: arg.required,
+							onchange: (e: Event) =>
+								update(i, { required: (e.target as HTMLInputElement).checked }),
+						}),
+					),
+					h(
+						'td',
+						{},
+						textInput(i, 'type', 'unknown'),
+						h('div', { class: `sub mono${isLooseType(type) ? ' loose' : ''}` }, type),
+					),
+					h(
+						'td',
+						{},
+						h('button', { class: 'small-btn', onclick: () => update(i, null) }, 'remove'),
+					),
+				)
+			}),
+		),
+	)
 }
 
 // checkbox for whether a param is required; only stored when it differs from the docs

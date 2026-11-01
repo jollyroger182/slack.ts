@@ -12,6 +12,8 @@ export interface MethodState {
 	args?: Record<string, string>
 	// arg.name -> required, only where it differs from the docs
 	argsRequired?: Record<string, boolean>
+	// params the docs don't list, appended after the documented ones
+	extraArgs?: MethodArg[]
 	// response paths (`path.join(',')`) that are not optional
 	required?: string[]
 	// response path -> TS type
@@ -81,7 +83,7 @@ async function loadMethods(): Promise<MethodInfo[]> {
 		methods.push(info)
 
 		const exampleMatch = page.match(
-			/## Response {#response}\n\n(?:#### [^\n]+\n\n)?```\n(.+?)\n```/s,
+			/## Response {#response}\n\n(?:#### [^\n]+\n\n|Typical success response\n\n)?```\n(.+?)\n```/s,
 		)
 		let exampleJson = '{}'
 		if (!exampleMatch) {
@@ -124,7 +126,7 @@ function render(info: MethodInfo, state: ReviewState) {
 	const method = own(state.methods, info.name) ?? {}
 
 	const lines = [`export interface ${tsName(info.name)}Params {`]
-	for (const arg of info.args) {
+	for (const arg of info.args.concat(method.extraArgs ?? [])) {
 		if (arg.name === 'token') continue
 
 		const type =
@@ -164,6 +166,10 @@ function normalize(state: ReviewState): ReviewState {
 		if (method.argsRequired && Object.keys(method.argsRequired).length) {
 			out.argsRequired = method.argsRequired
 		}
+		const extraArgs = (method.extraArgs ?? [])
+			.filter((arg) => arg.name.trim())
+			.map(({ name, type, required }) => ({ name, ...(type?.trim() ? { type } : {}), required }))
+		if (extraArgs.length) out.extraArgs = extraArgs
 		if (method.required?.length) out.required = [...new Set(method.required)]
 		if (method.types && Object.keys(method.types).length) out.types = method.types
 		if (method.values && Object.keys(method.values).length) out.values = method.values
