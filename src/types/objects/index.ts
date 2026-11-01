@@ -1,2 +1,5 @@
 export * from './bot'
+export * from './conversation'
 export * from './file'
+export * from './profile_field'
+export * from './user'
