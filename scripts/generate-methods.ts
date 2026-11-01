@@ -9,6 +9,8 @@ const typeMap = new Map([
 	['array', 'unknown[]'],
 ])
 
+const requiredResponseKeys = new Set([''])
+
 const removeExamplePrefixes = [`{"url": "","description": "Typical success response","example": `]
 
 const methods = (await cachedRequest('https://docs.slack.dev/reference/methods.json').then((r) =>
@@ -35,9 +37,7 @@ for (const { name } of methods) {
 		required: m[3] === 'Required',
 	}))
 
-	const exampleMatch = page.match(
-		/(?:#### Typical success response|## Response {#response})\n\n```\n(.+?)\n```/s,
-	)
+	const exampleMatch = page.match(/## Response {#response}\n\n(?:#### [^\n]+\n\n)?```\n(.+?)\n```/s)
 	let exampleJson
 	if (!exampleMatch) {
 		console.error(`no response type for ${name}`)
@@ -59,6 +59,7 @@ for (const { name } of methods) {
 		console.error(`failed to parse response type for ${name}`, e)
 		continue
 	}
+	if (typeof example === 'string') example = {}
 	delete example.ok
 
 	console.log(`export interface ${tsName(name)}Params {`)
