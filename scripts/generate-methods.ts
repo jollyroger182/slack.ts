@@ -1,15 +1,55 @@
+import data from './generate-methods.json'
 import { cachedRequest, generateInterface } from './utils'
 
-// arg.name -> type
-const argTypeMap = new Map([['channel_ids', 'string[]']])
-
 // slack type -> type
-const typeMap = new Map([
-	['integer', 'number'],
-	['array', 'unknown[]'],
-])
+const typeMap = new Map(Object.entries(data.typeMap))
 
-const requiredResponseKeys = new Set([''])
+// method.name -> [arg]
+const additionalArgs = new Map(
+	Object.entries(data.methods).map(([name, method]) => [
+		name,
+		{ extraArgs: [], ...method }.extraArgs,
+	]),
+)
+
+// `${method.name},${arg.name}` -> boolean
+const argRequiredMap = new Map(
+	Object.entries(data.methods).flatMap(([name, method]) =>
+		Object.entries({ argsRequired: {}, ...method }.argsRequired).map(([arg, value]) => [
+			`${name},${arg}`,
+			value,
+		]),
+	),
+)
+
+// `${method.name},${arg.name}` -> type
+const argTypeMap = new Map(
+	Object.entries(data.methods).flatMap(([name, method]) =>
+		Object.entries({ args: {}, ...method }.args).map(([arg, type]) => [`${name},${arg}`, type]),
+	),
+)
+
+// `${method.name},${path.join(',')}` -> type
+const overrideTypes = new Map(
+	Object.entries(data.methods).flatMap(([name, method]) =>
+		Object.entries({ types: {}, ...method }.types).map(([arg, type]) => [`${name},${arg}`, type]),
+	),
+)
+
+// `${method.name},${path.join(',')}` -> any
+const overrideValues = new Map(
+	Object.entries(data.methods).flatMap(([name, method]) =>
+		Object.entries({ values: {}, ...method }.values).map(([arg, val]) => [`${name},${arg}`, val]),
+	),
+)
+
+// method.name -> [path.join(',')]
+const requiredResponseKeys = new Map(
+	Object.entries(data.methods).map(([name, method]) => [
+		name,
+		{ required: [], ...method }.required,
+	]),
+)
 
 const removeExamplePrefixes = [`{"url": "","description": "Typical success response","example": `]
 
@@ -31,13 +71,18 @@ for (const { name } of methods) {
 
 	// TODO: parse scopes from frontmatter
 
-	const args = Array.from(page.matchAll(/\*\*`(.+)`\*\*`(.+)`(Required|Optional)/g), (m) => ({
-		name: m[1]!,
-		type: m[2]!,
-		required: m[3] === 'Required',
-	}))
+	const args = Array.from(
+		page.matchAll(/^\*\*`(.+)`\*\*(?:`(.+)`)?(Required|Optional)$/gm),
+		(m) => ({
+			name: m[1]!,
+			type: m[2],
+			required: m[3] === 'Required',
+		}),
+	).concat(additionalArgs.get(name) ?? [])
 
-	const exampleMatch = page.match(/## Response {#response}\n\n(?:#### [^\n]+\n\n)?```\n(.+?)\n```/s)
+	const exampleMatch = page.match(
+		/## Response {#response}\n\n(?:#### [^\n]+\n\n|Typical success response\n\n)?```\n(.+?)\n```/s,
+	)
 	let exampleJson
 	if (!exampleMatch) {
 		console.error(`no response type for ${name}`)
@@ -66,12 +111,22 @@ for (const { name } of methods) {
 	for (const arg of args) {
 		if (arg.name === 'token') continue
 
-		const type = argTypeMap.get(arg.name) ?? typeMap.get(arg.type) ?? arg.type
-		console.log(`\t"${arg.name}": ${type}`)
+		const type =
+			argTypeMap.get(`${name},${arg.name}`) ??
+			(arg.type ? (typeMap.get(arg.type) ?? arg.type) : 'unknown')
+		const required = argRequiredMap.get(`${name},${arg.name}`) ?? arg.required
+
+		console.log(`\t"${arg.name}"${required ? '' : '?'}: ${type}`)
 	}
 	console.log('}')
 
-	console.log(generateInterface(example, `${tsName(name)}Response`, { isOptional: () => true }))
+	console.log(
+		generateInterface(example, `${tsName(name)}Response`, {
+			isOptional: (path) => !(requiredResponseKeys.get(name) ?? []).includes(path.join(',')),
+			overrideType: (path) => overrideTypes.get(`${name},${path.join(',')}`),
+			overrideValue: (path) => overrideValues.get(`${name},${path.join(',')}`),
+		}),
+	)
 	console.log()
 
 	typedMethods.add(name)

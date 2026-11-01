@@ -23,10 +23,18 @@ export async function cachedRequest(input: string, init?: RequestInit) {
 
 export interface GenerateInterfaceOptions {
 	isOptional?: (path: string[]) => unknown
+	overrideType?: (path: string[]) => string | undefined
+	overrideValue?: (path: string[]) => any
 }
 
 export function generateInterface(obj: any, name: string, options: GenerateInterfaceOptions = {}) {
 	function _generateType(obj: any, indent = '', path: string[] = []): string {
+		const overrideType = options.overrideType?.(path)
+		if (overrideType) return overrideType
+
+		const overrideValue = options.overrideValue?.(path)
+		if (overrideValue !== undefined) obj = overrideValue
+
 		if (Array.isArray(obj)) {
 			if (obj.length) return _generateType(obj[0], indent, [...path, '0']) + '[]'
 			return 'unknown[]'

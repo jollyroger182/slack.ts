@@ -1,0 +1,973 @@
+{
+	"typeMap": {
+		"array": "unknown[]",
+		"integer": "number"
+	},
+	"methods": {
+		"admin.analytics.getFile": {
+			"reviewed": true,
+			"args": {
+				"date": "string"
+			}
+		},
+		"admin.analytics.messages.activity": {
+			"required": ["response_metadata", "response_metadata,next_cursor"]
+		},
+		"admin.apps.activities.list": {
+			"args": {
+				"app_id": "string"
+			}
+		},
+		"admin.apps.config.set": {
+			"args": {
+				"app_id": "string"
+			}
+		},
+		"admin.apps.mcp.servers.permissions.set": {
+			"args": {
+				"user_ids": "string[]"
+			}
+		},
+		"admin.apps.permissions.add": {
+			"args": {
+				"channel_ids": "string[]",
+				"user_ids": "string[]"
+			}
+		},
+		"admin.apps.permissions.remove": {
+			"args": {
+				"channel_ids": "string[]",
+				"user_ids": "string[]"
+			}
+		},
+		"admin.apps.permissions.set": {
+			"args": {
+				"channel_ids": "string[]",
+				"user_ids": "string[]"
+			}
+		},
+		"admin.conversations.archive": {
+			"args": {
+				"channel_id": "string"
+			}
+		},
+		"admin.conversations.bulkArchive": {
+			"args": {
+				"channel_ids": "string[]"
+			}
+		},
+		"admin.conversations.bulkDelete": {
+			"args": {
+				"channel_ids": "string[]"
+			}
+		},
+		"admin.conversations.bulkMove": {
+			"args": {
+				"channel_ids": "string[]"
+			}
+		},
+		"admin.conversations.bulkSetExcludeFromSlackAi": {
+			"args": {
+				"channel_ids": "string[]"
+			}
+		},
+		"admin.conversations.bulkSetProperties": {
+			"args": {
+				"channel_ids": "string[]"
+			}
+		},
+		"admin.conversations.convertToPrivate": {
+			"args": {
+				"channel_id": "string"
+			}
+		},
+		"admin.conversations.convertToPublic": {
+			"args": {
+				"channel_id": "string"
+			}
+		},
+		"admin.conversations.delete": {
+			"args": {
+				"channel_id": "string"
+			}
+		},
+		"admin.conversations.disconnectShared": {
+			"args": {
+				"channel_id": "string"
+			}
+		},
+		"admin.conversations.getConversationPrefs": {
+			"args": {
+				"channel_id": "string"
+			}
+		},
+		"admin.conversations.getTeams": {
+			"args": {
+				"channel_id": "string"
+			}
+		},
+		"admin.conversations.invite": {
+			"args": {
+				"channel_id": "string",
+				"user_ids": "string[]"
+			}
+		},
+		"admin.conversations.rename": {
+			"args": {
+				"channel_id": "string"
+			}
+		},
+		"admin.conversations.restrictAccess.addGroup": {
+			"args": {
+				"channel_id": "string"
+			}
+		},
+		"admin.conversations.restrictAccess.listGroups": {
+			"args": {
+				"channel_id": "string"
+			}
+		},
+		"admin.conversations.restrictAccess.removeGroup": {
+			"args": {
+				"channel_id": "string"
+			}
+		},
+		"admin.conversations.unarchive": {
+			"args": {
+				"channel_id": "string"
+			}
+		},
+		"admin.functions.permissions.set": {
+			"args": {
+				"user_ids": "string[]"
+			}
+		},
+		"admin.roles.addAssignments": {
+			"args": {
+				"user_ids": "string[]"
+			}
+		},
+		"admin.roles.removeAssignments": {
+			"args": {
+				"user_ids": "string[]"
+			}
+		},
+		"admin.teams.settings.setDefaultChannels": {
+			"args": {
+				"channel_ids": "string[]"
+			}
+		},
+		"admin.usergroups.addChannels": {
+			"args": {
+				"channel_ids": "string[]"
+			}
+		},
+		"admin.usergroups.removeChannels": {
+			"args": {
+				"channel_ids": "string[]"
+			}
+		},
+		"admin.users.access.pause": {
+			"args": {
+				"user_ids": "string[]"
+			}
+		},
+		"admin.users.access.resume": {
+			"args": {
+				"user_ids": "string[]"
+			}
+		},
+		"admin.users.session.clearSettings": {
+			"args": {
+				"user_ids": "string[]"
+			}
+		},
+		"admin.users.session.getSettings": {
+			"args": {
+				"user_ids": "string[]"
+			}
+		},
+		"admin.users.session.resetBulk": {
+			"args": {
+				"user_ids": "string[]"
+			}
+		},
+		"admin.users.session.setSettings": {
+			"args": {
+				"user_ids": "string[]"
+			}
+		},
+		"admin.workflows.search": {
+			"args": {
+				"app_id": "string"
+			}
+		},
+		"admin.workflows.triggers.types.permissions.set": {
+			"args": {
+				"user_ids": "string[]"
+			}
+		},
+		"agents.conversations.getCanvas": {
+			"args": {
+				"canvas_id": "string"
+			}
+		},
+		"agents.conversations.setCanvasContent": {
+			"args": {
+				"canvas_id": "string"
+			}
+		},
+		"agents.conversations.setView": {
+			"args": {
+				"canvas_id": "string"
+			}
+		},
+		"api.test": {
+			"reviewed": true
+		},
+		"apps.activities.list": {
+			"args": {
+				"app_id": "string"
+			},
+			"required": ["response_metadata", "response_metadata,next_cursor"]
+		},
+		"apps.auth.external.delete": {
+			"reviewed": true,
+			"argsRequired": {
+				"app_id": true
+			}
+		},
+		"apps.connections.open": {
+			"reviewed": true,
+			"required": ["url"]
+		},
+		"apps.datastore.bulkDelete": {
+			"args": {
+				"app_id": "string"
+			}
+		},
+		"apps.datastore.bulkGet": {
+			"args": {
+				"app_id": "string"
+			}
+		},
+		"apps.datastore.bulkPut": {
+			"args": {
+				"app_id": "string"
+			}
+		},
+		"apps.datastore.count": {
+			"args": {
+				"app_id": "string"
+			}
+		},
+		"apps.datastore.delete": {
+			"reviewed": true,
+			"args": {
+				"app_id": "string"
+			}
+		},
+		"apps.datastore.get": {
+			"args": {
+				"app_id": "string"
+			}
+		},
+		"apps.datastore.put": {
+			"args": {
+				"app_id": "string"
+			}
+		},
+		"apps.datastore.query": {
+			"args": {
+				"app_id": "string"
+			}
+		},
+		"apps.datastore.update": {
+			"args": {
+				"app_id": "string"
+			}
+		},
+		"apps.event.authorizations.list": {
+			"reviewed": true,
+			"required": [
+				"authorizations",
+				"authorizations,0,team_id",
+				"authorizations,0,user_id",
+				"authorizations,0,is_bot"
+			],
+			"values": {
+				"authorizations,0": {
+					"enterprise_id": "string",
+					"team_id": "string",
+					"user_id": "string",
+					"is_bot": true,
+					"is_enterprise_install": false
+				}
+			}
+		},
+		"apps.icon.set": {
+			"reviewed": true,
+			"args": {
+				"app_id": "string",
+				"file": "Blob"
+			}
+		},
+		"apps.managed.permissions.set": {
+			"reviewed": true,
+			"args": {
+				"app_id": "string",
+				"permissions": "'everyone' | 'app_owner'"
+			}
+		},
+		"apps.manifest.create": {
+			"reviewed": true,
+			"args": {
+				"manifest": "import('../objects').Manifest"
+			},
+			"required": [
+				"app_id",
+				"credentials",
+				"credentials,client_id",
+				"credentials,client_secret",
+				"credentials,verification_token",
+				"credentials,signing_secret",
+				"oauth_authorize_url"
+			]
+		},
+		"apps.manifest.delete": {
+			"reviewed": true,
+			"args": {
+				"app_id": "string"
+			}
+		},
+		"apps.manifest.export": {
+			"reviewed": true,
+			"args": {
+				"app_id": "string"
+			},
+			"types": {
+				"manifest": "import('../objects').Manifest"
+			}
+		},
+		"apps.manifest.update": {
+			"reviewed": true,
+			"args": {
+				"app_id": "string",
+				"manifest": "import('../objects').Manifest"
+			},
+			"required": ["app_id", "permissions_updated"]
+		},
+		"apps.manifest.validate": {
+			"reviewed": true,
+			"args": {
+				"app_id": "string",
+				"manifest": "import('../objects').Manifest"
+			},
+			"required": ["errors"],
+			"types": {
+				"errors": "[]"
+			}
+		},
+		"apps.uninstall": {
+			"reviewed": true
+		},
+		"apps.user.connection.update": {
+			"reviewed": true
+		},
+		"assistant.search.context": {
+			"reviewed": true,
+			"args": {
+				"channel_types": "('public_channel' | 'private_channel' | 'mpim' | 'im')[]",
+				"content_types": "('messages' | 'files' | 'channels' | 'users')[]",
+				"context_channel_id": "string",
+				"sort": "'score' | 'timestamp'",
+				"sort_dir": "'asc' | 'desc'",
+				"term_clauses": "string[]"
+			},
+			"required": [
+				"results",
+				"results,messages",
+				"results,messages,0,author_user_id",
+				"results,messages,0,team_id",
+				"results,messages,0,channel_id",
+				"results,messages,0,message_ts",
+				"results,messages,0,content",
+				"results,messages,0,is_author_bot",
+				"results,messages,0,permalink",
+				"results,files",
+				"results,files,0,author_user_id",
+				"results,files,0,uploader_user_id",
+				"results,files,0,team_id",
+				"results,files,0,file_id",
+				"results,files,0,date_created",
+				"results,files,0,date_updated",
+				"results,files,0,title",
+				"results,files,0,file_type",
+				"results,files,0,permalink",
+				"results,files,0,content",
+				"results,files,0,size",
+				"results,channels",
+				"results,channels,0,team_id",
+				"results,channels,0,creator_user_id",
+				"results,channels,0,date_created",
+				"results,channels,0,date_updated",
+				"results,channels,0,permalink",
+				"results,channels,0,is_archived",
+				"results,channels,0,channel_type",
+				"results,users",
+				"results,users,0,user_id",
+				"results,users,0,permalink",
+				"results,users,0,email",
+				"results,users,0,profile_pic_permalink",
+				"response_metadata",
+				"response_metadata,next_cursor"
+			],
+			"values": {
+				"results": {
+					"messages": [
+						{
+							"author_user_id": "U0123456",
+							"team_id": "T0123456",
+							"channel_id": "C0123456",
+							"message_ts": "123456.7890",
+							"content": "Hey team, we'll be kicking off our mobile UX revamp for the Gizmo App...",
+							"is_author_bot": false,
+							"permalink": "https://mycompany.slack.com/archives/C012345ABC/p123456789",
+							"author_name": "",
+							"channel_name": "",
+							"reply_count": 0
+						}
+					],
+					"files": [
+						{
+							"author_name": "",
+							"author_user_id": "U123",
+							"uploader_user_id": "U123",
+							"team_id": "T123",
+							"file_id": "F123",
+							"date_created": 1766178723,
+							"date_updated": 1766178723,
+							"title": "A file",
+							"file_type": "jpg",
+							"permalink": "https://slack.com/",
+							"content": "content",
+							"size": 10000
+						}
+					],
+					"channels": [
+						{
+							"team_id": "T123",
+							"creator_user_id": "U123",
+							"creator_name": "Someone",
+							"date_created": 1790636488,
+							"date_updated": 1790636488,
+							"name": "general",
+							"topic": "",
+							"purpose": "",
+							"permalink": "https://team.slack.com/archives/C123",
+							"is_archived": false,
+							"channel_type": "public_channel"
+						}
+					],
+					"users": [
+						{
+							"user_id": "U123",
+							"permalink": "https://team.slack.com/team/U123",
+							"full_name": "name",
+							"title": "",
+							"timezone": "America/Los_Angeles",
+							"email": "",
+							"profile_pic_permalink": "https://secure.gravatar.com/avatar/123.jpg"
+						}
+					]
+				}
+			}
+		},
+		"assistant.search.info": {
+			"reviewed": true,
+			"required": ["is_ai_search_enabled"]
+		},
+		"assistant.threads.setStatus": {
+			"reviewed": true,
+			"args": {
+				"loading_messages": "string[]"
+			}
+		},
+		"assistant.threads.setSuggestedPrompts": {
+			"reviewed": true,
+			"args": {
+				"channel_id": "string",
+				"prompts": "{ title: string; message: string }[]"
+			}
+		},
+		"assistant.threads.setTitle": {
+			"reviewed": true,
+			"args": {
+				"channel_id": "string"
+			}
+		},
+		"auth.revoke": {
+			"reviewed": true,
+			"required": ["revoked"]
+		},
+		"auth.teams.list": {
+			"reviewed": true,
+			"required": [
+				"teams",
+				"teams,0,name",
+				"teams,0,id",
+				"response_metadata",
+				"response_metadata,next_cursor"
+			]
+		},
+		"auth.test": {
+			"reviewed": true,
+			"required": ["url", "team", "user", "team_id", "user_id"],
+			"values": {
+				"": {
+					"url": "https://subarachnoid.slack.com/",
+					"team": "Subarachnoid Workspace",
+					"user": "grace",
+					"team_id": "T12345678",
+					"user_id": "W12345678",
+					"bot_id": ""
+				}
+			}
+		},
+		"blocks.validate": {
+			"reviewed": true,
+			"args": {
+				"blocks": "import('../blocks/blocks').KnownBlock[]",
+				"message": "{ blocks: import('../blocks/blocks').KnownBlock[] }",
+				"view": "import('../views').View"
+			}
+		},
+		"bookmarks.add": {
+			"reviewed": true,
+			"args": {
+				"access_level": "'read' | 'write'",
+				"type": "'link' | (string & {})"
+			},
+			"argsRequired": {
+				"channel_id": true
+			},
+			"required": [
+				"bookmark",
+				"bookmark,id",
+				"bookmark,channel_id",
+				"bookmark,title",
+				"bookmark,link",
+				"bookmark,emoji",
+				"bookmark,icon_url",
+				"bookmark,type",
+				"bookmark,entity_id",
+				"bookmark,date_created",
+				"bookmark,date_updated",
+				"bookmark,rank",
+				"bookmark,last_updated_by_user_id",
+				"bookmark,last_updated_by_team_id",
+				"bookmark,shortcut_id",
+				"bookmark,app_id",
+				"bookmark,app_action_id"
+			],
+			"types": {
+				"bookmark,app_id": "string | null",
+				"bookmark,emoji": "string | null",
+				"bookmark,entity_id": "string | null",
+				"bookmark,shortcut_id": "string | null",
+				"bookmark,app_action_id": "string | null"
+			},
+			"values": {
+				"": {
+					"bookmark": {
+						"id": "Bk033XFJ9BTJ",
+						"channel_id": "C1RQ000",
+						"title": "bookmark-1",
+						"link": "https://google.com",
+						"emoji": ":clap:",
+						"icon_url": "https://www.google.com/favicon.ico",
+						"type": "link",
+						"entity_id": null,
+						"date_created": 1644956055,
+						"date_updated": 0,
+						"rank": "g",
+						"last_updated_by_user_id": "U0334B6G6G5",
+						"last_updated_by_team_id": "T018DF03GHY",
+						"shortcut_id": null,
+						"app_id": null,
+						"app_action_id": ""
+					}
+				}
+			}
+		},
+		"bookmarks.edit": {
+			"reviewed": true,
+			"argsRequired": {
+				"channel_id": true,
+				"bookmark_id": true
+			},
+			"required": [
+				"bookmark",
+				"bookmark,id",
+				"bookmark,channel_id",
+				"bookmark,title",
+				"bookmark,link",
+				"bookmark,emoji",
+				"bookmark,icon_url",
+				"bookmark,type",
+				"bookmark,entity_id",
+				"bookmark,date_created",
+				"bookmark,date_updated",
+				"bookmark,rank",
+				"bookmark,last_updated_by_user_id",
+				"bookmark,last_updated_by_team_id",
+				"bookmark,shortcut_id",
+				"bookmark,app_id",
+				"bookmark,app_action_id"
+			],
+			"types": {
+				"bookmark,entity_id": "string | null",
+				"bookmark,emoji": "string | null",
+				"bookmark,shortcut_id": "string | null",
+				"bookmark,app_id": "string | null",
+				"bookmark,app_action_id": "string | null"
+			},
+			"values": {
+				"": {
+					"bookmark": {
+						"id": "Bk033XFJ9BTJ",
+						"channel_id": "C1RQ000",
+						"title": "bookmark-1",
+						"link": "https://google.com",
+						"emoji": ":clap:",
+						"icon_url": "https://www.google.com/favicon.ico",
+						"type": "link",
+						"entity_id": null,
+						"date_created": 1644956055,
+						"date_updated": 0,
+						"rank": "g",
+						"last_updated_by_user_id": "U0334B6G6G5",
+						"last_updated_by_team_id": "T018DF03GHY",
+						"shortcut_id": null,
+						"app_id": null,
+						"app_action_id": ""
+					}
+				}
+			}
+		},
+		"bookmarks.list": {
+			"reviewed": true,
+			"argsRequired": {
+				"channel_id": true
+			},
+			"required": [
+				"bookmarks",
+				"bookmarks,0,id",
+				"bookmarks,0,channel_id",
+				"bookmarks,0,title",
+				"bookmarks,0,link",
+				"bookmarks,0,emoji",
+				"bookmarks,0,icon_url",
+				"bookmarks,0,type",
+				"bookmarks,0,entity_id",
+				"bookmarks,0,date_created",
+				"bookmarks,0,date_updated",
+				"bookmarks,0,rank",
+				"bookmarks,0,last_updated_by_user_id",
+				"bookmarks,0,last_updated_by_team_id",
+				"bookmarks,0,shortcut_id",
+				"bookmarks,0,app_id",
+				"bookmarks,0,app_action_id"
+			],
+			"types": {
+				"bookmarks,0,emoji": "string | null",
+				"bookmarks,0,entity_id": "string | null",
+				"bookmarks,0,shortcut_id": "string | null",
+				"bookmarks,0,app_id": "string | null",
+				"bookmarks,0,app_action_id": "string | null"
+			},
+			"values": {
+				"": {
+					"bookmarks": [
+						{
+							"id": "Bk033XFJ9BTJ",
+							"channel_id": "C1RQ000",
+							"title": "bookmark-1",
+							"link": "https://google.com",
+							"emoji": ":clap:",
+							"icon_url": "https://www.google.com/favicon.ico",
+							"type": "link",
+							"entity_id": null,
+							"date_created": 1644956055,
+							"date_updated": 0,
+							"rank": "g",
+							"last_updated_by_user_id": "U0334B6G6G5",
+							"last_updated_by_team_id": "T018DF03GHY",
+							"shortcut_id": null,
+							"app_id": null,
+							"app_action_id": ""
+						}
+					]
+				}
+			}
+		},
+		"bookmarks.remove": {
+			"reviewed": true,
+			"argsRequired": {
+				"channel_id": true,
+				"bookmark_id": true
+			}
+		},
+		"bots.info": {
+			"reviewed": true,
+			"argsRequired": {
+				"bot": true
+			},
+			"required": [
+				"bot",
+				"bot,id",
+				"bot,deleted",
+				"bot,name",
+				"bot,updated",
+				"bot,app_id",
+				"bot,user_id",
+				"bot,icons",
+				"bot,icons,image_36",
+				"bot,icons,image_48",
+				"bot,icons,image_72"
+			]
+		},
+		"calls.add": {
+			"reviewed": true,
+			"args": {
+				"users": "({ slack_id: string } | { external_id: string; display_name: string; avatar_url?: string })[]"
+			},
+			"required": [
+				"call",
+				"call,id",
+				"call,date_start",
+				"call,external_unique_id",
+				"call,join_url"
+			],
+			"types": {
+				"call,users": "({ slack_id: string } | { external_id: string; display_name: string; avatar_url?: string })[]"
+			}
+		},
+		"calls.end": {
+			"reviewed": true
+		},
+		"calls.info": {
+			"reviewed": true,
+			"required": [
+				"call",
+				"call,id",
+				"call,date_start",
+				"call,external_unique_id",
+				"call,join_url"
+			],
+			"types": {
+				"call,users": "({ slack_id: string } | { external_id: string; display_name: string; avatar_url?: string })[]"
+			}
+		},
+		"calls.participants.add": {
+			"reviewed": true,
+			"args": {
+				"users": "({ slack_id: string } | { external_id: string; display_name: string; avatar_url?: string })[]"
+			}
+		},
+		"calls.participants.remove": {
+			"reviewed": true,
+			"args": {
+				"users": "({ slack_id: string } | { external_id: string; display_name: string; avatar_url?: string })[]"
+			}
+		},
+		"calls.update": {
+			"reviewed": true,
+			"required": [
+				"call",
+				"call,id",
+				"call,date_start",
+				"call,external_unique_id",
+				"call,join_url"
+			],
+			"types": {
+				"call,users": "({ slack_id: string } | { external_id: string; display_name: string; avatar_url?: string })[]"
+			}
+		},
+		"canvases.access.delete": {
+			"reviewed": true,
+			"args": {
+				"channel_ids": "string[]",
+				"user_ids": "string[]",
+				"canvas_id": "string"
+			}
+		},
+		"canvases.access.set": {
+			"reviewed": true,
+			"args": {
+				"channel_ids": "string[]",
+				"user_ids": "string[]",
+				"canvas_id": "string",
+				"access_level": "'read' | 'write' | 'owner'"
+			}
+		},
+		"canvases.delete": {
+			"reviewed": true,
+			"args": {
+				"canvas_id": "string"
+			}
+		},
+		"canvases.edit": {
+			"args": {
+				"canvas_id": "string"
+			}
+		},
+		"canvases.getContent": {
+			"reviewed": true,
+			"args": {
+				"canvas_id": "string",
+				"content_type": "'markdown' | 'html'"
+			},
+			"required": ["content"]
+		},
+		"canvases.sections.lookup": {
+			"reviewed": true,
+			"args": {
+				"canvas_id": "string",
+				"criteria": "{ section_types?: ('any_header' | 'blockquote' | 'callout' | 'canvas_unfurl' | 'chart' | 'citation' | 'file_unfurl' | 'flexbox' | 'h1' | 'h2' | 'h3' | 'horizontal_line' | 'list' | 'message_unfurl' | 'sfdc_record_mention' | 'sfdc_record_unfurl' | 'table' | 'user_mention' | 'user_unfurl')[], contains_text?: string }"
+			},
+			"required": ["sections", "sections,0,id"]
+		},
+		"chat.delete": {
+			"reviewed": true,
+			"args": {
+				"as_user": "never"
+			},
+			"required": ["channel", "ts"]
+		},
+		"chat.deleteScheduledMessage": {
+			"reviewed": true,
+			"args": {
+				"as_user": "never"
+			}
+		},
+		"chat.getPermalink": {
+			"reviewed": true,
+			"required": ["channel", "permalink"]
+		},
+		"chat.meMessage": {
+			"extraArgs": [
+				{
+					"name": "thread_ts",
+					"type": "string",
+					"required": false
+				}
+			],
+			"required": ["channel", "ts"]
+		},
+		"chat.postEphemeral": {
+			"args": {
+				"as_user": "never"
+			}
+		},
+		"chat.postMessage": {
+			"args": {
+				"as_user": "never"
+			},
+			"required": ["channel", "ts", "message"],
+			"types": {
+				"message": "import('../events').GenericMessageEvent"
+			}
+		},
+		"chat.scheduleMessage": {
+			"args": {
+				"as_user": "never"
+			}
+		},
+		"chat.update": {
+			"args": {
+				"blocks": "import('../blocks/blocks').KnownBlock[]"
+			},
+			"required": ["channel", "ts", "message"],
+			"types": {
+				"message": "import('../events').MessageEvent"
+			}
+		},
+		"conversations.acceptSharedInvite": {
+			"args": {
+				"channel_id": "string"
+			}
+		},
+		"conversations.create": {
+			"required": ["channel"],
+			"types": {
+				"channel": "import('../objects').Conversation"
+			}
+		},
+		"conversations.inviteShared": {
+			"args": {
+				"user_ids": "string[]"
+			}
+		},
+		"files.completeUploadExternal": {
+			"args": {
+				"channel_id": "string"
+			}
+		},
+		"functions.distributions.permissions.add": {
+			"args": {
+				"user_ids": "string[]"
+			}
+		},
+		"functions.distributions.permissions.remove": {
+			"args": {
+				"user_ids": "string[]"
+			}
+		},
+		"functions.distributions.permissions.set": {
+			"args": {
+				"user_ids": "string[]"
+			}
+		},
+		"slackbot.skills.create": {
+			"args": {
+				"canvas_id": "string"
+			}
+		},
+		"slackLists.access.delete": {
+			"args": {
+				"channel_ids": "string[]",
+				"user_ids": "string[]"
+			}
+		},
+		"slackLists.access.set": {
+			"args": {
+				"channel_ids": "string[]",
+				"user_ids": "string[]"
+			}
+		},
+		"workflows.featured.list": {
+			"args": {
+				"channel_ids": "string[]"
+			}
+		},
+		"workflows.triggers.permissions.add": {
+			"args": {
+				"channel_ids": "string[]",
+				"user_ids": "string[]"
+			}
+		},
+		"workflows.triggers.permissions.remove": {
+			"args": {
+				"channel_ids": "string[]",
+				"user_ids": "string[]"
+			}
+		},
+		"workflows.triggers.permissions.set": {
+			"args": {
+				"channel_ids": "string[]",
+				"user_ids": "string[]"
+			}
+		}
+	}
+}
