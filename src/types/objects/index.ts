@@ -1,5 +1,6 @@
 export * from './bot'
 export * from './conversation'
 export * from './file'
+export * from './manifest'
 export * from './profile_field'
 export * from './user'
