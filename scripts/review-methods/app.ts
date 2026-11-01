@@ -151,6 +151,9 @@ let saveTimer: ReturnType<typeof setTimeout> | undefined
 let saving = false
 let saveAgain = false
 let conflictState: ReviewState | null = null
+// version of the json this tab last loaded or saved, see versionOf in server.ts
+let version = ''
+let conflictVersion = ''
 
 function setStatus(text: string, error = false) {
 	const el = $('save-status')
@@ -177,15 +180,19 @@ async function save(force = false) {
 	try {
 		const res = await fetch(`/api/state${force ? '?force=1' : ''}`, {
 			method: 'PUT',
+			headers: { 'if-match': version },
 			body: JSON.stringify(state),
 		})
 		if (res.status === 409) {
-			conflictState = ((await res.json()) as { state: ReviewState }).state
+			const disk = (await res.json()) as { state: ReviewState; version: string }
+			conflictState = disk.state
+			conflictVersion = disk.version
 			$('conflict').hidden = false
 			setStatus('conflict', true)
 			return
 		}
 		if (!res.ok) throw new Error(await res.text())
+		version = ((await res.json()) as { version: string }).version
 		setStatus('saved')
 	} catch (e) {
 		console.error(e)
@@ -201,13 +208,19 @@ async function save(force = false) {
 
 window.addEventListener('pagehide', () => {
 	if (saveTimer && !conflictState) {
-		fetch('/api/state', { method: 'PUT', body: JSON.stringify(state), keepalive: true })
+		fetch('/api/state', {
+			method: 'PUT',
+			headers: { 'if-match': version },
+			body: JSON.stringify(state),
+			keepalive: true,
+		})
 	}
 })
 
 $('conflict-reload').onclick = () => {
 	if (!conflictState) return
 	state = conflictState
+	version = conflictVersion
 	conflictState = null
 	$('conflict').hidden = true
 	setStatus('loaded from disk')
@@ -774,6 +787,7 @@ function renderResponse(info: MethodInfo, m: MethodState): Node[] {
 				row.kind,
 			),
 			h('span', { class: 'sample' }, row.valueOverride ? `${row.sample} (overridden)` : row.sample),
+			row.expandable && renderSubtreeActions(info, row, rows, required),
 		)
 
 		const reqCell = h(
@@ -904,6 +918,52 @@ function renderResponse(info: MethodInfo, m: MethodState): Node[] {
 		)
 	}
 	return out
+}
+
+// require / clear a key and everything under it, including collapsed parts
+function renderSubtreeActions(info: MethodInfo, row: Row, rows: Row[], required: Set<string>) {
+	const keys = rows
+		.filter(
+			(r) =>
+				r.requirable &&
+				r.path.length >= row.path.length &&
+				row.path.every((p, i) => r.path[i] === p),
+		)
+		.map((r) => r.key)
+	if (!keys.length) return null
+
+	const count = keys.filter((k) => required.has(k)).length
+	const name = row.key || 'the response'
+	return h(
+		'span',
+		{ class: 'subtree-actions' },
+		h(
+			'button',
+			{
+				class: 'small-btn',
+				disabled: count === keys.length,
+				title: `require ${name} and everything under it (${keys.length} keys)`,
+				onclick: () => {
+					setRequired(info, keys, true)
+					renderAll()
+				},
+			},
+			'require all',
+		),
+		h(
+			'button',
+			{
+				class: 'small-btn',
+				disabled: count === 0,
+				title: `make ${name} and everything under it optional (${count} required now)`,
+				onclick: () => {
+					setRequired(info, keys, false)
+					renderAll()
+				},
+			},
+			'clear',
+		),
+	)
 }
 
 function renderValueEditor(info: MethodInfo, row: Row, editorId: string) {
@@ -1037,19 +1097,17 @@ function renderParams(info: MethodInfo): Node[] {
 				h('div', { class: 'section-head' }, h('h3', {}, 'params'), docsLink(info, 'arguments')),
 				h(
 					'table',
-					{},
+					{ class: 'fixed' },
 					h(
 						'thead',
 						{},
 						h(
 							'tr',
 							{},
-							h('th', {}, 'name'),
-							h('th', { class: 'req-cell' }, 'required'),
-							h('th', {}, 'slack type'),
-							h('th', {}, 'generated'),
-							h('th', { style: 'width:30%' }, 'override type'),
-							h('th', {}, 'same param elsewhere'),
+							h('th', { style: 'width:24%' }, 'name'),
+							h('th', { class: 'req-cell', style: 'width:72px' }, 'required'),
+							h('th', { style: 'width:28%' }, 'type'),
+							h('th', {}, 'override type'),
 						),
 					),
 					h(
@@ -1064,10 +1122,29 @@ function renderParams(info: MethodInfo): Node[] {
 								{},
 								h('td', { class: 'mono' }, arg.name),
 								renderArgRequired(info, arg.name, arg.required),
-								slackTypeCell(arg.type),
-								h('td', { class: `mono${isLooseType(type) ? ' loose' : ''}` }, type),
-								h('td', {}, argTypeInput(info.name, arg.name, fromTypeMap)),
-								h('td', { class: 'small' }, ...renderElsewhere(info, arg.name, arg.type, override)),
+								h(
+									'td',
+									{},
+									h('div', { class: `mono${isLooseType(type) ? ' loose' : ''}` }, type),
+									h(
+										'div',
+										{
+											class: 'sub muted',
+											title: arg.type ? undefined : "the docs don't list a type",
+										},
+										`slack: ${arg.type ?? '—'}`,
+									),
+								),
+								h(
+									'td',
+									{},
+									argTypeInput(info.name, arg.name, fromTypeMap),
+									h(
+										'div',
+										{ class: 'sub' },
+										...renderElsewhere(info, arg.name, arg.type, override),
+									),
+								),
 							)
 						}),
 					),
@@ -1165,7 +1242,7 @@ function renderElsewhere(
 	override: string | undefined,
 ) {
 	const others = (argUsage.get(name) ?? []).filter((u) => u.method !== info.name)
-	if (!others.length) return [h('span', { class: 'muted' }, 'only here')]
+	if (!others.length) return [h('span', { class: 'muted' }, 'only in this method')]
 
 	// "1|type" for overrides, "0|type" for typeMap fallbacks
 	const counts = new Map<string, string[]>()
@@ -1176,8 +1253,9 @@ function renderElsewhere(
 	}
 
 	const out: Child[] = [
+		h('span', { class: 'muted' }, 'elsewhere: '),
 		...[...counts].flatMap(([key, list], i) => [
-			i ? h('br') : null,
+			i ? h('span', { class: 'muted' }, ' · ') : null,
 			h(
 				'span',
 				{ class: key.startsWith('1|') ? 'mono' : 'mono muted', title: list.join('\n') },
@@ -1194,12 +1272,11 @@ function renderElsewhere(
 		)
 		if (targets.length) {
 			out.push(
-				h('br'),
+				' ',
 				h(
 					'button',
 					{
 						class: 'small-btn',
-						style: 'margin-top:4px',
 						title: targets.map((u) => u.method).join('\n'),
 						onclick: () => {
 							for (const u of targets) {
@@ -1424,6 +1501,7 @@ const [methodsRes, stateRes] = await Promise.all([
 methods = methodsRes as MethodInfo[]
 state = (stateRes as { state: ReviewState }).state
 statePath = (stateRes as { path: string }).path
+version = (stateRes as { version: string }).version
 
 for (const info of methods) {
 	byName.set(info.name, info)

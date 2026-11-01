@@ -60,7 +60,7 @@ body {
 		-apple-system,
 		sans-serif;
 	display: grid;
-	grid-template-columns: 290px minmax(0, 1fr) minmax(320px, 38%);
+	grid-template-columns: 290px minmax(0, 1fr) minmax(300px, 32%);
 	overflow: hidden;
 }
 
@@ -504,6 +504,28 @@ section {
 	min-width: 0;
 }
 
+.subtree-actions {
+	margin-left: auto;
+	display: none;
+	gap: 4px;
+	flex: none;
+	padding-left: 6px;
+}
+
+.tree-row:hover .subtree-actions {
+	display: flex;
+}
+
+.subtree-actions .small-btn {
+	padding: 0 6px;
+	font-size: 11px;
+}
+
+.subtree-actions .small-btn:disabled {
+	opacity: 0.4;
+	cursor: default;
+}
+
 .req-cell {
 	text-align: center;
 }
@@ -613,6 +635,17 @@ table.fixed {
 table.fixed td {
 	white-space: normal;
 	overflow-wrap: anywhere;
+}
+
+td .sub {
+	margin-top: 3px;
+	font-size: 12px;
+	line-height: 1.5;
+}
+
+td .sub .small-btn {
+	padding: 0 6px;
+	font-size: 11px;
 }
 
 td input[type='text'] {

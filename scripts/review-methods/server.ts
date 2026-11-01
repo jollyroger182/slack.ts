@@ -188,8 +188,11 @@ function parseState(text: string): ReviewState {
 const methods = await loadMethods()
 const methodsByName = new Map(methods.map((m) => [m.name, m]))
 
-// what we last read or wrote, to notice edits made to the file by hand
-let lastStateText = await readStateText()
+// identifies the file contents a client last saw, so a save from a stale tab (or over a
+// hand edit) is refused instead of overwriting newer changes
+function versionOf(text: string) {
+	return Bun.hash(text).toString(36)
+}
 
 Bun.serve({
 	port,
@@ -199,20 +202,21 @@ Bun.serve({
 		'/api/methods': () => Response.json(methods),
 		'/api/state': {
 			GET: async () => {
-				lastStateText = await readStateText()
-				return Response.json({ path: statePath, state: parseState(lastStateText) })
+				const text = await readStateText()
+				return Response.json({ path: statePath, state: parseState(text), version: versionOf(text) })
 			},
 			PUT: async (req) => {
 				const onDisk = await readStateText()
-				if (onDisk !== lastStateText && !new URL(req.url).searchParams.has('force')) {
-					// the client gets the disk version and decides, so don't conflict on it again
-					lastStateText = onDisk
-					return Response.json({ path: statePath, state: parseState(onDisk) }, { status: 409 })
+				const force = new URL(req.url).searchParams.has('force')
+				if (req.headers.get('if-match') !== versionOf(onDisk) && !force) {
+					return Response.json(
+						{ path: statePath, state: parseState(onDisk), version: versionOf(onDisk) },
+						{ status: 409 },
+					)
 				}
 				const text = JSON.stringify(normalize((await req.json()) as ReviewState), null, '\t') + '\n'
 				if (text !== onDisk) await Bun.write(statePath, text)
-				lastStateText = text
-				return Response.json({ ok: true })
+				return Response.json({ version: versionOf(text) })
 			},
 		},
 		'/api/preview': {
