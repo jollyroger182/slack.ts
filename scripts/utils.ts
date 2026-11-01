@@ -20,3 +20,25 @@ export async function cachedRequest(input: string, init?: RequestInit) {
 
 	return text
 }
+
+export function generateInterface(obj: any, name: string) {
+	function _generateType(obj: any, indent = ''): string {
+		if (Array.isArray(obj)) {
+			if (obj.length) return _generateType(obj[0], indent) + '[]'
+			return 'unknown[]'
+		}
+		if (obj === null || obj === undefined) return 'unknown'
+		if (typeof obj === 'object') {
+			return [
+				'{',
+				...Object.entries(obj).map(
+					([k, v]) => `${indent}\t"${k}": ${_generateType(v, indent + '\t')}`,
+				),
+				`${indent}}`,
+			].join('\n')
+		}
+		return typeof obj
+	}
+
+	return `export interface ${name} ${_generateType(obj)}`
+}

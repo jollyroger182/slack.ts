@@ -1,6 +1,7 @@
 import type { Equals } from '../utils/types'
+import type { DocumentedMethodMap } from './generated/methods'
 
-export type MethodMap = {
+interface CustomMethodMap {
 	'auth.test': {
 		params: {}
 		response: { url: string; team: string; user: string; team_id: string; user_id: string }
@@ -10,6 +11,9 @@ export type MethodMap = {
 		response: { ts: string; message: { ts: string } }
 	}
 }
+
+export interface MethodMap
+	extends CustomMethodMap, Omit<DocumentedMethodMap, keyof CustomMethodMap> {}
 
 export type KnownMethods = keyof MethodMap
 
