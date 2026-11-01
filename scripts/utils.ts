@@ -21,10 +21,14 @@ export async function cachedRequest(input: string, init?: RequestInit) {
 	return text
 }
 
-export function generateInterface(obj: any, name: string) {
-	function _generateType(obj: any, indent = ''): string {
+export interface GenerateInterfaceOptions {
+	isOptional?: (path: string[]) => unknown
+}
+
+export function generateInterface(obj: any, name: string, options: GenerateInterfaceOptions = {}) {
+	function _generateType(obj: any, indent = '', path: string[] = []): string {
 		if (Array.isArray(obj)) {
-			if (obj.length) return _generateType(obj[0], indent) + '[]'
+			if (obj.length) return _generateType(obj[0], indent, [...path, '0']) + '[]'
 			return 'unknown[]'
 		}
 		if (obj === null || obj === undefined) return 'unknown'
@@ -32,7 +36,8 @@ export function generateInterface(obj: any, name: string) {
 			return [
 				'{',
 				...Object.entries(obj).map(
-					([k, v]) => `${indent}\t"${k}": ${_generateType(v, indent + '\t')}`,
+					([k, v]) =>
+						`${indent}\t"${k}"${options.isOptional?.([...path, k]) ? '?' : ''}: ${_generateType(v, indent + '\t', [...path, k])}`,
 				),
 				`${indent}}`,
 			].join('\n')

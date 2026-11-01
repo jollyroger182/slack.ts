@@ -70,7 +70,7 @@ for (const { name } of methods) {
 	}
 	console.log('}')
 
-	console.log(generateInterface(example, `${tsName(name)}Response`))
+	console.log(generateInterface(example, `${tsName(name)}Response`, { isOptional: () => true }))
 	console.log()
 
 	typedMethods.add(name)
