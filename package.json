@@ -20,6 +20,7 @@
 		"build": "bun scripts/build.ts",
 		"generate-elements-test": "bun scripts/generate-elements-test.ts > tests/elements.test.ts",
 		"generate-events-test": "bun scripts/generate-events-test.ts > tests/events.test.ts",
+		"generate-methods": "bun scripts/generate-methods.ts > src/types/generated/methods.ts",
 		"prepublishOnly": "bun run build"
 	},
 	"devDependencies": {
