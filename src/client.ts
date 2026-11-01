@@ -37,8 +37,8 @@ export class Client<R extends Receiver = any> extends AsyncEventEmitter<ClientEv
 	 * Creates a new Slack client.
 	 *
 	 * @param token A Slack token. Can be a string that starts with `xoxb-` (bot token), `xoxp-` (user
-	 *   OAuth token), or `xoxd-` (session cookie); or a object like `{ token: 'xoxc-...', cookie:
-	 *   'xoxd-...' }`.
+	 *   OAuth token), `xapp-` (app-level token), or `xoxd-` (session cookie); or a object like `{
+	 *   token: 'xoxc-...', cookie: 'xoxd-...' }`.
 	 * @param config Optional configuration for the client.
 	 */
 	constructor(token: string | { token: string; cookie: string }, config?: ClientConfig<R>) {
@@ -53,8 +53,8 @@ export class Client<R extends Receiver = any> extends AsyncEventEmitter<ClientEv
 			)
 		}
 
-		if (typeof token === 'string' && !/^xox[dpb]\-/.test(token)) {
-			throw new Error('String tokens can only start with xoxb-, xoxp- or xoxd-')
+		if (typeof token === 'string' && !/^(?:xox[dpb]|xapp)\-/.test(token)) {
+			throw new Error('String tokens can only start with xoxb-, xoxp-, xapp-, or xoxd-')
 		}
 
 		this.#token = token
@@ -108,7 +108,11 @@ export class Client<R extends Receiver = any> extends AsyncEventEmitter<ClientEv
 			}))
 		}
 
-		if (this.#token.startsWith('xoxb-') || this.#token.startsWith('xoxp-')) {
+		if (
+			this.#token.startsWith('xoxb-') ||
+			this.#token.startsWith('xoxp-') ||
+			this.#token.startsWith('xapp-')
+		) {
 			return (this.#tokenPromise = Promise.resolve({ token: this.#token }))
 		}
 
@@ -186,8 +190,8 @@ export class Client<R extends Receiver = any> extends AsyncEventEmitter<ClientEv
 	 *
 	 * @param method The request method name.
 	 * @param params The parameters. The `token` parameter will override the token set on the client
-	 *   object; it must be either an `xoxb-` or `xoxp-` token, or a `{ token: 'xoxc-...', cookie:
-	 *   'xoxd-...' }` object. A raw `xoxd-` token is not allowed.
+	 *   object; it must be either an `xoxb-`/`xoxp-`/`xapp-` token, or a `{ token: 'xoxc-...',
+	 *   cookie: 'xoxd-...' }` object. A raw `xoxd-` token is not allowed.
 	 */
 	async request(
 		method: string,
@@ -197,8 +201,8 @@ export class Client<R extends Receiver = any> extends AsyncEventEmitter<ClientEv
 	): Promise<Record<string, unknown> & { ok: true }> {
 		const { token: overrideToken, ...realParams } = params
 
-		if (typeof overrideToken === 'string' && !/^xox[bp]\-/.test(overrideToken)) {
-			throw new Error('String tokens can only start with xoxb- or xoxp-')
+		if (typeof overrideToken === 'string' && !/^(?:xox[bp]|xapp)\-/.test(overrideToken)) {
+			throw new Error('String tokens can only start with xoxb-, xoxp-, or xapp-')
 		}
 
 		if (
