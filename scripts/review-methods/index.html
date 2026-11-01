@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<title>Method Type Review</title>
+		<link rel="stylesheet" href="./style.css" />
+	</head>
+	<body>
+		<aside id="sidebar">
+			<div class="sidebar-head">
+				<div class="title-row">
+					<h1>method review</h1>
+					<span id="save-status" class="save-status"></span>
+				</div>
+				<div class="progress"><div id="progress-bar"></div></div>
+				<div id="progress-text" class="muted small"></div>
+				<input
+					id="search"
+					type="search"
+					placeholder="filter methods, regex  ( / )"
+					autocomplete="off"
+				/>
+				<div id="filters" class="filters"></div>
+			</div>
+			<nav id="method-list"></nav>
+			<div class="sidebar-foot">
+				<button id="args-tab-btn" class="link-btn">type map &amp; param overrides</button>
+				<div id="state-path" class="muted small mono"></div>
+			</div>
+		</aside>
+		<main id="main"></main>
+		<aside id="preview">
+			<div class="preview-head">
+				<span>generated</span>
+				<button id="copy-preview" class="small-btn">copy</button>
+			</div>
+			<pre id="preview-code" class="mono"></pre>
+		</aside>
+		<div id="conflict" hidden>
+			<span>the json file changed on disk since this page loaded it.</span>
+			<button id="conflict-reload">load disk version</button>
+			<button id="conflict-overwrite">overwrite with mine</button>
+		</div>
+		<script type="module" src="./app.ts"></script>
+	</body>
+</html>
