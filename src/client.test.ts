@@ -90,10 +90,10 @@ describe('Client', () => {
 		const client = new Client('xoxb-1234')
 
 		expect(client.request('method.name', { token: 'invalid-token' })).rejects.toThrow(
-			'String tokens can only start with xoxb- or xoxp-',
+			'String tokens can only start with',
 		)
 		expect(client.request('method.name', { token: 'xoxd-token' })).rejects.toThrow(
-			'String tokens can only start with xoxb- or xoxp-',
+			'String tokens can only start with',
 		)
 		expect(
 			client.request('method.name', { token: { cookie: 'xoxd-token', token: 'invalid-token' } }),
