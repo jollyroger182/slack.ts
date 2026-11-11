@@ -2316,6 +2316,168 @@
 				"channels": "import('../objects').Conversation[]"
 			}
 		},
+		"users.deletePhoto": {
+			"reviewed": true
+		},
+		"users.discoverableContacts.lookup": {
+			"reviewed": true,
+			"required": ["is_discoverable"]
+		},
+		"users.getPresence": {
+			"reviewed": true,
+			"required": ["presence"],
+			"types": {
+				"presence": "'active' | 'away'"
+			},
+			"values": {
+				"": {
+					"presence": "active",
+					"online": true,
+					"auto_away": false,
+					"manual_away": false,
+					"connection_count": 1,
+					"last_activity": 1419027078
+				}
+			}
+		},
+		"users.identity": {
+			"reviewed": true,
+			"required": ["user", "user,name", "user,id", "team", "team,id"],
+			"values": {
+				"": {
+					"user": {
+						"name": "Sonny Whether",
+						"id": "U0G9QF9C6",
+						"email": "",
+						"image_24": "",
+						"image_32": "",
+						"image_48": "",
+						"image_72": "",
+						"image_192": "",
+						"image_512": ""
+					},
+					"team": {
+						"id": "T0G9PQBBK",
+						"name": "",
+						"domain": "",
+						"image_34": "",
+						"image_44": "",
+						"image_68": "",
+						"image_88": "",
+						"image_102": "",
+						"image_132": "",
+						"image_230": "",
+						"image_default": false
+					}
+				}
+			}
+		},
+		"users.info": {
+			"reviewed": true,
+			"argsRequired": {
+				"user": true
+			},
+			"required": ["user"],
+			"types": {
+				"user": "import('../objects').User"
+			}
+		},
+		"users.list": {
+			"reviewed": true,
+			"required": ["members"],
+			"types": {
+				"members": "import('../objects').User[]"
+			}
+		},
+		"users.lookupByEmail": {
+			"reviewed": true,
+			"required": ["user"],
+			"types": {
+				"user": "import('../objects').User"
+			}
+		},
+		"users.profile.get": {
+			"reviewed": true,
+			"required": ["profile"],
+			"types": {
+				"profile": "import('../objects').User['profile']"
+			}
+		},
+		"users.profile.set": {
+			"reviewed": true,
+			"args": {
+				"profile": "Partial<import('../objects').User['profile']>"
+			},
+			"required": ["profile"],
+			"types": {
+				"profile": "import('../objects').User['profile']"
+			}
+		},
+		"users.setActive": {
+			"reviewed": true
+		},
+		"users.setPhoto": {
+			"reviewed": true,
+			"args": {
+				"image": "Blob",
+				"crop_x": "number",
+				"crop_y": "number",
+				"crop_w": "number"
+			},
+			"argsRequired": {
+				"image": true
+			}
+		},
+		"users.setPresence": {
+			"reviewed": true,
+			"args": {
+				"presence": "'auto' | 'away'"
+			}
+		},
+		"views.open": {
+			"notes": "override trigger_id | interactivity_pointer",
+			"args": {
+				"view": "import('../views').ModalView",
+				"trigger_id": "string",
+				"interactivity_pointer": "string"
+			},
+			"required": ["view"],
+			"types": {
+				"view": "import('../views').ModalView"
+			}
+		},
+		"views.publish": {
+			"reviewed": true,
+			"args": {
+				"view": "import('../views').HomeView"
+			},
+			"required": ["view"],
+			"types": {
+				"view": "import('../views').HomeView"
+			}
+		},
+		"views.push": {
+			"notes": "override trigger_id | interactivity_pointer",
+			"args": {
+				"interactivity_pointer": "string",
+				"trigger_id": "string",
+				"view": "import('../views').ModalView"
+			},
+			"required": ["view"],
+			"types": {
+				"view": "import('../views').ModalView"
+			}
+		},
+		"views.update": {
+			"notes": "override view_id | external_id",
+			"args": {
+				"view": "import('../views').ModalView"
+			},
+			"required": ["view"],
+			"types": {
+				"view": "import('../views').ModalView"
+			}
+		},
 		"workflows.featured.list": {
 			"args": {
 				"channel_ids": "string[]"
