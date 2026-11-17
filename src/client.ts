@@ -1,8 +1,11 @@
 import type { Receiver } from './receivers/base'
+import { ConversationRef } from './resources/conversation'
+import { MessageRef } from './resources/message'
+import { UserRef } from './resources/user'
 import type { Action, ActionOf, KnownAction } from './types/blocks/elements'
 import type { Event as SlackEvent, EventWrapper, KnownEvent } from './types/events'
 import type { BlockActions, ElementMap } from './types/interactions'
-import type { MethodMap, OptionalParamMethods } from './types/methods'
+import type { MethodMap, OptionalParamMethods, PaginatingMethods } from './types/methods'
 import { AsyncEventEmitter } from './utils/events'
 import { request } from './utils/request'
 import type { KnownKeys } from './utils/types'
@@ -76,6 +79,18 @@ export class Client<R extends Receiver = any> extends AsyncEventEmitter<ClientEv
 
 	stop() {
 		return this.receiver?.stop()
+	}
+
+	conversation(id: string) {
+		return new ConversationRef(this, id)
+	}
+
+	message(conversationId: string, ts: string) {
+		return new MessageRef(this, conversationId, ts)
+	}
+
+	user(id: string) {
+		return new UserRef(this, id)
 	}
 
 	async #onEvent(wrapper: EventWrapper<SlackEvent>) {
@@ -271,6 +286,27 @@ export class Client<R extends Receiver = any> extends AsyncEventEmitter<ClientEv
 		}
 
 		return payload as any
+	}
+
+	async *paginate<M extends PaginatingMethods | (string & {}), T>(
+		method: M,
+		mapper: (
+			response: (M extends keyof MethodMap ? MethodMap[M]['response'] : Record<string, unknown>) & {
+				ok: true
+			},
+		) => T[] | Promise<T[]>,
+		params: (M extends keyof MethodMap ? MethodMap[M]['params'] : Record<string, unknown>) & {
+			token?: string | { token: string; cookie: string }
+		},
+	): AsyncGenerator<T, void> {
+		let cursor: string | undefined
+		while (true) {
+			const resp = await this.request(method, { ...params, cursor } as any)
+			const batch = await mapper(resp)
+			yield* batch
+			cursor = (resp as { response_metadata?: { cursor?: string } }).response_metadata?.cursor
+			if (!batch.length || !cursor) return
+		}
 	}
 }
 

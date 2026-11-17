@@ -1,3 +1,5 @@
+import type { UserRef } from '../resources/user'
+
 /** Check if two types are exactly the same. */
 export type Equals<X, Y> =
 	(<T>() => T extends X ? 1 : 2) extends <T>() => T extends Y ? 1 : 2 ? true : false
@@ -26,3 +28,11 @@ export type StrictOmit<T, K extends keyof T> = Omit<T, K>
 export type Simplify<T> = { [K in keyof T]: T[K] } & {}
 
 export type DistributiveMerge<Union, Type> = Union extends unknown ? Simplify<Union & Type> : never
+
+export type DistributiveOmit<T, K extends keyof T> = T extends unknown ? Omit<T, K> : never
+
+export type UserOf<T> = T extends { user: string }
+	? UserRef
+	: T extends { user?: string }
+		? UserRef | undefined
+		: undefined
