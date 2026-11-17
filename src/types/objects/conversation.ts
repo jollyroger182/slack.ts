@@ -144,8 +144,8 @@ interface BaseNonIMConversation extends BaseConversation {
 	/** The list of workspace IDs in Enterprise Grid that this channel exists in. */
 	internal_team_ids?: string[]
 
-	/** Whether this channel was moved to another workspace in Enterprise Grid. Either `0` or `1`. */
-	is_moved: number
+	/** Whether this channel was moved to another workspace in Enterprise Grid. */
+	is_moved: 0 | 1
 
 	// ignored by client
 	pending_connected_team_ids: string[]
@@ -175,25 +175,19 @@ export interface PublicChannel extends BaseNonIMConversation {
 	is_group: false
 }
 
-export interface PrivateChannel extends BaseNonIMConversation {
+interface BasePrivateChannel extends BaseNonIMConversation {
 	is_mpim: false
 	is_private: true
-	// (is_channel, is_group) = (true, false) | (false, true)
-
-	creator: string
-	name: string
-	name_normalized: string
 }
+
+export type PrivateChannel = BasePrivateChannel &
+	({ is_channel: true; is_group: false } | { is_channel: false; is_group: true })
 
 export interface MPIMChannel extends BaseNonIMConversation {
 	is_mpim: true
 	is_private: true
 	is_channel: true
 	is_group: false
-
-	creator: string
-	name: string
-	name_normalized: string
 }
 
 export type Conversation = PublicChannel | PrivateChannel | IMChannel | MPIMChannel
