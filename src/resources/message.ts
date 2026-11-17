@@ -32,7 +32,7 @@ export class MessageRef {
 			channel: this.conversationId,
 			thread_ts: this.ts,
 		})
-		return new Message(this.client, msg.message)
+		return new Message(this.client, { ...msg.message, channel: this.conversationId })
 	}
 
 	/**

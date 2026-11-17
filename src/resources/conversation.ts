@@ -23,7 +23,7 @@ export class ConversationRef {
 	 */
 	async send(message: DistributiveOmit<Types.MethodMap['chat.postMessage']['params'], 'channel'>) {
 		const msg = await this.client.request('chat.postMessage', { ...message, channel: this.id })
-		return new Message(this.client, msg.message)
+		return new Message(this.client, { ...msg.message, channel: this.id })
 	}
 
 	/**

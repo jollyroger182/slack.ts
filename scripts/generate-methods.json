@@ -1066,7 +1066,7 @@
 			},
 			"required": ["channel", "ts", "message"],
 			"types": {
-				"message": "import('../events').GenericMessageEvent"
+				"message": "Omit<import('../events').GenericMessageEvent, 'channel'>"
 			}
 		},
 		"chat.scheduledMessages.list": {
