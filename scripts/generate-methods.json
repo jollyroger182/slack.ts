@@ -1570,7 +1570,7 @@
 			"reviewed": true,
 			"required": ["messages", "has_more"],
 			"types": {
-				"messages": "import('../events').MessageEvent"
+				"messages": "import('../events').MessageEvent[]"
 			}
 		},
 		"conversations.requestSharedInvite.approve": {
