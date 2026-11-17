@@ -1,4 +1,4 @@
-import { parseHTTPPayload } from '../utils/http'
+import { parseHTTPPayload, RequestParsingError } from '../utils/http'
 import { BaseReceiver, type ReceiverEventMap } from './base'
 
 export interface FetchReceiverOptions {
@@ -48,6 +48,9 @@ export class FetchReceiver extends BaseReceiver {
 				(name) => request.headers.get(name) ?? undefined,
 			)
 		} catch (e) {
+			if (e instanceof RequestParsingError) {
+				return new Response(null, { status: 400 })
+			}
 			console.error('[fetch] Error parsing Slack request', e)
 			return new Response(null, { status: 500 })
 		}

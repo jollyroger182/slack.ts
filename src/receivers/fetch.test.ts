@@ -113,6 +113,6 @@ describe('FetchReceiver', () => {
 
 		const response = await receiver.fetch(request)
 
-		expect(response.status).toBeGreaterThanOrEqual(500)
+		expect(response.status).toBeGreaterThanOrEqual(400)
 	})
 })
