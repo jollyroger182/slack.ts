@@ -1198,7 +1198,7 @@
 			"reviewed": true,
 			"required": ["messages", "has_more", "pin_count"],
 			"types": {
-				"messages": "import('../events').MessageEvent[]",
+				"messages": "DistributiveOmit<import('../events').MessageEvent, 'channel'>[]",
 				"channel_actions_ts": "string | null"
 			},
 			"values": {
@@ -1570,7 +1570,7 @@
 			"reviewed": true,
 			"required": ["messages", "has_more"],
 			"types": {
-				"messages": "import('../events').MessageEvent[]"
+				"messages": "DistributiveOmit<import('../events').MessageEvent, 'channel'>[]"
 			}
 		},
 		"conversations.requestSharedInvite.approve": {
