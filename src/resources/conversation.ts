@@ -52,7 +52,7 @@ export class ConversationRef {
 			...params,
 			channel: this.id,
 		})) {
-			yield new Message(this.client, { ...message, channel: this.id })
+			yield new Message<Types.MessageEvent>(this.client, { ...message, channel: this.id })
 		}
 	}
 

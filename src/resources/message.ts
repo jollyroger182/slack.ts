@@ -67,7 +67,10 @@ export class MessageRef {
 		if (!message) {
 			throw new NotFoundError(`Message ${this.ts} not found in conversation ${this.conversationId}`)
 		}
-		return new Message(this.client, { ...message, channel: this.conversationId })
+		return new Message<Types.MessageEvent>(this.client, {
+			...message,
+			channel: this.conversationId,
+		})
 	}
 }
 
