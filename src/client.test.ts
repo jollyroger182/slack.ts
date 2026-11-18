@@ -14,7 +14,7 @@ import {
 
 import { Client } from './client'
 import { BaseReceiver } from './receivers/base'
-import { Message } from './resources'
+import { ConversationRef, Message, MessageRef, UserRef } from './resources'
 import type { Action } from './types/blocks/elements'
 import type { Event as SlackEvent, EventWrapper, KnownEvent } from './types/events'
 import type { BlockActions } from './types/interactions'
@@ -539,5 +539,24 @@ describe('Client', () => {
 			})
 			expect(result).toBeUndefined()
 		})
+	})
+
+	it('creates ConversationRefs correctly', () => {
+		const ref = client.conversation('C123')
+		expect(ref).toBeInstanceOf(ConversationRef)
+		expect(ref.id).toBe('C123')
+	})
+
+	it('creates MessageRefs correctly', () => {
+		const ref = client.message('C123', '123456789.123456')
+		expect(ref).toBeInstanceOf(MessageRef)
+		expect(ref.conversationId).toBe('C123')
+		expect(ref.ts).toBe('123456789.123456')
+	})
+
+	it('creates UserRefs correctly', () => {
+		const ref = client.user('U123')
+		expect(ref).toBeInstanceOf(UserRef)
+		expect(ref.id).toBe('U123')
 	})
 })
