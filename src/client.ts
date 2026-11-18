@@ -304,7 +304,8 @@ export class Client<R extends Receiver = any> extends AsyncEventEmitter<ClientEv
 			const resp = await this.request(method, { ...params, cursor } as any)
 			const batch = await mapper(resp)
 			yield* batch
-			cursor = (resp as { response_metadata?: { cursor?: string } }).response_metadata?.cursor
+			cursor = (resp as { response_metadata?: { next_cursor?: string } }).response_metadata
+				?.next_cursor
 			if (!batch.length || !cursor) return
 		}
 	}
