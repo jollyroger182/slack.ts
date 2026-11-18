@@ -1,4 +1,4 @@
-import { NotFoundError, type Types } from '..'
+import { APIError, NotFoundError, type Types } from '..'
 import type {
 	Client,
 	SendEphemeralParams,
@@ -47,18 +47,27 @@ export class MessageRef {
 	 * @returns A complete {@link Message} object.
 	 */
 	async fetch() {
-		const resp = await this.client.request('conversations.replies', {
-			channel: this.conversationId,
-			ts: this.ts,
-			oldest: this.ts,
-			latest: this.ts,
-			inclusive: true,
-		})
-		const message = resp.messages[0]!
+		let message
+		try {
+			const resp = await this.client.request('conversations.replies', {
+				channel: this.conversationId,
+				ts: this.ts,
+				oldest: this.ts,
+				latest: this.ts,
+				inclusive: true,
+			})
+			message = resp.messages[0]
+		} catch (e) {
+			if (e instanceof APIError && e.error === 'thread_not_found') {
+				message = undefined
+			} else {
+				throw e
+			}
+		}
 		if (!message) {
 			throw new NotFoundError(`Message ${this.ts} not found in conversation ${this.conversationId}`)
 		}
-		return new Message(this.client, message)
+		return new Message(this.client, { ...message, channel: this.conversationId })
 	}
 }
 
