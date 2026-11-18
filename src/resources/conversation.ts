@@ -43,7 +43,10 @@ export class ConversationRef {
 	 * @yields Messages in the channel.
 	 */
 	async *messages(
-		params: DistributiveOmit<Types.MethodMap['conversations.history']['params'], 'channel'>,
+		params?: DistributiveOmit<
+			Types.MethodMap['conversations.history']['params'],
+			'channel' | 'cursor'
+		>,
 	) {
 		for await (const message of this.client.paginate('conversations.history', (r) => r.messages, {
 			...params,

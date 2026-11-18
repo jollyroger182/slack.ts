@@ -29,7 +29,7 @@ export type Simplify<T> = { [K in keyof T]: T[K] } & {}
 
 export type DistributiveMerge<Union, Type> = Union extends unknown ? Simplify<Union & Type> : never
 
-export type DistributiveOmit<T, K extends keyof T> = T extends unknown ? Omit<T, K> : never
+export type DistributiveOmit<T, K extends keyof any> = T extends unknown ? Omit<T, K> : never
 
 export type UserOf<T> = T extends { user: string }
 	? UserRef

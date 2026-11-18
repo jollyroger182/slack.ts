@@ -297,7 +297,9 @@ export class Client<R extends Receiver = any> extends AsyncEventEmitter<ClientEv
 				ok: true
 			},
 		) => T[] | Promise<T[]>,
-		params: (M extends keyof MethodMap ? MethodMap[M]['params'] : Record<string, unknown>) & {
+		params: (M extends keyof MethodMap
+			? DistributiveOmit<MethodMap[M]['params'], 'cursor'>
+			: Record<string, unknown>) & {
 			token?: string | { token: string; cookie: string }
 		},
 	): AsyncGenerator<T, void> {
