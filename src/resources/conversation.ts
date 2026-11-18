@@ -1,5 +1,12 @@
 import { NotFoundError, type Types } from '..'
-import { APIError, type Client } from '../client'
+import {
+	APIError,
+	type Client,
+	type SendEphemeralParams,
+	type SendParams,
+	type SendWithFileParams,
+	type SendWithoutFileParams,
+} from '../client'
 import type { DistributiveOmit } from '../utils/types'
 import { Message } from './message'
 
@@ -15,15 +22,18 @@ export class ConversationRef {
 		return this.client.message(this.id, ts)
 	}
 
+	async send(params: SendEphemeralParams | SendWithFileParams): Promise<void>
+	async send(params: SendWithoutFileParams): Promise<Message<Types.GenericMessageEvent>>
+	async send(params: SendParams): Promise<Message<Types.GenericMessageEvent> | void>
+
 	/**
 	 * Sends a message in this conversation.
 	 *
-	 * @param message The message to send, parameters for the `chat.postMessage` API method.
-	 * @returns The sent message.
+	 * @param params The message to send. Supports sending files and ephermeral messages as well.
+	 * @returns The sent message, if applicable.
 	 */
-	async send(message: DistributiveOmit<Types.MethodMap['chat.postMessage']['params'], 'channel'>) {
-		const msg = await this.client.request('chat.postMessage', { ...message, channel: this.id })
-		return new Message(this.client, { ...msg.message, channel: this.id })
+	async send(params: SendParams) {
+		return this.client.send(this.id, params)
 	}
 
 	/**

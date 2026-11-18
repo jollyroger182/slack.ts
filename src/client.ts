@@ -1,14 +1,16 @@
+import type { Types } from '.'
 import type { Receiver } from './receivers/base'
 import { ConversationRef } from './resources/conversation'
-import { MessageRef } from './resources/message'
+import { Message, MessageRef } from './resources/message'
 import { UserRef } from './resources/user'
 import type { Action, ActionOf, KnownAction } from './types/blocks/elements'
 import type { Event as SlackEvent, EventWrapper, KnownEvent } from './types/events'
 import type { BlockActions, ElementMap } from './types/interactions'
 import type { MethodMap, OptionalParamMethods, PaginatingMethods } from './types/methods'
 import { AsyncEventEmitter } from './utils/events'
+import { type InputFile, resolveFile } from './utils/file'
 import { request } from './utils/request'
-import type { KnownKeys } from './utils/types'
+import type { DistributiveOmit, KnownKeys } from './utils/types'
 
 function ensureUrlEncoded(text: string) {
 	return encodeURIComponent(decodeURIComponent(text))
@@ -309,7 +311,75 @@ export class Client<R extends Receiver = any> extends AsyncEventEmitter<ClientEv
 			if (!batch.length || !cursor) return
 		}
 	}
+
+	async send(channel: string, params: SendEphemeralParams | SendWithFileParams): Promise<void>
+	async send(
+		channel: string,
+		params: SendWithoutFileParams,
+	): Promise<Message<Types.GenericMessageEvent>>
+	async send(
+		channel: string,
+		params: SendParams,
+	): Promise<Message<Types.GenericMessageEvent> | void>
+	async send(channel: string, params: SendParams): Promise<unknown> {
+		if (params.ephemeral) {
+			const { ephemeral: user, ...realParams } = params
+			await this.request('chat.postEphemeral', { ...realParams, channel, user })
+			return
+		}
+
+		if (params.files) {
+			const files = params.files.map(resolveFile)
+
+			const uploadedFiles = await Promise.all(
+				files.map(async (f) => {
+					const { upload_url, file_id } = await this.request('files.getUploadURLExternal', {
+						filename: f.name,
+						length: f.length,
+						alt_txt: f.alt,
+					})
+
+					const upload = await fetch(upload_url, { method: 'POST', body: f.value })
+					if (!upload.ok) {
+						throw new Error(`Failed to upload file: ${upload.status}`)
+					}
+
+					return { id: file_id, title: f.title }
+				}),
+			)
+
+			await this.request('files.completeUploadExternal', { ...params, files: uploadedFiles })
+			return
+		}
+
+		const resp = await this.request('chat.postMessage', { ...params, channel })
+		return new Message<Types.GenericMessageEvent>(this, { ...resp.message, channel })
+	}
 }
+
+export type SendWithoutFileParams = DistributiveOmit<
+	MethodMap['chat.postMessage']['params'],
+	'channel'
+> & {
+	ephemeral?: never
+	files?: never
+}
+export type SendWithFileParams = DistributiveOmit<
+	MethodMap['files.completeUploadExternal']['params'],
+	'files' | 'channel_id'
+> & {
+	ephemeral?: never
+	files: InputFile[]
+}
+export type SendEphemeralParams = DistributiveOmit<
+	MethodMap['chat.postEphemeral']['params'],
+	'channel' | 'user'
+> & {
+	ephemeral: string
+	files?: never
+}
+
+export type SendParams = SendWithoutFileParams | SendWithFileParams | SendEphemeralParams
 
 type EventArgs<E extends SlackEvent> = [event: E, wrapper: EventWrapper<E>]
 type ActionArgs<A extends Action> = [action: A, wrapper: BlockActions<KnownAction>]

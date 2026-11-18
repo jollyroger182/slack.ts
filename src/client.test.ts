@@ -14,6 +14,7 @@ import {
 
 import { Client } from './client'
 import { BaseReceiver } from './receivers/base'
+import { Message } from './resources'
 import type { Action } from './types/blocks/elements'
 import type { Event as SlackEvent, EventWrapper, KnownEvent } from './types/events'
 import type { BlockActions } from './types/interactions'
@@ -437,6 +438,106 @@ describe('Client', () => {
 			expect(typeListener).toBeCalledWith(action, actions)
 			expect(idListener).toBeCalledTimes(1)
 			expect(idListener).toBeCalledWith(action, actions)
+		})
+	})
+
+	describe('high level features', () => {
+		let requestSpy: Mock<Client['request']>
+
+		beforeEach(() => {
+			requestSpy = spyOn(client, 'request')
+		})
+
+		it('paginates', async () => {
+			requestSpy.mockResolvedValueOnce({
+				ok: true,
+				messages: [{ ts: '123456789.123456' }],
+				response_metadata: { next_cursor: 'cursor_123' },
+			})
+			requestSpy.mockResolvedValueOnce({
+				ok: true,
+				messages: [{ ts: '222222222.123456' }],
+				response_metadata: { next_cursor: '' },
+			})
+
+			const msgs = await Array.fromAsync(
+				client.paginate('conversations.history', (r) => r.messages, { channel: 'C123' }),
+			)
+
+			expect(requestSpy).toBeCalledTimes(2)
+			expect(requestSpy).toHaveBeenNthCalledWith(1, 'conversations.history', { channel: 'C123' })
+			expect(requestSpy).toHaveBeenNthCalledWith(2, 'conversations.history', {
+				channel: 'C123',
+				cursor: 'cursor_123',
+			})
+			expect(msgs).toEqual([{ ts: '123456789.123456' }, { ts: '222222222.123456' }] as never)
+		})
+
+		it('sends a normal message', async () => {
+			requestSpy.mockResolvedValueOnce({
+				ok: true,
+				channel: 'C123',
+				message: { ts: '123456789.123456', text: 'hello world' },
+			})
+
+			const msg = await client.send('C123', { text: 'hello world' })
+
+			expect(requestSpy).toBeCalledTimes(1)
+			expect(requestSpy).toBeCalledWith('chat.postMessage', {
+				channel: 'C123',
+				text: 'hello world',
+			})
+			expect(msg).toBeInstanceOf(Message)
+			expect(msg.conversationId).toBe('C123')
+			expect(msg.ts).toBe('123456789.123456')
+			expect(msg.data.text).toBe('hello world')
+		})
+
+		it('uploads files', async () => {
+			requestSpy.mockResolvedValueOnce({
+				ok: true,
+				file_id: 'F123',
+				upload_url: 'https://example.invalid/1234',
+			})
+			requestSpy.mockResolvedValueOnce({ ok: true, files: [{ id: 'F123' } as any] })
+			fetchSpy.mockResolvedValueOnce(new Response())
+
+			const file = new File(['upload test'], 'file.txt')
+
+			const result = await client.send('C123', {
+				initial_comment: 'hello world',
+				files: [file],
+			})
+
+			expect(requestSpy).toBeCalledTimes(2)
+			expect(fetchSpy).toBeCalledTimes(1)
+			expect(requestSpy).toHaveBeenNthCalledWith(1, 'files.getUploadURLExternal', {
+				filename: 'file.txt',
+				length: file.size,
+			})
+			expect(fetchSpy).toBeCalledWith('https://example.invalid/1234', {
+				method: 'POST',
+				body: file,
+			})
+			expect(requestSpy).toHaveBeenNthCalledWith(2, 'files.completeUploadExternal', {
+				files: [{ id: 'F123' }],
+				initial_comment: 'hello world',
+			})
+			expect(result).toBeUndefined()
+		})
+
+		it('sends ephemeral messages', async () => {
+			requestSpy.mockResolvedValueOnce({ ok: true, message_ts: '123456789.123456' })
+
+			const result = await client.send('C123', { text: 'hello world', ephemeral: 'U123' })
+
+			expect(requestSpy).toBeCalledTimes(1)
+			expect(requestSpy).toBeCalledWith('chat.postEphemeral', {
+				channel: 'C123',
+				text: 'hello world',
+				user: 'U123',
+			})
+			expect(result).toBeUndefined()
 		})
 	})
 })

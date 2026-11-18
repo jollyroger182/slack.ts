@@ -1,5 +1,11 @@
 import { NotFoundError, type Types } from '..'
-import type { Client } from '../client'
+import type {
+	Client,
+	SendEphemeralParams,
+	SendParams,
+	SendWithFileParams,
+	SendWithoutFileParams,
+} from '../client'
 import type { DistributiveOmit, UserOf } from '../utils/types'
 
 /** Reference to a message with a given `conversationId` and `ts`. */
@@ -15,24 +21,24 @@ export class MessageRef {
 		return this.client.conversation(this.conversationId)
 	}
 
+	async reply(
+		params: DistributiveOmit<SendEphemeralParams | SendWithFileParams, 'thread_ts'>,
+	): Promise<void>
+	async reply(
+		params: DistributiveOmit<SendWithoutFileParams, 'thread_ts'>,
+	): Promise<Message<Types.GenericMessageEvent>>
+	async reply(
+		params: DistributiveOmit<SendParams, 'thread_ts'>,
+	): Promise<Message<Types.GenericMessageEvent> | void>
+
 	/**
 	 * Sends a reply to this message in the thread.
 	 *
-	 * @param message The message to send, parameters for the `chat.postMessage` API method.
-	 * @returns The sent message.
+	 * @param message The message to send. Supports sending files and ephermeral messages as well.
+	 * @returns The sent message, if applicable.
 	 */
-	async reply(
-		message: DistributiveOmit<
-			Types.MethodMap['chat.postMessage']['params'],
-			'channel' | 'thread_ts'
-		>,
-	) {
-		const msg = await this.client.request('chat.postMessage', {
-			...message,
-			channel: this.conversationId,
-			thread_ts: this.ts,
-		})
-		return new Message(this.client, { ...msg.message, channel: this.conversationId })
+	async reply(params: DistributiveOmit<SendParams, 'thread_ts'>) {
+		return this.client.send(this.conversationId, { ...params, thread_ts: this.ts })
 	}
 
 	/**
