@@ -318,7 +318,7 @@ export class Client<R extends Receiver = any> extends AsyncEventEmitter<ClientEv
 			yield* batch
 			cursor = (resp as { response_metadata?: { next_cursor?: string } }).response_metadata
 				?.next_cursor
-			if (!batch.length || !cursor) return
+			if (!cursor) return
 		}
 	}
 

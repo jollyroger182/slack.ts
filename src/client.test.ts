@@ -473,6 +473,26 @@ describe('Client', () => {
 			expect(msgs).toEqual([{ ts: '123456789.123456' }, { ts: '222222222.123456' }] as never)
 		})
 
+		it("doesn't stop pagination on an empty page", async () => {
+			requestSpy.mockResolvedValueOnce({
+				ok: true,
+				messages: [],
+				response_metadata: { next_cursor: 'cursor_123' },
+			})
+			requestSpy.mockResolvedValueOnce({
+				ok: true,
+				messages: [{ ts: '222222222.123456' }],
+				response_metadata: { next_cursor: '' },
+			})
+
+			const msgs = await Array.fromAsync(
+				client.paginate('conversations.history', (r) => r.messages, { channel: 'C123' }),
+			)
+
+			expect(requestSpy).toBeCalledTimes(2)
+			expect(msgs).toEqual([{ ts: '222222222.123456' }] as never)
+		})
+
 		it('sends a normal message', async () => {
 			requestSpy.mockResolvedValueOnce({
 				ok: true,
