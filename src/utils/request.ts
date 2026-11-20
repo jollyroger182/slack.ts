@@ -51,7 +51,9 @@ async function _request(url: string | URL, options: RequestOptions & { retry: nu
 
 	if (response.status === 429) {
 		if (retry >= retries) {
-			throw new RequestError(`Failed to fetch ${url} after ${retries} tries`, requestOptions)
+			const { headers: _, ...storedOptions } = requestOptions
+
+			throw new RequestError(`Failed to fetch ${url} after ${retries} tries`, storedOptions)
 		}
 
 		const retryAfterHeader = Number(response.headers.get('Retry-After'))

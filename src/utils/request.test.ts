@@ -11,7 +11,7 @@ import {
 	spyOn,
 } from 'bun:test'
 
-import { request } from './request'
+import { request, RequestError } from './request'
 import * as time from './time'
 
 describe('request', () => {
@@ -144,5 +144,29 @@ describe('request', () => {
 		expect(delaySpy).toHaveBeenNthCalledWith(1, 1000)
 		expect(delaySpy).toHaveBeenNthCalledWith(2, 2000)
 		expect(delaySpy).toHaveBeenNthCalledWith(3, 4000)
+	})
+
+	it("doesn't expose the token in an error", async () => {
+		const mockResponse = new Response('{"ok":false,"error":"rate_limit_exceeded"}', {
+			status: 429,
+			headers: { 'Content-Type': 'application/json' },
+		})
+		fetchSpy.mockResolvedValue(mockResponse)
+
+		randomSpy.mockReturnValue(0)
+
+		try {
+			await request('https://slack.com/api/auth.test', {
+				headers: { cookie: 'd=xoxd-1234', authorization: 'Bearer xoxc-1234' },
+			})
+		} catch (e) {
+			expect(e).toBeInstanceOf(RequestError)
+			const re = e as RequestError
+			expect(JSON.stringify(re.options)).not.toInclude('xoxd-1234')
+			expect(JSON.stringify(re.options)).not.toInclude('xoxc-1234')
+			return
+		}
+
+		expect('').toBe('Should have thrown an error')
 	})
 })
