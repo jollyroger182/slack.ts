@@ -521,6 +521,7 @@ describe('Client', () => {
 			})
 			expect(requestSpy).toHaveBeenNthCalledWith(2, 'files.completeUploadExternal', {
 				files: [{ id: 'F123' }],
+				channel_id: 'C123',
 				initial_comment: 'hello world',
 			})
 			expect(result).toBeUndefined()

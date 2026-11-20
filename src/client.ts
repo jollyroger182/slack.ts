@@ -350,7 +350,11 @@ export class Client<R extends Receiver = any> extends AsyncEventEmitter<ClientEv
 				}),
 			)
 
-			await this.request('files.completeUploadExternal', { ...params, files: uploadedFiles })
+			await this.request('files.completeUploadExternal', {
+				...params,
+				channel_id: channel,
+				files: uploadedFiles,
+			})
 			return
 		}
 
