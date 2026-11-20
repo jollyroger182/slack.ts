@@ -7,10 +7,10 @@ import type { View } from './views'
  * `action_id` to an element type.
  *
  * @example
- * 	import type { ButtonElement } from 'slack.ts'
+ * 	import type { Types } from 'slack.ts'
  * 	declare module 'slack.ts' {
  * 		interface ElementMap {
- * 			confirm: ButtonElement
+ * 			confirm: Types.ButtonElement
  * 		}
  * 	}
  */
