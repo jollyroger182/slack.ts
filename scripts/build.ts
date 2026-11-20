@@ -1,4 +1,6 @@
+import { existsSync } from 'node:fs'
 import { rm } from 'node:fs/promises'
+import { dirname, join } from 'node:path'
 
 import { $, build, Glob } from 'bun'
 
@@ -41,3 +43,17 @@ await build({
 process.chdir('..')
 
 await $`tsc -p tsconfig.build.json`
+
+// this is needed for `nodenext` consumers because node hates extensionless relative imports
+// thanks claude
+for await (const file of new Glob('**/*.d.ts').scan('./dist')) {
+	const path = join('./dist', file)
+	const text = await Bun.file(path).text()
+	const fixed = text.replace(/(from |import\()(['"])(\.\.?(?:\/[^'"]*)?)\2/g, (m, pre, q, spec) => {
+		const target = join(dirname(path), spec)
+		if (existsSync(`${target}.d.ts`)) return `${pre}${q}${spec}.js${q}`
+		if (existsSync(join(target, 'index.d.ts'))) return `${pre}${q}${spec}/index.js${q}`
+		return m
+	})
+	if (fixed !== text) await Bun.write(path, fixed)
+}

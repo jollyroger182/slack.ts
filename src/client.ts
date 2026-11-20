@@ -113,7 +113,7 @@ export class Client<R extends Receiver = any> extends AsyncEventEmitter<ClientEv
 				actions.actions.flatMap((a) => [
 					this.emit('action', a, actions),
 					this.emit(`action:${a.type}`, a as never, actions),
-					this.emit(`action.${a.action_id}`, a as never, actions),
+					this.emit(`action.${a.action_id}` as `action.${KnownActionID}`, a as never, actions),
 				]),
 			)
 		} catch (e) {
