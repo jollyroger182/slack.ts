@@ -36,7 +36,7 @@ export class Client<R extends Receiver = any> extends AsyncEventEmitter<ClientEv
 
 	private team?: string
 
-	receiver?: R
+	readonly receiver?: R
 
 	/**
 	 * Creates a new Slack client.
@@ -97,20 +97,28 @@ export class Client<R extends Receiver = any> extends AsyncEventEmitter<ClientEv
 
 	async #onEvent(wrapper: EventWrapper<SlackEvent>) {
 		const event = wrapper.event as KnownEvent
-		await Promise.all([
-			this.emit('event', event, wrapper as EventWrapper<KnownEvent>),
-			this.emit(`event:${event.type}`, event as never, wrapper as never),
-		])
+		try {
+			await Promise.all([
+				this.emit('event', event, wrapper as EventWrapper<KnownEvent>),
+				this.emit(`event:${event.type}`, event as never, wrapper as never),
+			])
+		} catch (e) {
+			console.error('[client] Error in event handler', e)
+		}
 	}
 
 	async #onActions(actions: BlockActions<KnownAction>) {
-		await Promise.all(
-			actions.actions.flatMap((a) => [
-				this.emit('action', a, actions),
-				this.emit(`action:${a.type}`, a as never, actions),
-				this.emit(`action.${a.action_id}`, a as never, actions),
-			]),
-		)
+		try {
+			await Promise.all(
+				actions.actions.flatMap((a) => [
+					this.emit('action', a, actions),
+					this.emit(`action:${a.type}`, a as never, actions),
+					this.emit(`action.${a.action_id}`, a as never, actions),
+				]),
+			)
+		} catch (e) {
+			console.error('[client] Error in action handler', e)
+		}
 	}
 
 	#tokenPromise?: Promise<{ token: string; cookie?: string }>

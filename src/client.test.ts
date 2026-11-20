@@ -560,4 +560,26 @@ describe('Client', () => {
 		expect(ref).toBeInstanceOf(UserRef)
 		expect(ref.id).toBe('U123')
 	})
+
+	it("a throwing event/action handler doesn't reject `receiver.emit` and logs error", async () => {
+		const errorSpy = spyOn(console, 'error').mockImplementation(() => {})
+
+		const receiver = new DummyReceiver()
+
+		client = new Client('xoxb-1234', { receiver })
+
+		client.on('action', async () => {
+			throw new Error('Test error')
+		})
+		client.on('event', async () => {
+			throw new Error('Test error')
+		})
+
+		await receiver.emit('actions', { actions: [{}] } as never)
+		await receiver.emit('event', { event: { type: 'test' } } as never)
+
+		expect(errorSpy).toHaveBeenCalledTimes(2)
+
+		errorSpy.mockRestore()
+	})
 })
