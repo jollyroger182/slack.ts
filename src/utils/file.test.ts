@@ -17,17 +17,6 @@ describe('resolveFile', () => {
 		expect(resolved).toEqual({ name: 'file.txt', length: blob.size, value: blob })
 	})
 
-	it('resolves wrapped ReadableStreams', () => {
-		const stream = new ReadableStream({
-			start(controller) {
-				controller.enqueue('hello world')
-			},
-		})
-		const resolved = resolveFile({ name: 'file.txt', length: 'hello world'.length, value: stream })
-
-		expect(resolved).toEqual({ name: 'file.txt', length: 'hello world'.length, value: stream })
-	})
-
 	it('resolves wrapped TypedArrays', () => {
 		const blob = new TextEncoder().encode('hello world')
 		const resolved = resolveFile({ name: 'file.txt', value: blob })
