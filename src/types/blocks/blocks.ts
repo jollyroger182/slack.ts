@@ -21,6 +21,9 @@ import type {
 	VideoBlock as SlackVideoBlock,
 } from '@slack/types'
 
+import type { StrictOmit } from '../../utils/types'
+import type { KnownElement } from './elements'
+
 export interface Block<Type extends string = string> {
 	type: Type
 
@@ -79,8 +82,17 @@ export interface PlanBlock extends SlackPlanBlock {}
 /** {@inheritDoc @slack/types#RichTextBlock} */
 export interface RichTextBlock extends SlackRichTextBlock {}
 
+/** {@inheritDoc @slack/types#SectionBlockAccessory} */
+export type SectionBlockAccessory = Extract<
+	KnownElement,
+	{ type: (SlackSectionBlock['accessory'] & {})['type'] }
+>
+
 /** {@inheritDoc @slack/types#SectionBlock} */
-export interface SectionBlock extends SlackSectionBlock {}
+export interface SectionBlock extends StrictOmit<SlackSectionBlock, 'accessory'> {
+	/** {@inheritDoc @slack/types#SectionBlock.accessory} */
+	accessory?: SectionBlockAccessory
+}
 
 /** {@inheritDoc @slack/types#TableBlock} */
 export interface TableBlock extends SlackTableBlock {}

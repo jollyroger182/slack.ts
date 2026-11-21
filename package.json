@@ -17,6 +17,21 @@
 		"./types": {
 			"bun": "./src/types/index.ts",
 			"types": "./dist/types/index.d.ts"
+		},
+		"./jsx": {
+			"bun": "./src/jsx/index.ts",
+			"types": "./dist/jsx/index.d.ts",
+			"default": "./dist/jsx/index.js"
+		},
+		"./jsx-runtime": {
+			"bun": "./src/jsx-runtime/index.ts",
+			"types": "./dist/jsx-runtime/index.d.ts",
+			"default": "./dist/jsx-runtime/index.js"
+		},
+		"./jsx-dev-runtime": {
+			"bun": "./src/jsx-dev-runtime/index.ts",
+			"types": "./dist/jsx-dev-runtime/index.d.ts",
+			"default": "./dist/jsx-dev-runtime/index.js"
 		}
 	},
 	"scripts": {

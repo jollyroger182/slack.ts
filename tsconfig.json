@@ -6,11 +6,13 @@
 		"module": "Preserve",
 		"moduleDetection": "force",
 		"jsx": "react-jsx",
+		"jsxImportSource": "slack.ts",
 		"allowJs": true,
 		"types": ["bun"],
 
 		// Bundler mode
 		"moduleResolution": "bundler",
+		"customConditions": ["bun"],
 		"allowImportingTsExtensions": true,
 		"verbatimModuleSyntax": true,
 		"noEmit": true,
