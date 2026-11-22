@@ -21,10 +21,8 @@ export interface CheckboxOptionObject extends Omit<
 	description?: PlainTextObject | MrkdwnObject
 }
 
-/** {@inheritDoc @slack/types#MrkdwnOption} */
 export interface MrkdwnOptionObject extends MrkdwnOption {}
 
-/** {@inheritDoc @slack/types#PlainTextOption} */
 export interface PlainTextOptionObject extends PlainTextOption {}
 
 /** {@inheritDoc @slack/types#ConfirmationDialog} */

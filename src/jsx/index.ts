@@ -9,13 +9,21 @@ import type {
 } from '../types'
 import { ensureChildren } from '../utils/jsx'
 
-type MrkdwnableProps = {
+interface MrkdwnableProps {
+	/** @inheritDoc @slack/types#MrkdwnElement.verbatim */
 	verbatim?: boolean
+
+	/**
+	 * When set to `true`, the text will not be treated as `mrkdwn` (the default) and will be rendered
+	 * as plain text. Any formatting will result in an error.
+	 */
 	plain?: boolean
+
+	/** @inheritDoc @slack/types#PlainTextElement.emoji */
 	emoji?: boolean
 }
 
-function makeComponent<Props extends Record<string, unknown> = {}>(
+function makeComponent<Props extends object = {}>(
 	fn: (props: Props & { children: any[] }) => any,
 ): (props: Props & { children?: any }) => any {
 	return (props) => fn({ ...props, children: ensureChildren(props.children) })

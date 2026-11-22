@@ -1,3 +1,5 @@
+/** Block kit blocks, as documented on https://docs.slack.dev/reference/block-kit/blocks. */
+
 import type {
 	ActionsBlock as SlackActionsBlock,
 	AlertBlock as SlackAlertBlock,

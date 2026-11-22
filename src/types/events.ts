@@ -117,118 +117,80 @@ export interface Event<Type extends string = string> {
 	event_ts?: string
 }
 
-/** {@inheritDoc @slack/types#AgentSessionStoppedEvent} */
 export interface AgentSessionStoppedEvent extends SlackAgentSessionStoppedEvent {}
 
-/** {@inheritDoc @slack/types#AgentSessionTitleChangedEvent} */
 export interface AgentSessionTitleChangedEvent extends SlackAgentSessionTitleChangedEvent {}
 
-/** {@inheritDoc @slack/types#AppContextChangedEvent} */
 export interface AppContextChangedEvent extends SlackAppContextChangedEvent {}
 
-/** {@inheritDoc @slack/types#AppDeletedEvent} */
 export interface AppDeletedEvent extends SlackAppDeletedEvent {}
 
-/** {@inheritDoc @slack/types#AppHomeOpenedEvent} */
 export interface AppHomeOpenedEvent extends SlackAppHomeOpenedEvent {}
 
-/** {@inheritDoc @slack/types#AppInstalledEvent} */
 export interface AppInstalledEvent extends SlackAppInstalledEvent {}
 
-/** {@inheritDoc @slack/types#AppMentionEvent} */
 export interface AppMentionEvent extends SlackAppMentionEvent {}
 
-/** {@inheritDoc @slack/types#AppRateLimitedEvent} */
 export interface AppRateLimitedEvent extends SlackAppRateLimitedEvent {}
 
-/** {@inheritDoc @slack/types#AppRequestedEvent} */
 export interface AppRequestedEvent extends SlackAppRequestedEvent {}
 
-/** {@inheritDoc @slack/types#AppUninstalledEvent} */
 export interface AppUninstalledEvent extends SlackAppUninstalledEvent {}
 
-/** {@inheritDoc @slack/types#AppUninstalledTeamEvent} */
 export interface AppUninstalledTeamEvent extends SlackAppUninstalledTeamEvent {}
 
-/** {@inheritDoc @slack/types#AssistantThreadContextChangedEvent} */
 export interface AssistantThreadContextChangedEvent extends SlackAssistantThreadContextChangedEvent {}
 
-/** {@inheritDoc @slack/types#AssistantThreadStartedEvent} */
 export interface AssistantThreadStartedEvent extends SlackAssistantThreadStartedEvent {}
 
-/** {@inheritDoc @slack/types#BotMessageEvent} */
 export interface BotMessageEvent extends SlackBotMessageEvent {}
 
-/** {@inheritDoc @slack/types#CallRejectedEvent} */
 export interface CallRejectedEvent extends SlackCallRejectedEvent {}
 
-/** {@inheritDoc @slack/types#ChannelArchiveEvent} */
 export interface ChannelArchiveEvent extends SlackChannelArchiveEvent {}
 
-/** {@inheritDoc @slack/types#ChannelArchiveMessageEvent} */
 export interface ChannelArchiveMessageEvent extends SlackChannelArchiveMessageEvent {}
 
-/** {@inheritDoc @slack/types#ChannelCreatedEvent} */
 export interface ChannelCreatedEvent extends SlackChannelCreatedEvent {}
 
-/** {@inheritDoc @slack/types#ChannelDeletedEvent} */
 export interface ChannelDeletedEvent extends SlackChannelDeletedEvent {}
 
-/** {@inheritDoc @slack/types#ChannelHistoryChangedEvent} */
 export interface ChannelHistoryChangedEvent extends SlackChannelHistoryChangedEvent {}
 
-/** {@inheritDoc @slack/types#ChannelIDChangedEvent} */
 export interface ChannelIDChangedEvent extends SlackChannelIDChangedEvent {}
 
-/** {@inheritDoc @slack/types#ChannelJoinMessageEvent} */
 export interface ChannelJoinMessageEvent extends SlackChannelJoinMessageEvent {}
 
-/** {@inheritDoc @slack/types#ChannelLeaveMessageEvent} */
 export interface ChannelLeaveMessageEvent extends SlackChannelLeaveMessageEvent {}
 
-/** {@inheritDoc @slack/types#ChannelLeftEvent} */
 export interface ChannelLeftEvent extends SlackChannelLeftEvent {}
 
-/** {@inheritDoc @slack/types#ChannelNameMessageEvent} */
 export interface ChannelNameMessageEvent extends SlackChannelNameMessageEvent {}
 
-/** {@inheritDoc @slack/types#ChannelPostingPermissionsMessageEvent} */
 export interface ChannelPostingPermissionsMessageEvent extends SlackChannelPostingPermissionsMessageEvent {}
 
-/** {@inheritDoc @slack/types#ChannelPurposeMessageEvent} */
 export interface ChannelPurposeMessageEvent extends SlackChannelPurposeMessageEvent {}
 
-/** {@inheritDoc @slack/types#ChannelRenameEvent} */
 export interface ChannelRenameEvent extends SlackChannelRenameEvent {}
 
-/** {@inheritDoc @slack/types#ChannelSharedEvent} */
 export interface ChannelSharedEvent extends SlackChannelSharedEvent {}
 
-/** {@inheritDoc @slack/types#ChannelTopicMessageEvent} */
 export interface ChannelTopicMessageEvent extends SlackChannelTopicMessageEvent {}
 
-/** {@inheritDoc @slack/types#ChannelUnarchiveEvent} */
 export interface ChannelUnarchiveEvent extends SlackChannelUnarchiveEvent {}
 
-/** {@inheritDoc @slack/types#ChannelUnarchiveMessageEvent} */
 export interface ChannelUnarchiveMessageEvent extends SlackChannelUnarchiveMessageEvent {}
 
-/** {@inheritDoc @slack/types#ChannelUnsharedEvent} */
 export interface ChannelUnsharedEvent extends SlackChannelUnsharedEvent {}
 
-/** {@inheritDoc @slack/types#DNDUpdatedEvent} */
 export interface DNDUpdatedEvent extends SlackDNDUpdatedEvent {}
 
-/** {@inheritDoc @slack/types#DNDUpdatedUserEvent} */
 export interface DNDUpdatedUserEvent extends SlackDNDUpdatedUserEvent {}
 
-/** {@inheritDoc @slack/types#EKMAccessDeniedMessageEvent} */
 export interface EKMAccessDeniedMessageEvent extends SlackEKMAccessDeniedMessageEvent {}
 
-/** {@inheritDoc @slack/types#EmailDomainChangedEvent} */
 export interface EmailDomainChangedEvent extends SlackEmailDomainChangedEvent {}
 
-/** {@inheritDoc @slack/types#EmojiChangedEvent} */
 export interface EmojiChangedEvent extends SlackEmojiChangedEvent {}
 
 /** A Work Object's comments are being loaded. */
@@ -248,181 +210,122 @@ export interface EntityDetailsRequestedEvent extends Extract<
 	{ type: 'entity_details_requested' }
 > {}
 
-/** {@inheritDoc @slack/types#FileChangeEvent} */
 export interface FileChangeEvent extends SlackFileChangeEvent {}
 
-/** {@inheritDoc @slack/types#FileCommentDeletedEvent} */
 export interface FileCommentDeletedEvent extends SlackFileCommentDeletedEvent {}
 
-/** {@inheritDoc @slack/types#FileCreatedEvent} */
 export interface FileCreatedEvent extends SlackFileCreatedEvent {}
 
-/** {@inheritDoc @slack/types#FileDeletedEvent} */
 export interface FileDeletedEvent extends SlackFileDeletedEvent {}
 
-/** {@inheritDoc @slack/types#FilePublicEvent} */
 export interface FilePublicEvent extends SlackFilePublicEvent {}
 
-/** {@inheritDoc @slack/types#FileSharedEvent} */
 export interface FileSharedEvent extends SlackFileSharedEvent {}
 
-/** {@inheritDoc @slack/types#FileShareMessageEvent} */
 export interface FileShareMessageEvent extends SlackFileShareMessageEvent {}
 
-/** {@inheritDoc @slack/types#FileUnsharedEvent} */
 export interface FileUnsharedEvent extends SlackFileUnsharedEvent {}
 
-/** {@inheritDoc @slack/types#FunctionExecutedEvent} */
 export interface FunctionExecutedEvent extends SlackFunctionExecutedEvent {}
 
-/** {@inheritDoc @slack/types#GenericMessageEvent} */
 export interface GenericMessageEvent extends SlackGenericMessageEvent {}
 
-/** {@inheritDoc @slack/types#GridMigrationFinishedEvent} */
 export interface GridMigrationFinishedEvent extends SlackGridMigrationFinishedEvent {}
 
-/** {@inheritDoc @slack/types#GridMigrationStartedEvent} */
 export interface GridMigrationStartedEvent extends SlackGridMigrationStartedEvent {}
 
-/** {@inheritDoc @slack/types#GroupArchiveEvent} */
 export interface GroupArchiveEvent extends SlackGroupArchiveEvent {}
 
-/** {@inheritDoc @slack/types#GroupCloseEvent} */
 export interface GroupCloseEvent extends SlackGroupCloseEvent {}
 
-/** {@inheritDoc @slack/types#GroupDeletedEvent} */
 export interface GroupDeletedEvent extends SlackGroupDeletedEvent {}
 
-/** {@inheritDoc @slack/types#GroupHistoryChangedEvent} */
 export interface GroupHistoryChangedEvent extends SlackGroupHistoryChangedEvent {}
 
-/** {@inheritDoc @slack/types#GroupLeftEvent} */
 export interface GroupLeftEvent extends SlackGroupLeftEvent {}
 
-/** {@inheritDoc @slack/types#GroupOpenEvent} */
 export interface GroupOpenEvent extends SlackGroupOpenEvent {}
 
-/** {@inheritDoc @slack/types#GroupRenameEvent} */
 export interface GroupRenameEvent extends SlackGroupRenameEvent {}
 
-/** {@inheritDoc @slack/types#GroupUnarchiveEvent} */
 export interface GroupUnarchiveEvent extends SlackGroupUnarchiveEvent {}
 
-/** {@inheritDoc @slack/types#IMCloseEvent} */
 export interface IMCloseEvent extends SlackIMCloseEvent {}
 
-/** {@inheritDoc @slack/types#IMCreatedEvent} */
 export interface IMCreatedEvent extends SlackIMCreatedEvent {}
 
-/** {@inheritDoc @slack/types#IMHistoryChangedEvent} */
 export interface IMHistoryChangedEvent extends SlackIMHistoryChangedEvent {}
 
-/** {@inheritDoc @slack/types#IMOpenEvent} */
 export interface IMOpenEvent extends SlackIMOpenEvent {}
 
-/** {@inheritDoc @slack/types#InviteRequestedEvent} */
 export interface InviteRequestedEvent extends SlackInviteRequestedEvent {}
 
-/** {@inheritDoc @slack/types#LinkSharedEvent} */
 export interface LinkSharedEvent extends SlackLinkSharedEvent {}
 
-/** {@inheritDoc @slack/types#MemberJoinedChannelEvent} */
 export interface MemberJoinedChannelEvent extends SlackMemberJoinedChannelEvent {}
 
-/** {@inheritDoc @slack/types#MemberLeftChannelEvent} */
 export interface MemberLeftChannelEvent extends SlackMemberLeftChannelEvent {}
 
-/** {@inheritDoc @slack/types#MeMessageEvent} */
 export interface MeMessageEvent extends SlackMeMessageEvent {}
 
-/** {@inheritDoc @slack/types#MessageChangedEvent} */
 export interface MessageChangedEvent extends SlackMessageChangedEvent {}
 
-/** {@inheritDoc @slack/types#MessageDeletedEvent} */
 export interface MessageDeletedEvent extends SlackMessageDeletedEvent {}
 
-/** {@inheritDoc @slack/types#MessageMetadataDeletedEvent} */
 export interface MessageMetadataDeletedEvent extends SlackMessageMetadataDeletedEvent {}
 
-/** {@inheritDoc @slack/types#MessageMetadataPostedEvent} */
 export interface MessageMetadataPostedEvent extends SlackMessageMetadataPostedEvent {}
 
-/** {@inheritDoc @slack/types#MessageMetadataUpdatedEvent} */
 export interface MessageMetadataUpdatedEvent extends SlackMessageMetadataUpdatedEvent {}
 
-/** {@inheritDoc @slack/types#MessageRepliedEvent} */
 export interface MessageRepliedEvent extends SlackMessageRepliedEvent {}
 
-/** {@inheritDoc @slack/types#PinAddedEvent} */
 export interface PinAddedEvent extends SlackPinAddedEvent {}
 
-/** {@inheritDoc @slack/types#PinRemovedEvent} */
 export interface PinRemovedEvent extends SlackPinRemovedEvent {}
 
-/** {@inheritDoc @slack/types#ReactionAddedEvent} */
 export interface ReactionAddedEvent extends SlackReactionAddedEvent {}
 
-/** {@inheritDoc @slack/types#ReactionRemovedEvent} */
 export interface ReactionRemovedEvent extends SlackReactionRemovedEvent {}
 
-/** {@inheritDoc @slack/types#SharedChannelInviteAcceptedEvent} */
 export interface SharedChannelInviteAcceptedEvent extends SlackSharedChannelInviteAcceptedEvent {}
 
-/** {@inheritDoc @slack/types#SharedChannelInviteApprovedEvent} */
 export interface SharedChannelInviteApprovedEvent extends SlackSharedChannelInviteApprovedEvent {}
 
-/** {@inheritDoc @slack/types#SharedChannelInviteDeclinedEvent} */
 export interface SharedChannelInviteDeclinedEvent extends SlackSharedChannelInviteDeclinedEvent {}
 
-/** {@inheritDoc @slack/types#SharedChannelInviteReceivedEvent} */
 export interface SharedChannelInviteReceivedEvent extends SlackSharedChannelInviteReceivedEvent {}
 
-/** {@inheritDoc @slack/types#SharedChannelInviteRequestedEvent} */
 export interface SharedChannelInviteRequestedEvent extends SlackSharedChannelInviteRequestedEvent {}
 
-/** {@inheritDoc @slack/types#StarAddedEvent} */
 export interface StarAddedEvent extends SlackStarAddedEvent {}
 
-/** {@inheritDoc @slack/types#StarRemovedEvent} */
 export interface StarRemovedEvent extends SlackStarRemovedEvent {}
 
-/** {@inheritDoc @slack/types#SubteamCreatedEvent} */
 export interface SubteamCreatedEvent extends SlackSubteamCreatedEvent {}
 
-/** {@inheritDoc @slack/types#SubteamMembersChangedEvent} */
 export interface SubteamMembersChangedEvent extends SlackSubteamMembersChangedEvent {}
 
-/** {@inheritDoc @slack/types#SubteamSelfAddedEvent} */
 export interface SubteamSelfAddedEvent extends SlackSubteamSelfAddedEvent {}
 
-/** {@inheritDoc @slack/types#SubteamSelfRemovedEvent} */
 export interface SubteamSelfRemovedEvent extends SlackSubteamSelfRemovedEvent {}
 
-/** {@inheritDoc @slack/types#SubteamUpdatedEvent} */
 export interface SubteamUpdatedEvent extends SlackSubteamUpdatedEvent {}
 
-/** {@inheritDoc @slack/types#TeamAccessGrantedEvent} */
 export interface TeamAccessGrantedEvent extends SlackTeamAccessGrantedEvent {}
 
-/** {@inheritDoc @slack/types#TeamAccessRevokedEvent} */
 export interface TeamAccessRevokedEvent extends SlackTeamAccessRevokedEvent {}
 
-/** {@inheritDoc @slack/types#TeamDomainChangeEvent} */
 export interface TeamDomainChangeEvent extends SlackTeamDomainChangeEvent {}
 
-/** {@inheritDoc @slack/types#TeamJoinEvent} */
 export interface TeamJoinEvent extends SlackTeamJoinEvent {}
 
-/** {@inheritDoc @slack/types#TeamRenameEvent} */
 export interface TeamRenameEvent extends SlackTeamRenameEvent {}
 
-/** {@inheritDoc @slack/types#ThreadBroadcastMessageEvent} */
 export interface ThreadBroadcastMessageEvent extends SlackThreadBroadcastMessageEvent {}
 
-/** {@inheritDoc @slack/types#TokensRevokedEvent} */
 export interface TokensRevokedEvent extends SlackTokensRevokedEvent {}
 
-/** {@inheritDoc @slack/types#UserChangeEvent} */
 export interface UserChangeEvent extends SlackUserChangeEvent {}
 
 export interface UserConnectionEvent extends Event<'user_connection'> {
@@ -438,28 +341,20 @@ export interface UserGuestStatusChangedEvent extends Event<'user_guest_status_ch
 	cache_ts?: number
 }
 
-/** {@inheritDoc @slack/types#UserHuddleChangedEvent} */
 export interface UserHuddleChangedEvent extends SlackUserHuddleChangedEvent {}
 
-/** {@inheritDoc @slack/types#UserProfileChangedEvent} */
 export interface UserProfileChangedEvent extends SlackUserProfileChangedEvent {}
 
-/** {@inheritDoc @slack/types#UserStatusChangedEvent} */
 export interface UserStatusChangedEvent extends SlackUserStatusChangedEvent {}
 
-/** {@inheritDoc @slack/types#WorkflowDeletedEvent} */
 export interface WorkflowDeletedEvent extends SlackWorkflowDeletedEvent {}
 
-/** {@inheritDoc @slack/types#WorkflowPublishedEvent} */
 export interface WorkflowPublishedEvent extends SlackWorkflowPublishedEvent {}
 
-/** {@inheritDoc @slack/types#WorkflowStepDeletedEvent} */
 export interface WorkflowStepDeletedEvent extends SlackWorkflowStepDeletedEvent {}
 
-/** {@inheritDoc @slack/types#WorkflowStepExecuteEvent} */
 export interface WorkflowStepExecuteEvent extends SlackWorkflowStepExecuteEvent {}
 
-/** {@inheritDoc @slack/types#WorkflowUnpublishedEvent} */
 export interface WorkflowUnpublishedEvent extends SlackWorkflowUnpublishedEvent {}
 
 export type MessageEvent =
