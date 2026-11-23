@@ -36,14 +36,31 @@ export interface Block<Type extends string = string> {
 	block_id?: string
 }
 
+/** {@inheritDoc @slack/types#ActionsBlockElement} */
+export type ActionsBlockElement = Extract<
+	KnownElement,
+	{ type: SlackActionsBlock['elements'][number]['type'] }
+>
+
 /** {@inheritDoc @slack/types#ActionsBlock} */
-export interface ActionsBlock extends SlackActionsBlock {}
+export interface ActionsBlock extends StrictOmit<SlackActionsBlock, 'elements'> {
+	/** {@inheritDoc @slack/types#ActionsBlock.elements} */
+	elements: ActionsBlockElement[]
+}
 
 /** {@inheritDoc @slack/types#AlertBlock} */
 export interface AlertBlock extends SlackAlertBlock {}
 
+export type CardBlockAction = Extract<
+	KnownElement,
+	{ type: (SlackCardBlock['actions'] & {})[number]['type'] }
+>
+
 /** {@inheritDoc @slack/types#CardBlock} */
-export interface CardBlock extends SlackCardBlock {}
+export interface CardBlock extends StrictOmit<SlackCardBlock, 'actions'> {
+	/** {@inheritDoc @slack/types#CardBlock.actions} */
+	actions?: CardBlockAction[]
+}
 
 /** {@inheritDoc @slack/types#CarouselBlock} */
 export interface CarouselBlock extends SlackCarouselBlock {}
