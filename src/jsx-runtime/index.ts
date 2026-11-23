@@ -21,19 +21,15 @@ export declare namespace JSX {
 		children: {}
 	}
 
-	interface IntrinsicAttributes {
-		children?: any
-	}
-
 	interface IntrinsicElements {
-		a: { href: string }
-		b: {}
-		strong: {}
-		i: {}
-		em: {}
-		u: {}
-		s: {}
-		del: {}
-		code: {}
+		a: { children?: any; href: string }
+		b: { children?: any }
+		strong: { children?: any }
+		i: { children?: any }
+		em: { children?: any }
+		u: { children?: any }
+		s: { children?: any }
+		del: { children?: any }
+		code: { children?: any }
 	}
 }
